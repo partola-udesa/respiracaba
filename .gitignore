@@ -1,0 +1,13 @@
+# ⚠️ Reemplazar por el .gitignore que provee la cátedra y agregarle el bloque "RESPIRA" de abajo.
+
+# --- RESPIRA: datasets pesados (>50 MB) — se descargan desde el link del readme ---
+datasets/arbolado-publico-lineal-2017-2018.csv
+
+# --- Claves y entorno ---
+.env
+*.key
+
+# --- Sistema ---
+.DS_Store
+Thumbs.db
+__pycache__/
