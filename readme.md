@@ -28,8 +28,8 @@ El detalle de cada dataset (columnas, unidades y transformaciones) está en [`da
 | Arbolado público lineal 2017–2018 ⚠️ | GCBA – Buenos Aires Data | https://cdn.buenosaires.gob.ar/datosabiertos/datasets/atencion-ciudadana/arbolado-publico-lineal/arbolado-publico-lineal-2017-2018.csv | AAAA-MM-DD |
 | Arbolado en espacios verdes | GCBA – Buenos Aires Data | https://data.buenosaires.gob.ar/dataset/arbolado-espacios-verdes | AAAA-MM-DD |
 | Conteo vehicular | GCBA – Buenos Aires Data | https://data.buenosaires.gob.ar/dataset/conteo-vehicular | AAAA-MM-DD |
-| Precio m² venta 2 amb. usados por barrio (MI_DVP_AX03) | IDECBA | _completar_ | AAAA-MM-DD |
-| Precio m² venta 3 amb. usados por comuna (MI_DVP_AX08) | IDECBA | _completar_ | AAAA-MM-DD |
+| Precio m² venta 2 amb. usados por barrio (MI_DVP_AX03) | IDECBA | https://www.estadisticaciudad.gob.ar/eyc/banco-datos/precio-promedio-de-publicacion-del-metro-cuadrado-dolares-de-departamentos-en-venta-de-2-ambientes-usados-por-barrio-ciudad-de-buenos-aires-4to-trimestre-de-2006-2do-trimestre-de-2024/ | AAAA-MM-DD |
+| Precio m² venta 3 amb. usados por comuna (MI_DVP_AX08) | IDECBA | https://www.estadisticaciudad.gob.ar/eyc/banco-datos/precio-promedio-de-publicacion-del-metro-cuadrado-dolares-de-departamentos-en-venta-de-3-ambientes-usados-por-comuna-ciudad-de-buenos-aires-1er-trimestre-de-2015-2do-trimestre-de-2024/ | AAAA-MM-DD |
 | Nacimientos por comuna (Nac_Co) | IDECBA | https://www.estadisticaciudad.gob.ar/eyc/?p=59650 | AAAA-MM-DD |
 
 ⚠️ **Archivos pesados que no están en el repo:** `arbolado-publico-lineal-2017-2018.csv` pesa 60 MB. Se descarga del link de la tabla y se guarda en `datasets/` con ese mismo nombre.
