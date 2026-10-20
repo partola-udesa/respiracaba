@@ -14,7 +14,12 @@ Qué contiene cada dataset de `datasets/`, qué significa cada columna, en qué 
 | `era5_meteo_caba.csv` | Control: viento, temperatura, humedad | 2018-07 → 2026-08, diario | CABA | — |
 | `arbolado-publico-lineal-2017-2018.csv` ⚠️ no está en git | Cobertura vegetal + especies alergénicas | 2017–2018 | 15 comunas (árbol a árbol) | — |
 | `arbolado-en-espacios-verdes.csv` | Cobertura vegetal en parques | 2011 | Árbol a árbol, sin comuna | — |
-| `conteo-vehicular.csv` | Flujo vehicular | 2018–2019, días sueltos | 49 cruces, sin coordenadas | — |
+| `conteo-vehicular.csv` | Flujo vehicular | 2018–2019, días sueltos | 49 cruces (11 comunas) | `conteo-vehicular__con_comuna.csv` |
+| `medicion_de_ruido_diurno_2018.csv` / `medicion_de_ruido_nocturno_2018.csv` ⚠️ no están en git | Ruido (resta) | 2018 | Zonas dentro de las 15 comunas | `medicion_de_ruido_2018__promedio_por_comuna.csv` |
+| `osm_vias_principales_caba.json` | Presión vial (reemplaza a flujo vehicular) | Estado de OSM al 2026-10-20 | Tramos de vía, 15 comunas | `osm_vias_principales_caba__presion_vial_por_comuna.csv` |
+| (combinación de los dos anteriores) | **Presión vial final**, día y noche | — | 15 comunas | `osm_vias_principales_caba__presion_vial_combinada_con_colectivos.csv` |
+| GTFS de colectivos ⚠️ no está en git | Presión vial: tránsito pesado, día y noche | Sept.–dic. 2019 | Paradas, 15 comunas | `colectivos-gtfs__pasadas_por_comuna_dia_noche.csv` |
+| `comunas.zip` | Límites de las 15 comunas (shapefile, WGS84) | 2026 | 15 comunas | — |
 | `MI_DVP_AX03.xlsx` | Valor del inmueble (2 amb.) | 2006 T4 → 2026 T2 | Barrio | `MI_DVP_AX03__formato_csv.csv` |
 | `MI_DVP_AX08.xlsx` | Valor del inmueble (3 amb.) | 2015 T1 → 2026 T2 | Comuna | `MI_DVP_AX08__formato_csv.csv` |
 | `Nac_Co.xlsx` | Natalidad | 2006–2025 | Comuna | `Nac_Co__formato_csv.csv` |
@@ -28,7 +33,7 @@ Qué contiene cada dataset de `datasets/`, qué significa cada columna, en qué 
 | **Archivo** | `datasets/no2_comunas_mensual.csv` |
 | **Fuente** | Copernicus Sentinel-5P / TROPOMI, exportado desde Google Earth Engine, promediado sobre los polígonos de comunas |
 | **Script** | `codigo/` ← subir el script de GEE |
-| **Fecha de descarga** | AAAA-MM-DD ← completar |
+| **Fecha de descarga** | 2026-10-05 (fecha del archivo descargado) |
 | **Cobertura temporal** | 2018-07 a 2026-08 (98 meses) |
 | **Cobertura espacial** | Las 15 comunas, completas (98 meses × 15 comunas) |
 | **Tamaño** | 1.470 filas × 11 columnas |
@@ -61,7 +66,7 @@ Qué contiene cada dataset de `datasets/`, qué significa cada columna, en qué 
 | **Archivo** | `datasets/no2_estaciones_diario.csv` |
 | **Fuente** | Copernicus Sentinel-5P / TROPOMI, exportado desde Google Earth Engine. Colección: `COPERNICUS/S5P/OFFL/L3_NO2` ← confirmar en el script |
 | **Script** | `codigo/` ← subir el script de GEE |
-| **Fecha de descarga** | AAAA-MM-DD ← completar |
+| **Fecha de descarga** | 2026-10-05 (fecha del archivo descargado) |
 | **Cobertura temporal** | 08-07-2018 a 30-08-2026, diario, con huecos (días nublados o sin pasada del satélite) |
 | **Cobertura espacial** | Alrededor de 3 estaciones APrA: Córdoba, Centenario y La Boca |
 | **Tamaño** | 7.166 filas × 5 columnas (~2.390 días por estación) |
@@ -91,7 +96,7 @@ Qué contiene cada dataset de `datasets/`, qué significa cada columna, en qué 
 | **Archivo** | `datasets/era5_meteo_caba.csv` |
 | **Fuente** | ECMWF ERA5, exportado desde Google Earth Engine. Colección: `ECMWF/ERA5_LAND/HOURLY` o `ECMWF/ERA5/HOURLY` ← confirmar en el script |
 | **Script** | `codigo/` ← subir el script de GEE que generó este archivo |
-| **Fecha de descarga** | AAAA-MM-DD ← completar |
+| **Fecha de descarga** | 2026-10-05 (fecha del archivo descargado) |
 | **Cobertura temporal** | 01-07-2018 a 31-08-2026, diario, horas 16, 17 y 18 UTC |
 | **Cobertura espacial** | CABA (un solo valor para toda la ciudad) |
 | **Tamaño** | 8.952 filas × 8 columnas (2.984 días × 3 horas) |
@@ -125,7 +130,7 @@ Qué contiene cada dataset de `datasets/`, qué significa cada columna, en qué 
 | **Archivo** | `datasets/arbolado-publico-lineal-2017-2018.csv` |
 | **Fuente** | GCBA – Buenos Aires Data · https://data.buenosaires.gob.ar/dataset/arbolado-publico-lineal |
 | **Descarga directa** | https://cdn.buenosaires.gob.ar/datosabiertos/datasets/atencion-ciudadana/arbolado-publico-lineal/arbolado-publico-lineal-2017-2018.csv |
-| **Fecha de descarga** | AAAA-MM-DD ← completar |
+| **Fecha de descarga** | 2026-09-22 (fecha del archivo descargado) |
 | **Cobertura temporal** | Censo 2017–2018 |
 | **Cobertura espacial** | Árboles de vereda de las 15 comunas |
 | **Tamaño** | 370.180 filas × 18 columnas · 60 MB |
@@ -161,7 +166,7 @@ Qué contiene cada dataset de `datasets/`, qué significa cada columna, en qué 
 |---|---|
 | **Archivo** | `datasets/arbolado-en-espacios-verdes.csv` |
 | **Fuente** | GCBA – Buenos Aires Data · https://data.buenosaires.gob.ar/dataset/arbolado-espacios-verdes |
-| **Fecha de descarga** | AAAA-MM-DD ← completar |
+| **Fecha de descarga** | 2026-09-15 (fecha del archivo descargado) |
 | **Cobertura temporal** | Censo 2011 (no se actualiza) |
 | **Cobertura espacial** | Árboles dentro de parques y plazas de CABA (no incluye árboles de vereda) |
 | **Tamaño** | 51.502 filas × 17 columnas · 13,8 MB |
@@ -191,17 +196,133 @@ Qué contiene cada dataset de `datasets/`, qué significa cada columna, en qué 
 
 ---
 
+## Mapa de Ruido 2018 (diurno y nocturno)
+
+> ⚠️ **Los archivos NO están en el repositorio** porque pesan 73 MB y 67 MB. Para usarlos, descargalos del link del readme y guardalos en `datasets/` con el mismo nombre. Git los ignora porque están en `.gitignore`.
+
+| | |
+|---|---|
+| **Archivos** | `datasets/medicion_de_ruido_diurno_2018.csv`, `datasets/medicion_de_ruido_nocturno_2018.csv` |
+| **Fuente** | APrA / DGEVA – GCBA, Buenos Aires Data · https://data.buenosaires.gob.ar/dataset/mapa-ruido (recursos "2018 - Medición de Ruido Diurno (CSV)" y "2018 - Medición de Ruido Nocturno (CSV)") · Licencia CC-BY-2.5-AR |
+| **Fecha de descarga** | 2026-09-22 (fecha del archivo descargado) |
+| **Cobertura temporal** | 2018. Dos franjas: diurna (7:01 a 22:00 h) y nocturna (22:01 a 7:00 h), según la página del Mapa de Ruido de GCBA |
+| **Cobertura espacial** | Las 15 comunas, divididas en zonas (polígonos) |
+| **Tamaño** | Diurno: 167 filas · Nocturno: 149 filas |
+| **Uso en RESPIRA** | Componente "ruido" del índice (resta) |
+
+### Columnas
+| Columna | Descripción |
+|---|---|
+| `wkt` | Geometría de la zona (polígono, coordenadas WGS84) |
+| `limite_inferior_rango_db`, `limite_superior_rango_db` | Rango de ruido de la zona, en dBA |
+| `comuna` | Número de comuna (1–15) |
+| `leyenda`, `rango_db` | Rango en texto (ej. "65-70 dBA") |
+| `color` | Color del mapa original |
+| `periodo` | "Diurno" o "Nocturno" |
+
+### Observaciones
+- Es un **mapa modelado**, no una serie de mediciones: no tiene fechas ni horas.
+- Modela el ruido sobre la **vía pública**: las zonas cubren entre el 22 y el 33 % de la superficie de cada comuna.
+- El diurno trae **duplicadas exactas las 10 zonas de la Comuna 10**, más una zona de la Comuna 9. El script las elimina.
+- El portal publica dos años: **2018 y 2025**. Los archivos sin año (`medicion_de_ruido_diurno.csv` / `_nocturno.csv`) son la versión 2025. Se eligió 2018 porque en la descarga de 2025 (22-09-2026) la Comuna 1 está casi vacía (2 zonas, 0,03 km²). Se volvió a bajar el 2026-10-19 y sigue igual.
+
+### Versión procesada: `datasets_procesados/medicion_de_ruido_2018__promedio_por_comuna.csv`
+- **Script:** `codigo/ruido_promedio_por_comuna.py`
+- **Transformación:** una fila por comuna con `dba_dia`, `dba_noche` y `diferencia_dia_noche`, más superficie mapeada, cobertura y cantidad de zonas para control.
+- **Método:** a cada zona se le asigna el punto medio de su rango y se promedia ponderando por la superficie de la zona (área calculada desde `wkt`). La ponderación es sobre la superficie mapeada, no sobre la superficie total de la comuna.
+- **Limitación:** es un promedio aritmético de dB. Sirve para comparar comunas entre sí, pero no es el promedio energético, que sería el acústicamente exacto.
+
+---
+
+## Vías principales de OpenStreetMap (presión vial)
+
+| | |
+|---|---|
+| **Archivo** | `datasets/osm_vias_principales_caba.json` |
+| **Fuente** | OpenStreetMap, descargado con Overpass API (https://overpass-api.de). Licencia ODbL: hay que citar "© colaboradores de OpenStreetMap" |
+| **Consulta** | `codigo/overpass_vias_principales_caba.overpassql`: vías `motorway`, `trunk`, `primary`, `secondary` y sus ramales (`_link`) dentro del límite de CABA |
+| **Fecha de descarga** | 2026-10-20 (estado de la base OSM: 2026-10-20 02:32 UTC) |
+| **Cobertura** | Las 15 comunas, con el mismo método |
+| **Tamaño** | 7.517 tramos de vía (5 MB) |
+| **Uso en RESPIRA** | Componente "presión vial" del índice (resta). Reemplaza a "flujo vehicular" |
+
+### Observaciones
+- **No mide autos que pasan, sino cuánta vía de tránsito intenso hay** (exposición vial). Se eligió porque es la única fuente que cubre las 15 comunas de forma pareja (ver `decisiones.md`).
+- OSM es un mapa colaborativo. La diferencia entre `primary` y `secondary` no siempre es consistente entre barrios (ej.: la Comuna 12 no tiene ninguna avenida marcada `primary`), así que conviene usar el total y no cada clase por separado.
+- Las avenidas doble mano con boulevard están dibujadas como dos líneas (una por mano), así que suman su largo dos veces.
+- La General Paz y la costanera van por el borde de la ciudad: solo cuenta la parte que cae dentro del polígono de cada comuna.
+
+### Versión procesada: `datasets_procesados/osm_vias_principales_caba__presion_vial_por_comuna.csv`
+- **Script:** `codigo/presion_vial_por_comuna.py`
+- **Transformación:** una fila por comuna con los km de autopistas, avenidas principales y avenidas secundarias que caen dentro de la comuna, y los km por km² (total, autopistas y avenidas).
+- **Indicador para el índice:** `km_por_km2_total`. Va de 2,62 (Comuna 11) a 6,45 (Comuna 1).
+
+---
+
+## Presión vial combinada (red vial + colectivos)
+
+Es el valor de presión vial que usa el índice. No viene de un dataset nuevo: combina los dos procesados anteriores.
+
+| | |
+|---|---|
+| **Archivo** | `datasets_procesados/osm_vias_principales_caba__presion_vial_combinada_con_colectivos.csv` |
+| **Script** | `codigo/presion_vial_combinada.py` |
+| **Entradas** | `osm_vias_principales_caba__presion_vial_por_comuna.csv` y `colectivos-gtfs__pasadas_por_comuna_dia_noche.csv` |
+| **Uso en RESPIRA** | Componente "presión vial" del índice (resta), con valor de día y de noche para el carrusel |
+
+### Método
+1. Cada indicador se expresa **relativo al promedio de la Ciudad** (total de CABA dividido por la superficie de CABA). Promedios: red vial 4,13 km/km², colectivos 871 pasadas/h/km² de día y 405 de noche.
+2. **Mismo peso para las dos medidas:** presión vial = 0,5 × red vial relativa + 0,5 × colectivos relativos. La red vial es igual de día y de noche; los colectivos cambian.
+3. El resultado se informa también como **% sobre o bajo el promedio de la Ciudad**.
+
+### Columnas
+| Columna | Descripción | Unidad |
+|---|---|---|
+| `comuna` | Número de comuna | 1–15 |
+| `red_vial_km_por_km2` | Km de autopistas y avenidas por km² | km/km² |
+| `colectivos_dia_por_hora_km2`, `colectivos_noche_por_hora_km2` | Pasadas de colectivo por hora y por km² | pasadas/h/km² |
+| `red_vial_rel`, `colectivos_dia_rel`, `colectivos_noche_rel` | Cada indicador dividido por el promedio de CABA | 1 = promedio de la Ciudad |
+| `presion_vial_dia`, `presion_vial_noche` | Combinación con el mismo peso | 1 = promedio de la Ciudad |
+| `presion_vial_dia_vs_caba_pct`, `presion_vial_noche_vs_caba_pct` | Lo mismo, en % sobre (+) o bajo (−) el promedio | % |
+
+### Observaciones
+- Rango de día: de −27 % (Comuna 11) a +52 % (Comuna 1). Rango de noche: de −27 % (Comuna 11) a +48 % (Comuna 1).
+- Los pesos (50/50) están al principio del script (`PESO_RED_VIAL`, `PESO_COLECTIVOS`) para poder cambiarlos y regenerar el archivo.
+
+---
+
+## GTFS de colectivos (pasadas por comuna, día y noche)
+
+> ⚠️ **No está en el repositorio:** pesa 209 MB comprimido y 1,4 GB descomprimido. Se descarga del link del readme.
+
+| | |
+|---|---|
+| **Archivo** | `colectivos-gtfs.zip` (GTFS: `stops.txt`, `trips.txt`, `stop_times.txt`, `calendar_dates.txt`, etc.) |
+| **Fuente** | Buenos Aires Data, dataset "colectivos-gtfs" · https://data.buenosaires.gob.ar/dataset/colectivos-gtfs |
+| **Fecha de descarga** | 2026-10-20 |
+| **Cobertura temporal** | Programación de sept.–dic. 2019. Es lo último publicado: el portal indica que el dataset está "en revisión y corrección" |
+| **Cobertura espacial** | Líneas que circulan por el AMBA. Se usan solo las paradas que caen dentro de CABA |
+| **Uso en RESPIRA** | Componente "presión vial": indicador de tránsito pesado, separado en día y noche como el ruido |
+
+### Versión procesada: `datasets_procesados/colectivos-gtfs__pasadas_por_comuna_dia_noche.csv`
+- **Script:** `codigo/colectivos_por_comuna_dia_noche.py`
+- **Transformación:** para un día hábil (servicio de lunes a viernes, 145.990 viajes), cada vez que un colectivo pasa por una parada suma 1 a la comuna de la parada. Se separa en **día (7 a 22 h)** y **noche (22 a 7 h)**, las mismas franjas del Mapa de Ruido, y se normaliza por km² y por hora.
+- **Indicadores para el índice:** `pasadas_por_hora_dia_por_km2` y `pasadas_por_hora_noche_por_km2`. De día van de 372 (Comuna 8) a 1.795 (Comuna 3).
+- **Limitaciones:** es la programación de 2019, previa a la pandemia y a los recortes de servicio de 2026. Mide colectivos *programados*, no los que efectivamente pasaron. Las comunas con paradas más juntas suman más pasadas.
+
+---
+
 ## Conteo vehicular por cruce
 
 | | |
 |---|---|
 | **Archivo** | `datasets/conteo-vehicular.csv` |
 | **Fuente** | GCBA – Buenos Aires Data · https://data.buenosaires.gob.ar/dataset/conteo-vehicular |
-| **Fecha de descarga** | AAAA-MM-DD ← completar |
+| **Fecha de descarga** | 2026-09-15 (fecha del archivo descargado) |
 | **Cobertura temporal** | 15-03-2018 a 23-07-2019 (23 días puntuales de conteo) |
 | **Cobertura espacial** | 49 cruces de CABA |
 | **Tamaño** | 257 filas × 8 columnas |
-| **Uso en RESPIRA** | Componente "flujo vehicular" del índice (resta) |
+| **Uso en RESPIRA** | Capa de contexto en el mapa (vehículos por hora en cada cruce). **No entra al índice**: ver `decisiones.md` (2026-10-19) |
 
 ### Columnas
 | Columna | Descripción |
@@ -215,11 +336,20 @@ Qué contiene cada dataset de `datasets/`, qué significa cada columna, en qué 
 | `observaciones` | Notas, por ejemplo "NO SE CONTARON COLECTIVOS POR METROBUS" |
 
 ### Observaciones
-- **No trae coordenadas ni comuna.** Para ubicar los cruces en el mapa hay que geolocalizarlos a partir del texto.
+- **No trae coordenadas ni comuna.** Se ubicaron con `codigo/ubicar_cruces_conteo_vehicular.py` (ver abajo).
 - Los conteos son puntuales: un día y algunas horas por cruce. No sirven como serie temporal, ni cubren las 15 comunas de forma pareja.
 - 8 filas tienen `colectivos = "-"` (los de Av. Cabildo, por el Metrobus). Por eso la columna queda como texto.
 - 2 filas de Dellepiane y Lacarra cubren la franja de 9 a 17 h en vez de 1 hora: no son comparables con el resto.
 - Los nombres de los cruces tienen espacios dobles y formatos distintos.
+- Tiene errores de tipeo: "DELLEPIENE" (Dellepiane) y "ELIPIDIO" (Elpidio González). El script los corrige.
+
+### Versión procesada: `datasets_procesados/conteo-vehicular__con_comuna.csv`
+- **Script:** `codigo/ubicar_cruces_conteo_vehicular.py`
+- **Transformación:** mantiene las 257 filas y las 8 columnas originales y agrega `lat`, `lon`, `comuna`, `dist_arboles_m` y `calidad_ubicacion`.
+- **Método (sin servicios externos):** cada calle del cruce se busca en el Arbolado Público Lineal 2017–2018, que trae calle y coordenadas de cada árbol. El cruce se ubica en el punto medio del par de árboles más cercanos entre las dos calles, y la comuna sale de ubicar ese punto dentro de `comunas.zip`.
+- **Calidad:** 47 de los 49 cruces quedaron a menos de 65 m (casi todos a menos de 25 m) y se marcan `ok`. Dos tienen pocos árboles cerca y se marcan `revisar`: Elcano y Guzmán (408 m) y Lacroze y Triunvirato (572 m). Igual quedan en la Comuna 15, que es correcta.
+- **Cobertura resultante:** 11 comunas (4, 5, 6, 7, 8, 9, 10, 11, 12, 13 y 15). Faltan la 1, la 2, la 3 y la 14. La cobertura es despareja: las comunas 6 y 10 tienen 11 cruces cada una, y la 7, la 8 y la 11 tienen uno solo.
+- Los cruces sobre avenidas límite (La Plata, Rivadavia) quedan en la comuna donde cae el punto, pero en la práctica afectan a las dos.
 
 ---
 
@@ -229,7 +359,7 @@ Qué contiene cada dataset de `datasets/`, qué significa cada columna, en qué 
 |---|---|
 | **Archivo** | `datasets/MI_DVP_AX03.xlsx` → procesado: `datasets_procesados/MI_DVP_AX03__formato_csv.csv` |
 | **Fuente** | Instituto de Estadística y Censos CABA (IDECBA), Banco de datos → Mercado inmobiliario → Ventas. Datos de Buscainmueble (hasta 2011), Adinco (2011–2015) y Argenprop (desde 2015) · https://www.estadisticaciudad.gob.ar ← pegar el link exacto |
-| **Fecha de descarga** | AAAA-MM-DD ← completar |
+| **Fecha de descarga** | 2026-10-05 (fecha del archivo descargado) |
 | **Cobertura temporal** | 4.º trimestre 2006 a 2.º trimestre 2026, trimestral |
 | **Cobertura espacial** | 48 barrios + total de la Ciudad |
 | **Tamaño** | Hoja `MI_DVP_AX03` (~90 filas × 215 columnas) + hoja `Ficha Técnica` |
@@ -264,7 +394,7 @@ Qué contiene cada dataset de `datasets/`, qué significa cada columna, en qué 
 |---|---|
 | **Archivo** | `datasets/MI_DVP_AX08.xlsx` → procesado: `datasets_procesados/MI_DVP_AX08__formato_csv.csv` |
 | **Fuente** | Instituto de Estadística y Censos CABA (IDECBA), Banco de datos → Mercado inmobiliario → Ventas. Datos de Adinco (hasta junio 2015) y Argenprop · https://www.estadisticaciudad.gob.ar ← pegar el link exacto |
-| **Fecha de descarga** | AAAA-MM-DD ← completar |
+| **Fecha de descarga** | 2026-10-06 (fecha del archivo descargado) |
 | **Cobertura temporal** | 1.er trimestre 2015 a 2.º trimestre 2026, trimestral |
 | **Cobertura espacial** | 15 comunas + total de la Ciudad |
 | **Tamaño** | Hoja `MI_DVP_AX08` (~37 filas × 47 columnas) + hoja `Ficha Técnica` |
@@ -297,7 +427,7 @@ Qué contiene cada dataset de `datasets/`, qué significa cada columna, en qué 
 |---|---|
 | **Archivo** | `datasets/Nac_Co.xlsx` → procesado: `datasets_procesados/Nac_Co__formato_csv.csv` |
 | **Fuente** | Instituto de Estadística y Censos CABA (IDECBA), Estadísticas vitales · https://www.estadisticaciudad.gob.ar/eyc/?p=59650 |
-| **Fecha de descarga** | AAAA-MM-DD ← completar |
+| **Fecha de descarga** | 2026-10-05 (fecha del archivo descargado) |
 | **Cobertura temporal** | 2006–2025, anual (año de inscripción) |
 | **Cobertura espacial** | 15 comunas + total de la Ciudad |
 | **Tamaño** | Hoja `Nac_Co` (~21 filas × 21 columnas) + hoja `Ficha Técnica` |
