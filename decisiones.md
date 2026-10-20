@@ -9,6 +9,16 @@ Qué probamos, qué descartamos y por qué. La entrada más nueva va arriba.
 - **Alternativa descartada:** …
 -->
 
+## 2026-10-20 — Prototipo de baja fidelidad v2
+- **Qué:** Segunda iteración del wireframe (`diseno/prototipos/prototipo_v2/`), con dos pantallas nuevas: "Cómo se calcula el índice" y "Comparar comunas". Cambios de criterio:
+  - cada dato duro muestra su valor en la unidad propia y la comparación con el promedio de CABA;
+  - el verde se expresa como % de la superficie;
+  - los alérgenos se personalizan según la especie que indica el usuario;
+  - la natalidad se muestra como contexto y como base de la tendencia de valor.
+- **Por qué:** el índice se arma comparando cada componente con el promedio de la Ciudad, así que la interfaz tiene que mostrar esa comparación. No hay población por comuna para calcular el verde por habitante. La natalidad es una variable de la hipótesis y no aparecía en la v1.
+- **Corrección:** en la v1, la IA estimaba "demanda sostenida" de 3 ambientes, pero la natalidad bajó 26 % en CABA desde 2020 (36 % en la Comuna 12). En la v2 la tendencia pasa a "estable".
+- **Alternativa descartada:** modificar la v1. Se mantiene intacta para poder comparar las iteraciones.
+
 ## 2026-10-19 — Presión vial: cómo se combinan red vial y colectivos
 - **Qué:** La presión vial de cada comuna es el promedio, **con el mismo peso (50/50)**, de dos indicadores expresados relativos al promedio de la Ciudad:
   - km de autopistas y avenidas por km² (OpenStreetMap);
