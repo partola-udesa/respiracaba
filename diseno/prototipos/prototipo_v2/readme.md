@@ -1,7 +1,7 @@
 # Prototipo v2 — Baja fidelidad (iteración)
 
 🔗 **Figma:** https://www.figma.com/design/pDBZl9D6xiCBlijixOmvzz/respiracaba?node-id=41-2
-(página "Baja fidelidad v2" del archivo `respiracaba`; la v1 queda intacta en la página "Baja fidelidad")
+(página "Baja fidelidad v2 y v3" del archivo `respiracaba`, parte de arriba; la v1 queda intacta en la página "Baja fidelidad")
 
 **Fecha:** 2026-10-20
 **Etapa:** Entrega 2 — prototipo de baja fidelidad, segunda iteración.

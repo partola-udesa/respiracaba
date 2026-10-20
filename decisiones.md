@@ -9,6 +9,13 @@ Qué probamos, qué descartamos y por qué. La entrada más nueva va arriba.
 - **Alternativa descartada:** …
 -->
 
+## 2026-10-20 — Prototipo v3: lecturas primero, dato duro al pasar el mouse
+- **Qué:** Cada dato se muestra como una lectura en lenguaje simple más la posición de la comuna entre las 15. El dato duro (valor, fuente, promedio de CABA y referencia) aparece al pasar el mouse. "Para ustedes" queda como inferencia de la IA. El precio se traduce a un departamento concreto (m² × 70 m²).
+- **Por qué:** para la familia usuaria, un número como "62,7 dBA" no significa nada. La lectura se calcula con una regla fija según la posición (1–3 entre las mejores, 4–6 mejor que el promedio, 7–9 en el promedio, 10–12 peor, 13–15 entre las peores), así que es reproducible y no es inferencia del LLM. Esto mantiene la distinción dato duro / inferencia que pide la rúbrica.
+- **Referencia de ruido:** OMS, Guías de ruido ambiental (2018), para tránsito: menos de 45 dB de noche y menos de 53 dB como promedio ponderado de 24 h. En la calle, ninguna comuna la cumple, así que la lectura compara entre comunas.
+- **Alternativa descartada:** mostrar solo el número con un ⓘ (v2). También que la IA escriba cada lectura: sería menos reproducible y mezclaría dato e inferencia.
+- **Nota técnica:** el plan Starter de Figma permite 3 páginas por archivo, así que la v3 está en la misma página que la v2, debajo.
+
 ## 2026-10-20 — Prototipo de baja fidelidad v2
 - **Qué:** Segunda iteración del wireframe (`diseno/prototipos/prototipo_v2/`), con dos pantallas nuevas: "Cómo se calcula el índice" y "Comparar comunas". Cambios de criterio:
   - cada dato duro muestra su valor en la unidad propia y la comparación con el promedio de CABA;
