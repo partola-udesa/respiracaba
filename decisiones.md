@@ -9,6 +9,18 @@ Qué probamos, qué descartamos y por qué. La entrada más nueva va arriba.
 - **Alternativa descartada:** …
 -->
 
+## 2026-10-25 — Prototipo funcional de prueba (`app/index.html`)
+- **Qué:** Primera versión web navegable con datos reales de las 15 comunas. Sigue el flujo de la v3: búsqueda → resultados (mapa + ranking de 3) → detalle con lecturas → comparar → cómo se calcula. La IA convierte el texto libre en filtros, da la recomendación final, explica cada comuna ("Para ustedes") y responde en el chat. Los prompts están versionados en `prompts/prompts_v1.md`.
+- **Índice provisorio:**
+  - cada componente se expresa en % respecto del promedio de CABA, sin escala 0–100;
+  - el ruido se convierte a sonoridad percibida: 2^((dB CABA − dB comuna) ÷ 10) − 1, es decir que 10 dB menos se perciben como la mitad de ruido;
+  - cada componente tiene un tope de ±100 %, para que el verde de la Comuna 1 (Reserva Ecológica) no domine;
+  - pesos iniciales por etapa familiar (aire / verde / arbolado / ruido / vial): sin hijos 25/20/15/20/20 · esperando un bebé 30/15/15/25/15 · hijos chicos 25/20/15/25/15 · hijos grandes 25/25/15/15/20.
+- **Resultado:** con la búsqueda de ejemplo (3 amb., hasta USD 190.000, esperando un bebé, noche) el ranking da 12 → 13 → 10, distinto del 12 → 11 → 9 de ejemplo de los prototipos.
+- **Lecturas propias para contexto:** precio ("entre las más baratas"…) y nacimientos ("entre las que más bajaron"…), para no presentar una baja de nacimientos como algo "peor".
+- **Limitación:** la IA funciona solo dentro de Claude (capacidad `sample` de los artifacts). Publicada en Netlify, la búsqueda usa reglas simples y los bloques de IA muestran que no está disponible.
+- **A revisar con el equipo:** la conversión de ruido, el tope de ±100 % y los pesos.
+
 ## 2026-10-20 — Prototipo v3: lecturas primero, dato duro al pasar el mouse
 - **Qué:** Cada dato se muestra como una lectura en lenguaje simple más la posición de la comuna entre las 15. El dato duro (valor, fuente, promedio de CABA y referencia) aparece al pasar el mouse. "Para ustedes" queda como inferencia de la IA. El precio se traduce a un departamento concreto (m² × 70 m²).
 - **Por qué:** para la familia usuaria, un número como "62,7 dBA" no significa nada. La lectura se calcula con una regla fija según la posición (1–3 entre las mejores, 4–6 mejor que el promedio, 7–9 en el promedio, 10–12 peor, 13–15 entre las peores), así que es reproducible y no es inferencia del LLM. Esto mantiene la distinción dato duro / inferencia que pide la rúbrica.

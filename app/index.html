@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
+</head>
+<body>
+<title>RESPIRA</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: app de una sola página, desktop primero. Barra superior fija, flujo Buscar → Resultados (mapa + ranking) → Detalle → Comparar → Cómo se calcula → Proyecto. Paleta del PPT del equipo: verde oscuro + coral sobre crema. */
+:root{
+  --bg:#F4F2EA; --surface:#FFFFFF; --surface-2:#ECE9DD; --fg:#1F2A1B; --muted:#5C6553; --line:#D7D3C3;
+  --green:#2E4322; --on-green:#F4F2EA; --accent:#2E4322; --coral:#EB473E; --coral-ink:#B8352D;
+  --good:#3F7A3A; --bad:#C43D33;
+  --c-3:#D9483E; --c-2:#E8857A; --c-1:#F1BDB3; --c0:#E2DFD0; --c1:#BCD0A6; --c2:#85A86A; --c3:#4F7A3A;
+  --map-stroke:#F4F2EA; --map-label:#1F2A1B;
+  --f-display:"Poppins", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Figtree", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121A12; --surface:#1A2419; --surface-2:#222E20; --fg:#ECEBDF; --muted:#A2AA97; --line:#34402F;
+  --green:#A9C98E; --on-green:#121A12; --accent:#A9C98E; --coral:#F2776E; --coral-ink:#F2918A;
+  --good:#8CC37A; --bad:#F2776E;
+  --c-3:#E0645A; --c-2:#A8544C; --c-1:#6B3E39; --c0:#3A4236; --c1:#3E5634; --c2:#577A45; --c3:#86B26B;
+  --map-stroke:#121A12; --map-label:#ECEBDF; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#121A12; --surface:#1A2419; --surface-2:#222E20; --fg:#ECEBDF; --muted:#A2AA97; --line:#34402F;
+  --green:#A9C98E; --on-green:#121A12; --accent:#A9C98E; --coral:#F2776E; --coral-ink:#F2918A;
+  --good:#8CC37A; --bad:#F2776E;
+  --c-3:#E0645A; --c-2:#A8544C; --c-1:#6B3E39; --c0:#3A4236; --c1:#3E5634; --c2:#577A45; --c3:#86B26B;
+  --map-stroke:#121A12; --map-label:#ECEBDF; color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.55}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+h1,h2,h3,h4{font-family:var(--f-display);line-height:1.2;text-wrap:balance;margin:0}
+h2{font-size:1.6rem;font-weight:600}
+h3{font-size:1.1rem;font-weight:600}
+p{margin:0}
+a{color:var(--accent)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--coral);outline-offset:2px}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.eyebrow{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.small{font-size:.86rem}
+
+/* Header */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;gap:20px;padding-block:12px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--fg)}
+.logo b{font-family:var(--f-display);font-weight:700;font-size:1.25rem;letter-spacing:.06em}
+.logo svg{width:30px;height:30px}
+nav.main{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+nav.main a{padding:6px 10px;border-radius:999px;text-decoration:none;color:var(--muted);font-size:.9rem}
+nav.main a:hover{color:var(--fg);background:var(--surface-2)}
+.tag{font-family:var(--f-mono);font-size:.7rem;border:1px solid var(--line);padding:3px 8px;border-radius:999px;color:var(--muted);white-space:nowrap}
+
+section.block{padding-block:44px;border-bottom:1px solid var(--line)}
+section.block > .wrap{display:grid;gap:24px}
+.sec-head{display:grid;gap:6px;max-width:70ch}
+.sec-head .step{font-family:var(--f-mono);font-size:.75rem;color:var(--coral-ink);letter-spacing:.06em;text-transform:uppercase}
+
+/* Hero / búsqueda */
+.hero{padding-block:40px 44px}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:40px;align-items:start}
+.hero h1{font-size:clamp(2rem,4.2vw,3.1rem);font-weight:600;letter-spacing:-.01em}
+.hero h1 em{font-style:normal;color:var(--coral-ink)}
+.hero .lede{font-size:1.05rem;max-width:56ch;color:var(--muted);margin-top:14px}
+.flow{display:flex;gap:8px;margin-top:22px;flex-wrap:wrap;align-items:center}
+.flow span{font-family:var(--f-mono);font-size:.78rem;padding:5px 10px;border-radius:999px;background:var(--surface-2)}
+.flow i{font-style:normal;color:var(--muted)}
+.search{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;display:grid;gap:16px}
+.mode{display:flex;gap:6px;background:var(--surface-2);padding:4px;border-radius:999px;width:max-content}
+.mode button{border:0;background:transparent;padding:6px 14px;border-radius:999px;cursor:pointer}
+.mode button[aria-pressed="true"]{background:var(--green);color:var(--on-green)}
+.mode button:disabled{cursor:not-allowed;color:var(--muted)}
+.mode small{font-size:.7rem;margin-left:4px}
+label.lbl{font-size:.82rem;font-weight:600;display:block;margin-bottom:6px}
+textarea{width:100%;min-height:92px;resize:vertical;border:1px solid var(--line);border-radius:var(--r);padding:12px;background:var(--bg);line-height:1.45}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{border:1px solid var(--line);background:var(--surface);padding:9px 16px;border-radius:999px;cursor:pointer;font-weight:600;font-size:.9rem;display:inline-flex;align-items:center;gap:8px}
+.btn:hover{border-color:var(--fg)}
+.btn.primary{background:var(--green);color:var(--on-green);border-color:var(--green)}
+.btn.primary:hover{filter:brightness(1.1)}
+.btn:disabled{opacity:.55;cursor:wait}
+.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.8rem}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.guided{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:.86rem}
+.seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+input[type=range]{width:100%;accent-color:var(--coral)}
+.budget-out{font-family:var(--f-mono);font-size:.95rem}
+.parse-note{font-size:.82rem}
+
+/* bloques dato duro / inferencia */
+.dd{border:1.5px solid var(--fg);border-radius:var(--r);padding:12px 14px;background:var(--surface);position:relative}
+.dd .dd-k{display:flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.dd .dd-k::before{content:"";width:8px;height:8px;background:var(--fg);display:inline-block}
+.ia{border:1.5px dashed var(--muted);border-radius:var(--r);padding:12px 14px;background:var(--surface-2)}
+.ia .ia-k{font-family:var(--f-mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:6px}
+.ia .ia-k::before{content:"✦";color:var(--coral-ink);font-size:.9rem}
+.ia .ia-text{margin-top:6px;white-space:pre-wrap}
+.ia .ia-text:empty{display:none}
+
+/* Resultados */
+.chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1.5px dashed var(--muted);border-radius:999px;padding:4px 10px;font-size:.85rem;background:var(--surface-2);cursor:pointer}
+.chip::before{content:"✦";color:var(--coral-ink);font-size:.75rem}
+.chip.rule::before{content:"⚙";color:var(--muted)}
+.results{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:28px;align-items:start}
+.mapbox{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:12px}
+.mapbox .row{justify-content:space-between}
+.mapsvg{width:100%;height:auto;display:block;max-height:560px}
+.mapsvg path{stroke:var(--map-stroke);stroke-width:1.6;cursor:pointer;transition:opacity .15s}
+.mapsvg path:hover{opacity:.82}
+.mapsvg path.sel{stroke:var(--fg);stroke-width:3}
+.mapsvg text{font-family:var(--f-mono);font-size:13px;fill:var(--map-label);pointer-events:none;text-anchor:middle;dominant-baseline:central}
+.mapsvg .badge circle{fill:var(--coral)}
+.mapsvg .badge text{fill:#fff;font-weight:500;font-size:12px}
+.legend{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.75rem}
+.legend .ramp{display:flex}
+.legend .ramp span{width:26px;height:10px}
+.legend .ramp span:first-child{border-radius:3px 0 0 3px}.legend .ramp span:last-child{border-radius:0 3px 3px 0}
+.ranking{display:grid;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:10px;cursor:pointer;text-align:left;width:100%}
+.card:hover{border-color:var(--fg)}
+.card.sel{border-color:var(--fg);box-shadow:inset 0 0 0 1px var(--fg)}
+.card-top{display:flex;gap:12px;align-items:baseline}
+.card-top .pos{font-family:var(--f-display);font-weight:700;font-size:1.6rem;color:var(--coral-ink);line-height:1}
+.card-top h3{flex:1;min-width:0}
+.card-top .idx{font-family:var(--f-mono);font-size:1.05rem;white-space:nowrap}
+.card .barrios{font-size:.82rem;color:var(--muted)}
+.card .price{font-size:.92rem}
+.card .price b{font-family:var(--f-mono);font-weight:500}
+.over{font-family:var(--f-mono);font-size:.7rem;color:var(--bad);border:1px solid currentColor;padding:1px 6px;border-radius:999px;margin-left:6px}
+.reads{display:flex;flex-wrap:wrap;gap:6px}
+.read-pill{font-size:.78rem;padding:3px 9px;border-radius:999px;background:var(--surface-2)}
+.read-pill.g{background:color-mix(in srgb,var(--good) 18%,transparent)}
+.read-pill.b{background:color-mix(in srgb,var(--bad) 16%,transparent)}
+.weights{display:grid;gap:10px}
+.weights .w{display:grid;grid-template-columns:120px 1fr 44px;gap:10px;align-items:center;font-size:.86rem}
+.weights output{font-family:var(--f-mono);text-align:right}
+details.wbox{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+details.wbox summary{cursor:pointer;font-weight:600}
+details.wbox[open] summary{margin-bottom:12px}
+
+/* Detalle */
+.detail{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:28px;align-items:start}
+.d-head{display:flex;gap:20px;align-items:flex-end;flex-wrap:wrap;justify-content:space-between}
+.d-head .big{font-family:var(--f-display);font-size:2.4rem;font-weight:600;line-height:1}
+.reads-list{display:grid;gap:0;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.lect{position:relative;display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);background:none;border-left:0;border-right:0;border-top:0;text-align:left;width:100%;cursor:help}
+.lect:last-child{border-bottom:0}
+.lect .ln{font-weight:600;font-size:.9rem}
+.lect .ln small{display:block;font-weight:400;color:var(--muted);font-size:.75rem}
+.lect .lt{font-size:.95rem}
+.dots{display:flex;gap:3px}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--fg);transform:scale(1.35)}
+.lect .posn{display:block;font-family:var(--f-mono);font-size:.75rem;color:var(--muted);margin-top:4px}
+.tip{position:absolute;z-index:5;right:12px;top:calc(100% - 8px);width:min(360px,calc(100vw - 48px));display:none;box-shadow:0 8px 24px rgba(0,0,0,.14)}
+.lect:hover .tip,.lect:focus-visible .tip,.lect[aria-expanded="true"] .tip{display:block}
+.tip .v{font-family:var(--f-mono);font-size:1.15rem;margin-top:4px}
+.tip p{font-size:.82rem;margin-top:4px}
+.lect.ctx .ln::after{content:"contexto · no entra al índice";display:block;font-family:var(--f-mono);font-size:.62rem;color:var(--muted);font-weight:400;letter-spacing:.03em;margin-top:2px}
+.side{display:grid;gap:14px}
+.spark{width:100%;height:auto;display:block}
+.spark text{font-family:var(--f-mono);font-size:10px;fill:var(--muted)}
+.spark .ln{fill:none;stroke:var(--fg);stroke-width:2}
+.spark .ar{fill:var(--fg);opacity:.08}
+.spark .grid{stroke:var(--line);stroke-width:1}
+.spark .end{fill:var(--coral)}
+.spark .endt{fill:var(--fg);font-size:11px}
+
+/* Comparar */
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{padding:10px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+tr:last-child td{border-bottom:0}
+thead th{font-family:var(--f-display);font-weight:600;background:var(--surface-2)}
+td .p{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);display:block}
+td.best{background:color-mix(in srgb,var(--good) 12%,transparent)}
+td.best::after{content:"mejor de las 3";display:block;font-family:var(--f-mono);font-size:.65rem;color:var(--good);margin-top:2px}
+.cmp-cell{cursor:help}
+
+/* Cómo se calcula */
+.formula{font-family:var(--f-mono);background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;font-size:.92rem;overflow-x:auto;line-height:1.8}
+.formula .plus{color:var(--good)}.formula .minus{color:var(--bad)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+ul.clean{margin:0;padding-left:18px;display:grid;gap:6px}
+.proto{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:8px;align-content:start}
+.proto .v{font-family:var(--f-mono);font-size:.8rem;color:var(--coral-ink)}
+.timeline{display:grid;gap:0;border-left:2px solid var(--line);margin-left:6px}
+.timeline div{padding:0 0 16px 18px;position:relative}
+.timeline div::before{content:"";position:absolute;left:-7px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--fg)}
+.timeline time{font-family:var(--f-mono);font-size:.75rem;color:var(--muted)}
+.team{display:flex;gap:10px;flex-wrap:wrap}
+.team span{padding:6px 12px;border-radius:999px;background:var(--surface-2);font-size:.88rem}
+
+footer.disc{padding-block:28px 100px;font-size:.82rem;color:var(--muted)}
+footer.disc .wrap{display:grid;gap:10px}
+
+/* Chat */
+.bubble{position:fixed;right:calc(20px + env(safe-area-inset-right,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:40;width:60px;height:60px;border-radius:50%;border:0;background:var(--green);color:var(--on-green);cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.2);font-size:1.5rem;display:grid;place-items:center}
+.chat{position:fixed;right:calc(20px + env(safe-area-inset-right,0px));bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:40;width:min(400px,calc(100vw - 32px));max-height:min(620px,calc(100vh - 140px));background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.2);display:flex;flex-direction:column;overflow:hidden}
+.chat-h{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.chat-h small{display:block;color:var(--muted);font-size:.75rem}
+.chat-b{padding:14px 16px;overflow-y:auto;display:grid;gap:10px;flex:1;align-content:start}
+.msg{max-width:92%;font-size:.9rem}
+.msg.u{justify-self:end;background:var(--green);color:var(--on-green);padding:8px 12px;border-radius:14px 14px 2px 14px}
+.msg.a{justify-self:start}
+.chat-f{border-top:1px solid var(--line);padding:10px;display:grid;gap:8px}
+.chat-f form{display:flex;gap:8px}
+.chat-f input{flex:1;min-width:0;border:1px solid var(--line);border-radius:999px;padding:8px 14px;background:var(--bg)}
+.sugs{display:flex;gap:6px;flex-wrap:wrap}
+.sugs button{font-size:.76rem;border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:3px 9px;cursor:pointer}
+.xbtn{border:0;background:transparent;font-size:1.3rem;cursor:pointer;color:var(--muted)}
+
+@media (max-width:960px){
+  .hero .wrap,.results,.detail,.grid2{grid-template-columns:1fr}
+  .grid3{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .guided{grid-template-columns:1fr}
+  .lect{grid-template-columns:1fr;gap:6px}
+  .weights .w{grid-template-columns:96px 1fr 40px}
+  nav.main{display:none}
+  h2{font-size:1.35rem}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#buscar" aria-label="RESPIRA, inicio">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="var(--green)"/><path d="M8 19c3-6 6 2 9-3s4-4 7-2" fill="none" stroke="var(--on-green)" stroke-width="2.2" stroke-linecap="round"/><path d="M8 13c3-5 6 1 9-2" fill="none" stroke="var(--coral)" stroke-width="2.2" stroke-linecap="round"/></svg>
+      <b>RESPIRA</b>
+    </a>
+    <span class="tag">Prototipo funcional · prueba</span>
+    <nav class="main" aria-label="Secciones">
+      <a href="#resultados">Resultados</a>
+      <a href="#detalle">Detalle</a>
+      <a href="#comparar">Comparar</a>
+      <a href="#indice">Cómo se calcula</a>
+      <a href="#proyecto">El proyecto</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section class="hero" id="buscar">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">Ciudad de Buenos Aires · 15 comunas</p>
+      <h1 style="margin-top:10px">¿Dónde va a <em>respirar</em> mejor tu familia?</h1>
+      <p class="lede">RESPIRA cruza calidad del aire, verde, arbolado, ruido y presión vial con el precio del m² para recomendarte tres comunas donde comprar. Cada número viene de un dataset público, y lo que interpreta la IA se marca aparte.</p>
+      <div class="flow" aria-label="Flujo de la app"><span>Explorar</span><i>→</i><span>Entender</span><i>→</i><span>Decidir</span></div>
+      <div class="row" style="margin-top:22px;gap:12px">
+        <div class="dd" style="flex:1;min-width:200px"><div class="dd-k">Dato duro</div><p class="small" style="margin-top:4px">Calculado a partir de los datasets. Borde sólido.</p></div>
+        <div class="ia" style="flex:1;min-width:200px"><div class="ia-k">Inferencia de la IA</div><p class="small" style="margin-top:4px">Interpretación o recomendación del modelo. Borde punteado.</p></div>
+      </div>
+    </div>
+
+    <form class="search" id="searchForm" autocomplete="off">
+      <div class="mode" role="group" aria-label="Operación">
+        <button type="button" aria-pressed="true">Comprar</button>
+        <button type="button" disabled>Alquilar <small>próximamente</small></button>
+      </div>
+      <div>
+        <label class="lbl" for="q">Contanos qué buscan</label>
+        <textarea id="q">Somos una pareja esperando un bebé. Queremos comprar un 3 ambientes hasta USD 190.000. Soy alérgica a los plátanos y nos importa que de noche sea tranquilo.</textarea>
+      </div>
+      <div class="row">
+        <button class="btn primary" type="submit" id="parseBtn">✦ Interpretar con IA</button>
+        <span class="parse-note muted" id="parseNote">La IA convierte el texto en filtros que podés editar.</span>
+      </div>
+      <div class="or">o elegí opciones</div>
+      <div class="guided">
+        <div>
+          <span class="lbl" id="l-amb">Ambientes</span>
+          <div class="seg" role="group" aria-labelledby="l-amb" id="segAmb">
+            <button type="button" data-v="2">2 amb.</button><button type="button" data-v="3">3 amb.</button>
+          </div>
+        </div>
+        <div>
+          <label class="lbl" for="budget">Presupuesto <span class="budget-out" id="budgetOut"></span></label>
+          <input type="range" id="budget" min="60000" max="320000" step="5000">
+        </div>
+        <div>
+          <span class="lbl" id="l-etapa">Etapa familiar <span class="muted small">(define los pesos iniciales)</span></span>
+          <div class="seg" role="group" aria-labelledby="l-etapa" id="segEtapa">
+            <button type="button" data-v="sin">Sin hijos</button><button type="button" data-v="bebe">Esperando un bebé</button><button type="button" data-v="chicos">Hijos chicos</button><button type="button" data-v="grandes">Hijos grandes</button>
+          </div>
+        </div>
+        <div>
+          <span class="lbl" id="l-al">Alergia a árboles</span>
+          <div class="seg" role="group" aria-labelledby="l-al" id="segAl">
+            <button type="button" data-v="no">Ninguna</button><button type="button" data-v="platano">Plátano</button><button type="button" data-v="fresno">Fresno</button><button type="button" data-v="ligustro">Ligustro</button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="block" id="resultados">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="step">Explorar</span>
+      <h2>Las 3 comunas que mejor encajan</h2>
+      <div class="chips" id="chips" aria-label="Filtros aplicados"></div>
+    </div>
+    <div class="results">
+      <div class="mapbox">
+        <div class="row">
+          <div><span class="eyebrow">Índice de respirabilidad vs. promedio CABA</span></div>
+          <div class="seg" role="group" aria-label="Franja horaria" id="segFranja">
+            <button type="button" data-v="noche">Noche</button><button type="button" data-v="dia">Día</button>
+          </div>
+        </div>
+        <svg class="mapsvg" id="map" role="img" aria-label="Mapa de las 15 comunas coloreado por índice"></svg>
+        <div class="legend"><span class="muted">Peor</span><span class="ramp"><span style="background:var(--c-3)"></span><span style="background:var(--c-2)"></span><span style="background:var(--c-1)"></span><span style="background:var(--c0)"></span><span style="background:var(--c1)"></span><span style="background:var(--c2)"></span><span style="background:var(--c3)"></span></span><span class="muted">Mejor</span><span class="muted" style="margin-left:auto">Día/Noche cambia solo ruido y colectivos</span></div>
+      </div>
+      <div class="ranking">
+        <div id="cards" class="ranking"></div>
+        <details class="wbox" id="wbox">
+          <summary>Ajustar los pesos del índice</summary>
+          <div class="weights" id="weights"></div>
+          <p class="small muted" style="margin-top:10px" id="wNote"></p>
+        </details>
+        <div class="ia">
+          <div class="row" style="justify-content:space-between"><span class="ia-k">Recomendación de la IA</span><button class="btn" type="button" id="recBtn">Pedir recomendación</button></div>
+          <p class="ia-text" id="recText"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="detalle">
+  <div class="wrap">
+    <div class="sec-head"><span class="step">Entender</span><h2 id="dTitle">Detalle de comuna</h2><p class="muted" id="dBarrios"></p></div>
+    <div class="detail">
+      <div style="display:grid;gap:14px">
+        <div class="d-head">
+          <div><span class="eyebrow">Índice provisorio</span><div class="big mono" id="dIdx"></div></div>
+          <div class="dd" style="min-width:240px"><div class="dd-k">Precio de referencia</div><div id="dPrice" style="margin-top:4px"></div></div>
+        </div>
+        <p class="small muted">Cada fila es una lectura en lenguaje simple según la posición entre las 15 comunas. Pasá el mouse (o tocá) para ver el dato duro.</p>
+        <div class="reads-list" id="dReads"></div>
+      </div>
+      <div class="side">
+        <div class="ia">
+          <div class="row" style="justify-content:space-between"><span class="ia-k">Para ustedes</span><button class="btn" type="button" id="forYouBtn">Explicar esta comuna</button></div>
+          <p class="ia-text" id="forYouText"></p>
+        </div>
+        <div class="dd"><div class="dd-k">Precio USD/m² · <span id="spPriceLbl"></span></div><svg class="spark" id="spPrice" viewBox="0 0 320 120"></svg><p class="small muted">IDECBA, departamentos usados en venta. 2025 provisorio.</p></div>
+        <div class="dd"><div class="dd-k">Nacimientos por año</div><svg class="spark" id="spNac" viewBox="0 0 320 120"></svg><p class="small muted" id="nacNote"></p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="comparar">
+  <div class="wrap">
+    <div class="sec-head"><span class="step">Decidir</span><h2>Comparar las 3 comunas</h2><p class="muted">Lectura y posición entre las 15. El valor exacto aparece al pasar el mouse.</p></div>
+    <div class="tablewrap"><table id="cmp"></table></div>
+  </div>
+</section>
+
+<section class="block" id="indice">
+  <div class="wrap">
+    <div class="sec-head"><span class="step">Transparencia</span><h2>Cómo se calcula el índice</h2><p class="muted">Cada componente se compara con el promedio de la Ciudad en su unidad original, sin pasarlo a una escala 0–100. El índice es el promedio ponderado de esas diferencias y se expresa en %.</p></div>
+    <div class="formula" id="formula"></div>
+    <div class="grid2">
+      <div style="display:grid;gap:12px">
+        <h3>Cada componente, relativo a CABA</h3>
+        <ul class="clean small">
+          <li><b>Aire:</b> NO₂ promedio CABA ÷ NO₂ de la comuna − 1. Menos NO₂ suma.</li>
+          <li><b>Verde:</b> % de superficie verde ÷ % de CABA (7,75 %) − 1.</li>
+          <li><b>Arbolado:</b> árboles de vereda por km² ÷ CABA (1.811) − 1.</li>
+          <li><b>Ruido:</b> 2^((dB CABA − dB comuna) ÷ 10) − 1. Cada 10 dB menos se percibe como la mitad de ruido.</li>
+          <li><b>Presión vial:</b> −(% vs CABA). Promedio 50/50 de km de avenidas y autopistas por km² y pasadas de colectivo por hora y km².</li>
+          <li>Cada componente se limita a ±100 % para que un solo dato extremo (el verde de la Comuna 1 por la Reserva Ecológica) no domine.</li>
+        </ul>
+      </div>
+      <div style="display:grid;gap:12px">
+        <h3>Pesos iniciales según la etapa familiar</h3>
+        <div class="tablewrap"><table id="wTable"></table></div>
+        <p class="small muted">Con un bebé en camino o hijos chicos, el ruido nocturno pesa más. El criterio es del equipo, no sale del dato.</p>
+      </div>
+    </div>
+    <div class="grid2">
+      <div style="display:grid;gap:12px">
+        <h3>Cómo traducimos los datos a palabras</h3>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Posición entre 15</th><th>Lectura</th></tr></thead>
+          <tbody><tr><td class="mono">1.ª – 3.ª</td><td>Entre las mejores de la ciudad</td></tr><tr><td class="mono">4.ª – 6.ª</td><td>Mejor que el promedio</td></tr><tr><td class="mono">7.ª – 9.ª</td><td>En el promedio</td></tr><tr><td class="mono">10.ª – 12.ª</td><td>Peor que el promedio</td></tr><tr><td class="mono">13.ª – 15.ª</td><td>Entre las peores de la ciudad</td></tr></tbody>
+        </table></div>
+        <p class="small muted">Es una regla fija, no la escribe la IA. Así cualquiera puede reproducirla.</p>
+      </div>
+      <div style="display:grid;gap:12px">
+        <h3>Se muestra, pero no entra al índice</h3>
+        <ul class="clean small">
+          <li><b>Árboles alergénicos</b> (plátano, fresno, ligustro): censo de arbolado lineal 2017–2018.</li>
+          <li><b>Natalidad</b> por comuna 2006–2025: contexto y base de la tendencia de valor que estima la IA.</li>
+          <li><b>Precio del m²</b>: filtra por presupuesto, no suma ni resta respirabilidad.</li>
+          <li><b>Conteo vehicular</b> en 49 cruces: queda como contexto porque no es comparable entre comunas.</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:grid;gap:12px">
+      <h3>Fuentes</h3>
+      <div class="tablewrap"><table id="srcTable"></table></div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="proyecto">
+  <div class="wrap">
+    <div class="sec-head"><span class="step">Sobre el proyecto</span><h2>RESPIRA</h2><p class="muted">Trabajo de la materia IA Aplicada al Diseño de Productos Digitales (Sistemas generativos para Diseño).</p></div>
+    <div class="grid2">
+      <div style="display:grid;gap:14px;align-content:start">
+        <div class="dd"><div class="dd-k">Hipótesis</div><p style="margin-top:6px;font-size:1.05rem">Podemos predecir el valor de los inmuebles según su cantidad de ambientes a partir de la tasa de natalidad de las comunas y del índice de respirabilidad de la zona.</p></div>
+        <div><span class="eyebrow">Usuario</span><p style="margin-top:4px">Una familia que busca dónde comprar, sobre todo en etapa de crecimiento (embarazo o primera infancia). La contaminación durante el embarazo se asocia con prematurez e infecciones respiratorias, y el verde cercano con mayor peso al nacer.</p></div>
+        <div><span class="eyebrow">Equipo</span><div class="team" style="margin-top:6px"><span>Paulina Artola</span><span>Emma Sangra</span><span>Malena Sciaroni Bouer</span></div></div>
+      </div>
+      <div style="display:grid;gap:10px">
+        <h3>Decisiones recientes</h3>
+        <div class="timeline">
+          <div><time>2026-10-20</time><p><b>Prototipo v3:</b> lecturas en lenguaje simple; el dato duro aparece al pasar el mouse.</p></div>
+          <div><time>2026-10-20</time><p><b>Prototipo v2:</b> pantallas “Cómo se calcula” y “Comparar”; verde como % de superficie; natalidad visible.</p></div>
+          <div><time>2026-10-19</time><p><b>Presión vial</b> reemplaza a flujo vehicular: OpenStreetMap + colectivos GTFS, 50/50.</p></div>
+          <div><time>2026-10-19</time><p><b>Ruido</b> por comuna, día y noche (Mapa de Ruido 2018). Se confirma que 2025 sigue sin la Comuna 1.</p></div>
+          <div><time>2026-10-06</time><p><b>NO₂ satelital</b> (Sentinel‑5P) para cubrir las 15 comunas; <b>ERA5</b> reemplaza a TMI como control climático.</p></div>
+          <div><time>2026-10</time><p>Alcance: <b>las 15 comunas</b>. Hipótesis: <b>valor</b> en lugar de demanda.</p></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;gap:12px">
+      <h3>Iteraciones del prototipo</h3>
+      <div class="grid3">
+        <div class="proto"><span class="v">v1 · baja fidelidad</span><p class="small">Búsqueda por texto libre u opciones, resultados con mapa y ranking, detalle de comuna y chat flotante. Dato duro e inferencia se distinguen por forma, no por color.</p><a class="small" href="https://www.figma.com/design/pDBZl9D6xiCBlijixOmvzz/respiracaba?node-id=27-2" target="_blank" rel="noopener">Abrir en Figma ↗</a></div>
+        <div class="proto"><span class="v">v2 · iteración</span><p class="small">Unidades duales (valor + % vs CABA), capa de cruces de tránsito, alérgenos personalizados, comparación y explicación del índice.</p><a class="small" href="https://www.figma.com/design/pDBZl9D6xiCBlijixOmvzz/respiracaba?node-id=41-2" target="_blank" rel="noopener">Abrir en Figma ↗</a></div>
+        <div class="proto"><span class="v">v3 · lecturas</span><p class="small">Cada dato en tres capas: lectura (regla fija), dato duro al pasar el mouse y “Para ustedes” de la IA. Precio traducido a un departamento concreto.</p><a class="small" href="https://www.figma.com/design/pDBZl9D6xiCBlijixOmvzz/respiracaba?node-id=49-590" target="_blank" rel="noopener">Abrir en Figma ↗</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="disc">
+  <div class="wrap">
+    <p><b>Limitaciones de los datos.</b> El índice de esta página es una prueba: la fórmula final todavía está en definición y el ranking puede cambiar. El NO₂ es satelital (columna de aire, no concentración a nivel de calle) y no incluye PM10 ni CO. El ruido viene de un mapa modelado de 2018, agregado por comuna. El arbolado es del censo 2017–2018. La presión vial mide exposición a vías de tránsito intenso y colectivos programados (2019), no autos contados. Los precios 2025 son provisorios según IDECBA. La unidad que se muestra es la comuna: dentro de cada una hay mucha variación entre cuadras.</p>
+    <p>Fuentes: Buenos Aires Data (GCBA), APrA, IDECBA, Copernicus Sentinel‑5P, OpenStreetMap. Las respuestas marcadas con ✦ las genera un modelo de lenguaje y pueden equivocarse.</p>
+  </div>
+</footer>
+
+<button class="bubble" id="bubble" aria-label="Abrir chat con la IA" aria-expanded="false">✦</button>
+<div class="chat" id="chat" hidden role="dialog" aria-label="Chat con la IA">
+  <div class="chat-h"><div><b>Preguntale a RESPIRA</b><small id="chatCtx"></small></div><button class="xbtn" id="chatClose" aria-label="Cerrar chat">×</button></div>
+  <div class="chat-b" id="chatBody">
+    <div class="msg a ia"><div class="ia-k">IA</div><p class="ia-text">Hola. Puedo explicarte el ranking, comparar comunas o contarte qué significa cada dato. Respondo solo con los datos que muestra la página.</p></div>
+  </div>
+  <div class="chat-f">
+    <div class="sugs" id="sugs"></div>
+    <form id="chatForm"><input id="chatIn" placeholder="Escribí tu pregunta" aria-label="Tu pregunta"><button class="btn primary" type="submit" id="chatSend">Enviar</button></form>
+  </div>
+</div>
+
+<script>
+// ===== Datos (calculados de datasets_procesados y datasets originales del repo) =====
+const MAP = {"w":600,"h":663.2,"c":{"1":{"d":"M558.0,335.1L554.1,337.1L554.0,339.7L555.3,339.7L554.7,341.6L552.4,341.0L553.5,342.4L552.6,343.3L546.4,345.5L543.9,344.2L538.9,344.7L536.3,337.5L514.3,365.4L499.7,365.7L499.8,372.9L491.5,381.6L490.6,371.0L479.6,371.6L465.9,381.0L467.2,385.3L462.5,394.8L459.1,394.9L458.9,386.6L452.6,391.7L431.3,398.8L428.0,361.2L426.9,314.0L423.5,270.8L442.0,269.5L438.7,241.1L451.7,225.7L449.2,223.7L446.7,217.9L441.7,211.1L427.4,201.0L432.8,191.2L452.1,191.3L463.5,198.5L474.7,197.7L477.9,199.8L481.4,194.5L473.0,188.8L475.1,188.5L480.4,193.1L499.8,191.2L507.8,196.8L508.0,198.4L491.8,200.9L496.7,204.3L519.1,202.1L519.8,208.9L505.3,211.1L509.0,214.6L524.3,213.2L524.9,219.8L512.9,221.0L513.3,225.6L525.3,224.5L525.7,227.9L521.5,229.6L521.8,231.0L521.4,229.7L499.7,235.0L499.9,236.6L504.2,238.6L510.7,250.8L509.3,251.5L502.4,240.2L504.6,246.1L502.9,246.9L500.0,242.2L502.2,247.3L496.3,250.4L499.9,262.7L504.2,262.5L504.6,265.5L505.5,265.4L505.3,262.4L512.4,261.7L510.6,255.4L511.5,254.7L519.6,254.0L520.3,254.6L512.3,255.3L513.6,259.7L523.1,255.3L522.9,253.8L520.7,253.9L542.0,252.3L551.7,254.1L542.1,252.4L534.0,253.3L538.0,254.7L544.1,259.8L547.3,264.3L564.5,280.9L567.3,297.0L581.3,309.5L585.6,327.3L585.6,331.9L581.7,335.3L570.3,337.9L558.0,335.1ZM538.0,242.0L529.6,195.4L500.7,175.2L494.4,175.6L497.6,174.3L500.9,175.1L529.8,195.3L538.0,242.0Z","cx":495.4,"cy":288.9},"2":{"d":"M461.8,155.0L463.1,154.1L499.1,150.5L463.6,154.4L462.3,155.9L462.3,160.1L462.9,162.1L466.7,162.0L474.7,166.9L518.7,163.1L524.6,167.2L517.7,163.5L474.7,167.4L489.8,178.3L489.9,178.9L467.0,162.5L461.9,162.5L461.4,164.6L468.1,169.3L468.2,170.9L452.0,173.4L457.4,177.1L476.9,175.3L491.2,185.2L491.4,186.9L473.0,188.8L481.4,194.5L477.9,199.8L474.7,197.7L463.5,198.5L452.1,191.3L432.8,191.2L427.4,201.0L441.7,211.1L446.7,217.9L449.2,223.7L451.7,225.7L438.7,241.1L442.0,269.5L405.8,271.2L395.7,269.8L388.1,264.8L353.0,264.2L357.9,250.0L371.1,231.5L383.0,210.7L395.9,210.6L400.2,214.5L412.4,192.3L398.4,182.0L393.8,176.1L402.7,163.7L401.5,158.3L416.5,168.9L423.7,169.0L423.3,168.1L438.7,178.8L442.7,172.7L428.6,163.0L430.9,158.6L458.5,154.9L459.9,155.5L460.8,161.2L461.9,161.1L461.8,155.0Z","cx":421.8,"cy":210.9},"3":{"d":"M365.4,264.7L388.1,264.8L395.7,269.8L405.8,271.2L423.5,270.8L426.9,314.0L428.8,373.3L376.3,381.7L365.9,384.8L362.5,324.5L357.7,312.0L357.1,302.5L358.8,301.5L359.4,299.0L365.4,264.7Z","cx":396.0,"cy":348.9},"4":{"d":"M538.7,344.3L542.2,345.3L543.9,344.2L546.4,345.5L550.9,344.0L555.9,345.6L561.2,342.5L571.1,342.6L570.9,345.0L569.3,345.7L565.8,343.4L563.3,346.3L567.1,357.3L566.6,353.8L567.6,354.2L568.4,352.0L570.8,351.3L572.8,352.9L571.9,348.3L573.6,342.0L578.9,340.8L589.5,341.3L592.8,346.4L594.6,353.1L593.7,355.7L579.4,356.8L578.7,354.7L575.9,356.4L577.9,358.9L579.4,357.6L585.0,358.4L590.6,363.8L594.3,364.5L600.0,370.2L600.0,372.7L596.8,376.7L587.4,379.4L586.0,375.4L583.2,375.4L577.7,369.3L572.1,370.0L580.9,379.4L577.5,381.5L575.0,380.6L571.2,376.1L568.8,378.5L563.6,373.4L558.4,378.6L559.4,379.6L558.3,380.1L559.4,383.0L560.9,383.3L559.8,384.5L561.0,387.8L561.7,386.9L562.1,388.7L566.6,389.7L557.5,393.0L554.1,392.0L550.8,388.1L547.4,379.8L545.5,380.4L542.5,376.4L523.2,361.0L521.5,362.2L518.7,359.9L521.0,362.7L520.2,363.8L540.3,380.6L546.2,396.7L544.7,402.5L542.0,407.7L530.1,417.7L523.0,417.6L519.7,420.1L521.3,423.3L529.8,427.6L532.3,435.6L531.4,439.1L524.6,442.8L516.8,450.9L510.8,451.2L494.6,462.7L493.5,465.6L494.2,471.0L486.2,476.3L480.9,482.9L447.2,486.9L438.5,496.1L430.2,498.7L427.6,501.9L422.7,503.4L410.2,502.2L408.2,499.4L402.4,498.2L394.1,492.7L379.8,494.9L363.9,488.9L357.4,489.7L340.7,495.5L328.4,502.5L320.1,489.9L296.6,469.3L308.9,457.3L295.1,443.8L303.8,439.8L303.0,427.1L367.5,413.6L369.8,402.9L366.7,394.1L365.9,384.8L376.3,381.7L428.8,373.3L431.3,398.8L452.6,391.7L458.9,386.6L459.1,394.9L462.5,394.8L467.2,385.3L465.9,381.0L476.5,373.5L479.6,371.6L490.6,371.0L491.5,381.6L499.8,372.9L499.7,365.7L514.3,365.4L536.3,337.5L538.7,344.3Z","cx":424.6,"cy":421.7},"5":{"d":"M362.5,324.5L366.7,394.1L369.8,402.9L367.5,413.6L330.1,421.4L323.0,388.3L312.5,328.2L310.1,329.5L308.1,294.2L300.0,282.0L303.3,280.0L311.9,268.9L320.0,264.5L365.4,264.7L359.4,299.0L358.8,301.5L357.1,302.5L357.7,312.0L362.5,324.5Z","cx":341.2,"cy":358.9},"6":{"d":"M308.1,294.2L310.1,329.5L312.5,328.2L320.1,372.4L244.3,385.9L210.3,299.5L223.2,288.8L260.5,300.4L282.1,292.8L300.0,282.0L308.1,294.2Z","cx":273.5,"cy":350.9},"7":{"d":"M220.2,323.7L244.3,385.9L320.1,372.4L330.1,421.4L303.0,427.1L303.8,439.8L295.1,443.8L308.9,457.3L285.7,479.3L270.6,464.8L269.5,462.2L234.9,460.8L233.6,466.3L217.3,483.0L197.0,463.2L209.4,443.5L190.3,425.8L164.1,355.2L192.1,337.3L220.2,323.7Z","cx":254.3,"cy":403.6},"8":{"d":"M234.9,460.8L269.5,462.2L270.6,464.8L285.7,479.3L296.6,469.3L320.1,489.9L328.4,502.5L318.2,513.0L213.7,663.2L88.6,548.7L105.4,536.4L130.1,507.3L139.3,504.0L161.0,486.9L180.3,505.2L186.2,489.0L189.3,491.6L195.1,485.6L205.0,495.1L233.6,466.3L234.9,460.8Z","cx":202.3,"cy":606.0},"9":{"d":"M34.5,393.9L50.9,395.4L69.3,404.1L75.5,405.1L79.0,408.4L64.2,410.9L66.3,420.7L89.3,442.2L105.1,433.3L110.7,438.6L161.9,409.5L169.4,416.7L177.3,410.6L184.0,408.2L190.3,425.8L209.4,443.5L197.0,463.2L217.3,483.0L205.0,495.1L195.1,485.6L189.3,491.6L186.2,489.0L180.3,505.2L161.0,486.9L139.3,504.0L130.1,507.3L105.4,536.4L88.6,548.7L7.1,473.7L3.5,401.3L22.1,400.1L33.1,397.7L32.9,395.4L34.5,393.9Z","cx":104.6,"cy":468.5},"10":{"d":"M109.8,325.5L149.0,363.6L164.1,355.2L184.0,408.2L177.3,410.6L169.4,416.7L161.9,409.5L110.7,438.6L105.1,433.3L89.3,442.2L66.3,420.7L64.2,410.9L79.0,408.4L75.5,405.1L69.3,404.1L50.9,395.4L34.5,393.9L32.9,395.4L33.1,397.7L22.1,400.1L3.5,401.3L0.0,329.6L6.3,312.6L44.5,347.2L56.4,334.2L95.7,306.0L109.8,325.5Z","cx":87.7,"cy":378.7},"11":{"d":"M85.5,251.5L104.9,260.3L146.9,263.8L161.0,270.9L168.4,272.9L165.1,275.2L175.7,291.8L191.3,279.0L223.2,288.8L210.3,299.5L220.2,323.7L192.1,337.3L149.0,363.6L109.8,325.5L95.7,306.0L56.4,334.2L44.5,347.2L6.3,312.6L48.8,202.6L51.9,204.3L86.9,251.3L85.5,251.5Z","cx":94.0,"cy":283.9},"12":{"d":"M86.2,249.3L51.9,204.3L48.8,202.6L94.6,84.6L169.8,44.3L193.5,82.6L174.4,95.5L197.0,128.5L195.0,129.9L198.7,131.7L177.7,148.3L193.8,171.5L130.5,215.8L86.2,249.3Z","cx":130.6,"cy":140.0},"13":{"d":"M228.6,0.1L236.7,9.6L243.1,12.3L243.8,14.6L233.9,31.8L222.1,38.7L222.9,39.4L237.3,30.9L242.8,19.6L244.9,18.6L246.7,20.2L249.2,31.1L246.8,33.3L239.9,33.6L236.6,36.5L234.3,39.9L236.6,44.9L242.5,47.7L245.4,42.5L249.5,39.5L249.0,34.9L251.9,32.9L252.8,33.8L250.9,35.7L253.5,39.7L256.3,36.3L260.1,34.5L268.5,35.7L267.8,35.0L272.7,39.3L272.6,38.3L274.3,41.6L274.8,40.5L275.6,44.1L276.3,43.2L277.2,50.5L278.7,50.1L278.9,46.4L279.0,48.7L282.0,49.8L287.6,49.3L287.1,48.6L292.2,51.6L295.1,56.4L297.4,56.3L295.2,56.8L296.1,58.9L304.5,64.9L310.1,74.9L311.7,74.1L310.4,75.2L311.0,77.4L310.1,79.2L311.3,81.4L319.2,79.2L323.1,81.8L322.7,80.5L326.3,84.1L324.2,85.4L320.3,94.1L312.0,90.0L307.2,90.6L296.7,97.8L296.0,99.8L297.6,101.2L276.4,115.8L275.4,119.2L278.6,125.7L285.8,130.1L295.0,130.3L293.7,133.0L276.1,131.5L271.9,137.3L255.6,148.5L252.0,152.8L277.4,168.6L267.5,180.7L279.8,192.5L266.0,209.6L232.6,194.4L225.4,192.1L217.8,191.5L208.8,179.7L196.0,170.0L193.8,171.5L177.7,148.3L198.7,131.7L195.0,129.9L197.0,128.5L174.4,95.5L193.5,82.6L169.8,44.3L206.9,24.3L222.7,0.0L228.6,0.1Z","cx":235.2,"cy":108.5},"14":{"d":"M372.8,111.1L373.7,117.9L389.9,136.5L405.6,126.4L389.8,136.8L393.9,138.3L398.5,136.0L398.5,138.6L399.7,139.6L404.3,137.2L410.9,142.2L411.4,145.3L401.3,157.1L402.1,157.7L409.5,148.5L411.1,148.4L414.7,152.3L416.5,156.9L418.5,157.9L423.7,169.0L416.5,168.9L401.5,158.3L402.7,163.7L393.8,176.1L398.4,182.0L412.4,192.3L400.2,214.5L395.9,210.6L383.0,210.7L371.1,231.5L357.9,250.0L353.0,264.2L330.5,263.8L319.5,258.1L265.0,214.6L266.0,209.6L269.1,204.5L279.8,192.5L267.5,180.7L277.4,168.6L252.0,152.8L255.6,148.5L271.9,137.3L276.1,131.5L290.6,133.2L293.7,133.0L295.3,131.4L295.0,130.3L285.0,129.9L278.1,125.2L275.4,119.2L278.3,113.6L286.7,109.3L297.6,101.2L296.0,99.8L296.7,97.8L307.2,90.6L312.0,90.0L320.3,94.1L323.4,93.8L327.5,84.1L326.3,82.8L328.0,83.8L323.3,94.5L339.5,99.9L358.9,104.2L370.8,111.5L372.8,111.1Z","cx":335.2,"cy":172.6},"15":{"d":"M322.3,259.5L330.5,263.8L320.0,264.5L317.0,265.9L311.9,268.9L303.3,280.0L282.1,292.8L260.5,300.4L191.3,279.0L175.7,291.8L165.1,275.2L168.4,272.9L161.0,270.9L146.9,263.8L104.9,260.3L85.5,251.5L86.9,251.3L85.7,249.7L130.5,215.8L196.0,170.0L208.8,179.7L217.8,191.5L225.4,192.1L232.6,194.4L266.2,209.7L265.6,215.2L322.3,259.5Z","cx":198.1,"cy":232.7}}};
+const BARRIOS = {1:"Constitución, San Telmo, Monserrat, Retiro, Puerto Madero, San Nicolás",2:"Recoleta",3:"San Cristóbal, Balvanera",4:"Barracas, La Boca, Parque Patricios, Nueva Pompeya",5:"Almagro, Boedo",6:"Caballito",7:"Flores, Parque Chacabuco",8:"Villa Lugano, Villa Riachuelo, Villa Soldati",9:"Parque Avellaneda, Mataderos, Liniers",10:"Floresta, Monte Castro, Vélez Sarsfield, Versalles, Villa Luro, Villa Real",11:"Villa del Parque, Villa Devoto, Villa Gral. Mitre, Villa Santa Rita",12:"Villa Urquiza, Villa Pueyrredón, Saavedra, Coghlan",13:"Belgrano, Núñez, Colegiales",14:"Palermo",15:"Villa Ortúzar, Agronomía, Paternal, Parque Chas, Chacarita, Villa Crespo"};
+// sup km², no2 (12 meses), verde %, árboles/km², % plátano/fresno/ligustro, ruido día/noche dBA, presión vial día/noche % vs CABA
+const RAW = {
+ 1:[17.8,106.2,18.32,715,11.9,36.5,1.7,71.3,67.2,52,48],
+ 2:[6.43,107.3,5.25,1107,9.8,43.2,1.3,70.5,66.0,19,9],
+ 3:[6.39,117.6,0.72,2085,4.9,61.9,6.0,73.3,68.3,50,46],
+ 4:[21.69,116.0,3.30,1491,7.1,52.1,4.1,70.2,66.9,-1,4],
+ 5:[6.66,123.0,0.34,2286,11.5,50.9,2.3,72.8,67.2,23,22],
+ 6:[6.85,124.7,2.53,2276,6.6,46.2,2.6,72.2,66.7,5,6],
+ 7:[12.42,125.3,2.85,2062,7.1,43.5,4.5,71.8,66.9,4,3],
+ 8:[22.23,121.5,17.16,989,4.3,33.3,13.8,71.2,66.3,-24,-21],
+ 9:[16.51,123.4,4.45,2205,7.2,36.6,10.0,70.5,63.3,-8,-4],
+ 10:[12.66,123.2,9.71,2640,7.6,39.9,6.2,70.7,65.0,-10,-7],
+ 11:[14.12,118.7,0.80,2644,10.9,34.5,4.7,67.8,64.4,-27,-27],
+ 12:[15.57,105.5,6.80,2493,7.0,39.0,3.1,69.2,62.7,-8,-8],
+ 13:[14.85,101.1,10.41,1905,8.0,44.0,1.5,70.0,66.3,-14,-18],
+ 14:[15.92,107.3,13.90,1408,15.3,36.7,1.0,71.8,68.4,-4,-7],
+ 15:[14.32,117.1,1.53,2066,13.5,39.0,1.7,71.0,65.1,-1,-2]
+};
+const NAC = {1:[3217,3261,3498,3250,3324,3173,3372,3273,3273,3282,3127,2854,2847,3079,2374,2193,2101,2100,1791,1726],2:[1844,1820,1787,1751,1782,1830,1758,1728,1840,1770,1707,1597,1608,1576,1388,1386,1400,1469,1322,1217],3:[3019,2859,3081,2956,2863,2882,2776,2774,2775,2572,2501,2254,2199,2125,1913,1723,1571,1489,1493,1430],4:[4807,4665,5126,4066,4232,4240,4164,4081,4147,4020,3615,3288,3332,3076,2536,2289,2093,2053,1858,1779],5:[2507,2296,2425,2307,2466,2357,2261,2311,2239,2101,2173,1789,1757,2099,1446,1370,1277,1170,1084,1000],6:[2367,2247,2348,2209,2200,2312,2233,2196,2264,2105,2098,1896,1775,1659,1430,1291,1235,1108,1065,1016],7:[3050,3033,3070,4030,4189,4173,3937,4044,3879,3735,3391,3069,3003,2805,2286,2137,2062,1864,1733,1692],8:[3722,3952,4461,4669,4291,4352,4257,4295,4244,4038,3597,3246,3160,2804,2465,2286,2005,2118,1900,1815],9:[2790,2728,2913,2747,2852,2894,2625,2574,2456,2464,2178,1918,2012,1808,1457,1361,1202,1111,994,993],10:[2412,2300,2404,2354,2399,2254,2183,2125,2090,2070,1980,1757,1641,1578,1270,1181,1111,1046,890,933],11:[2499,2350,2568,2249,2386,2370,2276,2329,2261,2218,2135,1825,1810,1722,1393,1309,1196,1084,990,983],12:[2559,2383,2648,2619,2756,2724,2585,2762,2929,2563,2591,2298,2309,2191,1794,1634,1571,1455,1204,1157],13:[3236,3027,3242,3038,3083,3073,2885,2943,2919,2778,2731,2554,2466,2440,1980,1914,1723,1806,1662,1555],14:[3038,2783,2930,2862,2919,3017,2893,2829,2951,2860,2891,2602,2595,2463,2239,2087,2137,2578,2207,2042],15:[2515,2479,2621,2477,2605,2606,2501,2374,2442,2337,2239,2074,2126,1972,1558,1399,1401,1309,1173,1106]};
+const NAC_TOTAL = [43582,42183,45122,43584,44347,44257,42706,42638,42709,40913,38954,35021,34640,33397,27529,25560,24085,23760,21366,20444];
+const PRICE = {1:{2:[3111,3025,2859,2481,2324,2429,2523,2570],3:[3001,2869,2683,2583,2402,2368,2359,2384]},2:{2:[3421,3322,3124,2787,2513,2496,2628,2727],3:[3309,3217,3041,2754,2514,2439,2536,2642]},3:{2:[2302,2243,2121,1952,1759,1682,1752,1765],3:[2149,2129,2017,1859,1650,1543,1566,1611]},4:{2:[2139,2273,2030,1877,1689,1613,1666,1658],3:[2114,2153,2031,1878,1682,1615,1609,1620]},5:{2:[2560,2529,2383,2176,1955,1863,1965,2022],3:[2474,2475,2393,2205,1938,1828,1908,2023]},6:{2:[2885,2783,2621,2419,2193,2132,2218,2280],3:[2780,2672,2576,2378,2147,2014,2108,2165]},7:{2:[2471,2455,2336,2217,2012,1929,1955,2032],3:[2251,2288,2157,2035,1870,1730,1741,1856]},8:{2:[null,null,null,1339,1283,1224,1259,1432],3:[1298,1393,1162,1119,1072,1007,1012,1079]},9:{2:[2148,2207,2167,1981,1832,1693,1704,1811],3:[2051,2018,1970,1869,1757,1674,1639,1669]},10:{2:[2289,2288,2240,2089,1919,1839,1856,1950],3:[2192,2183,2141,2065,1878,1775,1736,1790]},11:{2:[2560,2620,2433,2230,2033,1938,2039,2165],3:[2628,2554,2475,2267,2072,2018,2057,2123]},12:{2:[3197,3096,2901,2670,2414,2320,2462,2650],3:[3125,3157,2986,2694,2441,2328,2388,2507]},13:{2:[3501,3398,3138,2862,2594,2529,2672,2832],3:[3400,3237,3048,2784,2547,2439,2529,2716]},14:{2:[3715,3545,3316,2938,2746,2785,2978,3095],3:[3474,3370,3130,2901,2712,2605,2715,2819]},15:{2:[2872,2816,2649,2413,2144,2059,2238,2362],3:[2683,2609,2464,2294,2076,1978,2104,2213]}};
+const IDS = Object.keys(RAW).map(Number);
+const C = {};
+IDS.forEach(id=>{const r=RAW[id];C[id]={id,name:"Comuna "+id,barrios:BARRIOS[id],sup:r[0],no2:r[1],verde:r[2],arb:r[3],al:{platano:r[4],fresno:r[5],ligustro:r[6]},rd:r[7],rn:r[8],vd:r[9],vn:r[10],nac:NAC[id],price:PRICE[id]}});
+const mean = a => a.reduce((s,x)=>s+x,0)/a.length;
+const treesTotal = id => C[id].arb*C[id].sup;
+const CABA = {
+  no2: mean(IDS.map(i=>C[i].no2)), verde:7.75, arb:1811,
+  rd: mean(IDS.map(i=>C[i].rd)), rn: mean(IDS.map(i=>C[i].rn)),
+  al: Object.fromEntries(["platano","fresno","ligustro"].map(k=>[k, IDS.reduce((s,i)=>s+C[i].al[k]*treesTotal(i),0)/IDS.reduce((s,i)=>s+treesTotal(i),0)]))
+};
+const ALNAME = {platano:"Plátanos",fresno:"Fresnos",ligustro:"Ligustros"};
+const M2 = {2:50,3:70};
+
+// ===== Estado =====
+const S = {amb:3, budget:190000, etapa:"bebe", alergia:"platano", franja:"noche", selected:null, source:"ejemplo", w:null};
+const PRESETS = {
+  sin:{aire:25,verde:20,arbol:15,ruido:20,vial:20},
+  bebe:{aire:30,verde:15,arbol:15,ruido:25,vial:15},
+  chicos:{aire:25,verde:20,arbol:15,ruido:25,vial:15},
+  grandes:{aire:25,verde:25,arbol:15,ruido:15,vial:20}
+};
+const ETAPA_TXT = {sin:"Sin hijos",bebe:"Esperando un bebé",chicos:"Hijos chicos",grandes:"Hijos grandes"};
+S.w = {...PRESETS[S.etapa]};
+
+const fmt0 = n => Math.round(n).toLocaleString("es-AR");
+const fmt1 = n => n.toLocaleString("es-AR",{minimumFractionDigits:1,maximumFractionDigits:1});
+const pct = n => (n>0?"+":n<0?"−":"±")+Math.abs(Math.round(n))+" %";
+const usd = n => "USD "+fmt0(n);
+const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+const ord = n => n+".ª";
+
+const COMP = [
+  {k:"aire", pill:"Aire", name:"Calidad del aire", sub:"NO₂ satelital", better:"low", val:c=>c.no2, caba:()=>CABA.no2,
+   show:v=>fmt1(v)+" µmol/m²", rel:c=>CABA.no2/c.no2-1,
+   src:"Copernicus Sentinel‑5P vía Google Earth Engine · promedio set‑2025 a ago‑2026",
+   note:"Columna de NO₂ medida desde el satélite, no concentración a nivel de calle. Unidad a confirmar en el script de GEE."},
+  {k:"verde", pill:"Verde", name:"Espacios verdes", sub:"% de la superficie", better:"high", val:c=>c.verde, caba:()=>CABA.verde,
+   show:v=>fmt1(v)+" %", rel:c=>c.verde/CABA.verde-1,
+   src:"Espacio verde público (GCBA) · polígonos de plazas, parques y canteros",
+   note:"No hay población por comuna, por eso no se calcula m² por habitante."},
+  {k:"arbol", pill:"Arbolado", name:"Arbolado de vereda", sub:"árboles por km²", better:"high", val:c=>c.arb, caba:()=>CABA.arb,
+   show:v=>fmt0(v)+" árboles/km²", rel:c=>c.arb/CABA.arb-1,
+   src:"Censo de arbolado público lineal 2017–2018 (GCBA)", note:"Solo árboles de vereda; no incluye los de plazas y parques."},
+  {k:"ruido", pill:"Ruido", name:"Ruido", sub:()=>S.franja==="noche"?"de noche":"de día", better:"low", val:c=>S.franja==="noche"?c.rn:c.rd, caba:()=>S.franja==="noche"?CABA.rn:CABA.rd,
+   show:v=>fmt1(v)+" dBA", rel:c=>Math.pow(2,((S.franja==="noche"?CABA.rn:CABA.rd)-(S.franja==="noche"?c.rn:c.rd))/10)-1,
+   src:"Mapa de Ruido 2018 (APrA) · promedio ponderado por superficie",
+   note:"Referencia OMS (2018) para tránsito: menos de 45 dB de noche y menos de 53 dB en 24 h. En la calle, ninguna comuna la cumple."},
+  {k:"vial", pill:"Presión vial", name:"Presión vial", sub:()=>S.franja==="noche"?"de noche":"de día", better:"low", val:c=>S.franja==="noche"?c.vn:c.vd, caba:()=>0,
+   show:v=>pct(v)+" vs CABA", rel:c=>-(S.franja==="noche"?c.vn:c.vd)/100,
+   src:"OpenStreetMap (autopistas y avenidas) + GTFS de colectivos 2019, 50/50",
+   note:"Mide exposición a vías de tránsito intenso y colectivos programados, no autos contados."}
+];
+const subOf = k => typeof k.sub==="function"?k.sub():k.sub;
+
+function rankOf(getter, better, id){
+  const sorted = [...IDS].sort((a,b)=> better==="low" ? getter(C[a])-getter(C[b]) : getter(C[b])-getter(C[a]));
+  return sorted.indexOf(id)+1;
+}
+function lectura(pos){
+  if(pos<=3) return {t:"Entre las mejores de la ciudad",c:"g"};
+  if(pos<=6) return {t:"Mejor que el promedio",c:"g"};
+  if(pos<=9) return {t:"En el promedio",c:""};
+  if(pos<=12) return {t:"Peor que el promedio",c:"b"};
+  return {t:"Entre las peores de la ciudad",c:"b"};
+}
+const LECT_PRICE=p=>p<=3?{t:"Entre las más baratas",c:""}:p<=6?{t:"Más barata que el promedio",c:""}:p<=9?{t:"Precio promedio",c:""}:p<=12?{t:"Más cara que el promedio",c:""}:{t:"Entre las más caras",c:""};
+const LECT_NAC=p=>p<=3?{t:"Entre las que menos bajaron",c:""}:p<=12?{t:"Baja parecida al promedio",c:""}:{t:"Entre las que más bajaron",c:""};
+function index(c){
+  let s=0,w=0;
+  COMP.forEach(k=>{const wk=S.w[k.k]||0; s+=wk*clamp(k.rel(c)*100,-100,100); w+=wk;});
+  return w? s/w : 0;
+}
+const priceM2 = c => c.price[S.amb][7];
+const depto = c => Math.round(priceM2(c)*M2[S.amb]/1000)*1000;
+const nacChange = c => (c.nac[19]/c.nac[14]-1)*100;
+
+function ranking(){
+  const all = IDS.map(id=>({id,idx:index(C[id]),price:depto(C[id])})).sort((a,b)=>b.idx-a.idx);
+  const ok = all.filter(r=>r.price<=S.budget);
+  let top = ok.slice(0,3);
+  if(top.length<3){
+    const rest = all.filter(r=>r.price>S.budget).sort((a,b)=>a.price-b.price);
+    top = top.concat(rest.slice(0,3-top.length).map(r=>({...r,over:true})));
+  }
+  return {all, top};
+}
+
+// ===== Render =====
+const $ = s => document.querySelector(s);
+const el = (tag, attrs={}, html="") => {const e=document.createElement(tag);for(const k in attrs){if(k==="class")e.className=attrs[k];else e.setAttribute(k,attrs[k]);}if(html)e.innerHTML=html;return e;};
+const esc = s => String(s).replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+
+function bucket(v){ if(v<-30)return"-3"; if(v<-15)return"-2"; if(v<-5)return"-1"; if(v<=5)return"0"; if(v<=15)return"1"; if(v<=30)return"2"; return"3"; }
+
+function renderSearch(){
+  document.querySelectorAll("#segAmb button").forEach(b=>b.setAttribute("aria-pressed", String(+b.dataset.v===S.amb)));
+  document.querySelectorAll("#segEtapa button").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.v===S.etapa)));
+  document.querySelectorAll("#segAl button").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.v===S.alergia)));
+  document.querySelectorAll("#segFranja button").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.v===S.franja)));
+  $("#budget").value = S.budget; $("#budgetOut").textContent = usd(S.budget);
+}
+function renderChips(){
+  const cls = S.source==="ia" ? "chip" : "chip rule";
+  const items = [
+    ["Comprar","buscar"], [S.amb+" ambientes","buscar"], ["Hasta "+usd(S.budget),"buscar"], [ETAPA_TXT[S.etapa],"buscar"],
+    [S.alergia==="no"?"Sin alergias":"Alergia: "+ALNAME[S.alergia].toLowerCase(),"buscar"], ["Ruido y colectivos: "+S.franja,"resultados"]
+  ];
+  const src = S.source==="ia"?"Filtros deducidos por la IA":S.source==="reglas"?"Filtros leídos por reglas (IA no disponible)":S.source==="manual"?"Filtros elegidos a mano":"Búsqueda de ejemplo";
+  $("#chips").innerHTML = `<span class="small muted">${src} · tocá para editar:</span>` + items.map(([t,h])=>`<a class="${cls}" href="#${h}" style="text-decoration:none;color:inherit">${esc(t)}</a>`).join("");
+}
+function renderMap(top){
+  const svg = $("#map"); svg.setAttribute("viewBox", `0 0 ${MAP.w} ${MAP.h}`);
+  const topIds = top.map(r=>r.id);
+  let html = "";
+  IDS.forEach(id=>{
+    const c=C[id], v=index(c), g=MAP.c[id];
+    html += `<path d="${g.d}" data-id="${id}" fill="var(--c${bucket(v)})" class="${S.selected===id?"sel":""}" tabindex="0" role="button" aria-label="${c.name}, índice ${pct(v)}"><title>${c.name} · ${pct(v)} vs CABA</title></path>`;
+  });
+  IDS.forEach(id=>{
+    const g=MAP.c[id], r=topIds.indexOf(id);
+    if(r>=0) html += `<g class="badge"><circle cx="${g.cx}" cy="${g.cy}" r="13"/><text x="${g.cx}" y="${g.cy}">${r+1}</text></g>`;
+    else html += `<text x="${g.cx}" y="${g.cy}">${id}</text>`;
+  });
+  svg.innerHTML = html;
+}
+function readPills(c){
+  const order = Object.entries(S.w).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k])=>COMP.find(x=>x.k===k));
+  let out = order.map(k=>{const p=rankOf(k.val,k.better,c.id), l=lectura(p);return `<span class="read-pill ${l.c}">${k.pill}${k.k==="ruido"||k.k==="vial"?" "+subOf(k):""}: ${l.t.toLowerCase()}</span>`}).join("");
+  if(S.alergia!=="no"){const p=rankOf(x=>x.al[S.alergia],"low",c.id), l=lectura(p);out+=`<span class="read-pill ${l.c}">${ALNAME[S.alergia]}: ${l.t.toLowerCase()}</span>`;}
+  return out;
+}
+function renderCards(top){
+  $("#cards").innerHTML = top.map((r,i)=>{
+    const c=C[r.id];
+    return `<button type="button" class="card ${S.selected===r.id?"sel":""}" data-id="${r.id}">
+      <div class="card-top"><span class="pos">${i+1}</span><h3>${c.name}</h3><span class="idx" title="Índice provisorio vs promedio CABA">${pct(r.idx)}</span></div>
+      <div class="barrios">${esc(c.barrios)}</div>
+      <div class="price">≈ <b>${usd(r.price)}</b> por un ${S.amb} ambientes de ${M2[S.amb]} m²${r.over?'<span class="over">fuera de presupuesto</span>':""}</div>
+      <div class="reads">${readPills(c)}</div>
+    </button>`;
+  }).join("");
+}
+function renderWeights(){
+  const box = $("#weights");
+  if(!box.childElementCount){
+    COMP.forEach(k=>{
+      const row = el("div",{class:"w"});
+      row.innerHTML = `<label for="w-${k.k}">${k.name}</label><input type="range" id="w-${k.k}" min="0" max="50" step="5"><output id="wo-${k.k}"></output>`;
+      box.append(row);
+      row.querySelector("input").addEventListener("input",e=>{S.w[k.k]=+e.target.value;renderAll({keepWeights:true});});
+    });
+  }
+  COMP.forEach(k=>{$("#w-"+k.k).value=S.w[k.k];$("#wo-"+k.k).textContent=S.w[k.k];});
+  const same = COMP.every(k=>S.w[k.k]===PRESETS[S.etapa][k.k]);
+  $("#wNote").textContent = same ? `Pesos iniciales para “${ETAPA_TXT[S.etapa]}”. Se normalizan: lo que cuenta es la proporción.` : "Pesos ajustados a mano. Elegí otra etapa familiar para volver a los iniciales.";
+}
+function dot15(pos){return `<span class="dots" aria-hidden="true">${Array.from({length:15},(_,i)=>`<i class="${i+1===pos?"on":""}"></i>`).join("")}</span>`;}
+function lectRow({name,sub,pos,valTxt,cabaTxt,src,note,ctx,lf}){
+  const l=(lf||lectura)(pos);
+  return `<button type="button" class="lect ${ctx?"ctx":""}" aria-expanded="false">
+    <span class="ln">${name}<small>${sub}</small></span>
+    <span><span class="lt">${l.t}</span><span class="posn">${ord(pos)} de 15</span></span>
+    ${dot15(pos)}
+    <span class="tip dd" role="tooltip"><span class="dd-k">Dato duro</span><span class="v">${valTxt}</span><p>Promedio CABA: ${cabaTxt}</p><p class="muted">${src}</p>${note?`<p>${note}</p>`:""}</span>
+  </button>`;
+}
+function renderDetail(){
+  const c=C[S.selected];
+  $("#dTitle").textContent = c.name; $("#dBarrios").textContent = c.barrios;
+  $("#dIdx").textContent = pct(index(c));
+  const pm=priceM2(c), d=depto(c), over=d>S.budget;
+  $("#dPrice").innerHTML = `<div style="font-size:1.25rem" class="mono">≈ ${usd(d)}</div><div class="small">${S.amb} ambientes de ${M2[S.amb]} m² · ${usd(pm)}/m² (2025, provisorio)</div><div class="small" style="color:var(--${over?"bad":"good"})">${over?"Supera":"Dentro de"} tu presupuesto de ${usd(S.budget)}</div>`;
+  let rows = COMP.map(k=>lectRow({name:k.name,sub:subOf(k),pos:rankOf(k.val,k.better,c.id),valTxt:k.show(k.val(c)),cabaTxt:k.k==="vial"?"0 %":k.show(k.caba()),src:k.src,note:k.note}));
+  const alKey = S.alergia==="no"?"platano":S.alergia;
+  rows.push(lectRow({name:ALNAME[alKey]+" en vereda",sub:"menos es mejor",pos:rankOf(x=>x.al[alKey],"low",c.id),valTxt:fmt1(c.al[alKey])+" % de los árboles",cabaTxt:fmt1(CABA.al[alKey])+" %",src:"Censo de arbolado público lineal 2017–2018 (GCBA)",note:S.alergia==="no"?"Elegí una alergia en la búsqueda para personalizar esta fila.":"Especie alergénica indicada en tu búsqueda.",ctx:true}));
+  rows.push(lectRow({name:"Precio del m²",sub:"más barata = 1.ª",pos:rankOf(priceM2,"low",c.id),valTxt:usd(pm)+"/m²",cabaTxt:usd(mean(IDS.map(i=>priceM2(C[i]))))+"/m² (promedio de comunas)",src:"IDECBA · departamentos usados en venta, "+S.amb+" amb. · 2025 provisorio",note:S.amb===2?"El precio de 2 ambientes por comuna es cálculo propio (promedio de barrios).":"",ctx:true,lf:LECT_PRICE}));
+  rows.push(lectRow({name:"Nacimientos 2020–2025",sub:"15.ª = mayor baja",pos:rankOf(nacChange,"high",c.id),valTxt:pct(nacChange(c)),cabaTxt:pct((NAC_TOTAL[19]/NAC_TOTAL[14]-1)*100),src:"IDECBA · nacimientos por comuna de residencia de la madre",note:"",ctx:true,lf:LECT_NAC}));
+  $("#dReads").innerHTML = rows.join("");
+  drawSpark($("#spPrice"), [2018,2019,2020,2021,2022,2023,2024,2025], c.price[S.amb], v=>fmt0(v));
+  $("#spPriceLbl").textContent = S.amb+" ambientes";
+  drawSpark($("#spNac"), Array.from({length:20},(_,i)=>2006+i), c.nac, v=>fmt0(v));
+  $("#nacNote").textContent = `De ${fmt0(c.nac[14])} en 2020 a ${fmt0(c.nac[19])} en 2025 (${pct(nacChange(c))}). En toda CABA: ${pct((NAC_TOTAL[19]/NAC_TOTAL[14]-1)*100)}.`;
+  $("#forYouText").textContent = ""; $("#chatCtx").textContent = "Mirando: "+c.name;
+}
+function drawSpark(svg, xs, ys, f){
+  const W=320,H=120,pl=8,pr=48,pt=12,pb=22;
+  const pts = xs.map((x,i)=>[x,ys[i]]).filter(p=>p[1]!=null);
+  const vals = pts.map(p=>p[1]); let lo=Math.min(...vals), hi=Math.max(...vals); const pad=(hi-lo)*.12||1; lo-=pad; hi+=pad;
+  const X = x => pl+(x-xs[0])/(xs[xs.length-1]-xs[0])*(W-pl-pr);
+  const Y = y => pt+(hi-y)/(hi-lo)*(H-pt-pb);
+  const d = pts.map((p,i)=>(i?"L":"M")+X(p[0]).toFixed(1)+","+Y(p[1]).toFixed(1)).join("");
+  const area = d+`L${X(pts[pts.length-1][0]).toFixed(1)},${H-pb}L${X(pts[0][0]).toFixed(1)},${H-pb}Z`;
+  const last=pts[pts.length-1], first=pts[0];
+  svg.innerHTML = `<line class="grid" x1="${pl}" x2="${W-pr}" y1="${H-pb}" y2="${H-pb}"/>
+   <path class="ar" d="${area}"/><path class="ln" d="${d}"/>
+   <circle cx="${X(first[0])}" cy="${Y(first[1])}" r="2.5" fill="var(--fg)"/>
+   <circle class="end" cx="${X(last[0])}" cy="${Y(last[1])}" r="4"/>
+   <text class="endt" x="${X(last[0])+8}" y="${Y(last[1])+4}">${f(last[1])}</text>
+   <text x="${X(first[0])}" y="${H-6}">${first[0]}</text><text x="${X(last[0])}" y="${H-6}" text-anchor="end">${last[0]}</text>
+   <text x="${X(first[0])+6}" y="${Y(first[1])-6}">${f(first[1])}</text>`;
+}
+function renderCompare(top){
+  const ids = top.map(r=>r.id);
+  const rows = [
+    ...COMP.map(k=>({name:k.name+(k.k==="ruido"||k.k==="vial"?" ("+subOf(k)+")":""),get:k.val,better:k.better,show:k.show})),
+    ...(S.alergia!=="no"?[{name:ALNAME[S.alergia]+" en vereda",get:x=>x.al[S.alergia],better:"low",show:v=>fmt1(v)+" %"}]:[]),
+    {name:"Precio "+S.amb+" amb. ("+M2[S.amb]+" m²)",get:depto,better:"low",show:v=>usd(v),lf:LECT_PRICE},
+    {name:"Nacimientos 2020–25",get:nacChange,better:"high",show:v=>pct(v),lf:LECT_NAC,nobest:true}
+  ];
+  let h = `<thead><tr><th></th>${ids.map((id,i)=>`<th>${i+1}. ${C[id].name}</th>`).join("")}</tr></thead><tbody>`;
+  h += `<tr><td><b>Índice provisorio</b></td>${ids.map(id=>`<td class="mono">${pct(index(C[id]))}</td>`).join("")}</tr>`;
+  rows.forEach(r=>{
+    const vals = ids.map(id=>r.get(C[id]));
+    const best = r.better==="low"?Math.min(...vals):Math.max(...vals);
+    h += `<tr><td>${r.name}</td>${ids.map((id,i)=>{const p=rankOf(r.get,r.better,id);return `<td class="cmp-cell ${vals[i]===best&&!r.nobest?"best":""}" title="Dato duro: ${esc(r.show(vals[i]))}">${(r.lf||lectura)(p).t}<span class="p">${ord(p)} de 15 · ${esc(r.show(vals[i]))}</span></td>`}).join("")}</tr>`;
+  });
+  $("#cmp").innerHTML = h+"</tbody>";
+}
+function renderMethod(){
+  const w=S.w, tot=COMP.reduce((s,k)=>s+w[k.k],0)||1;
+  $("#formula").innerHTML = `Índice = <span class="plus">${Math.round(w.aire/tot*100)} % · Aire</span> + <span class="plus">${Math.round(w.verde/tot*100)} % · Verde</span> + <span class="plus">${Math.round(w.arbol/tot*100)} % · Arbolado</span> + <span class="minus">${Math.round(w.ruido/tot*100)} % · (menos) Ruido ${S.franja}</span> + <span class="minus">${Math.round(w.vial/tot*100)} % · (menos) Presión vial ${S.franja}</span><br><span class="muted">Cada término es la diferencia de la comuna con el promedio de CABA, en %. Pesos actuales.</span>`;
+  $("#wTable").innerHTML = `<thead><tr><th>Etapa</th><th>Aire</th><th>Verde</th><th>Árboles</th><th>Ruido</th><th>Vial</th></tr></thead><tbody>${Object.entries(PRESETS).map(([k,p])=>`<tr${k===S.etapa?' style="font-weight:600"':""}><td>${ETAPA_TXT[k]}</td>${["aire","verde","arbol","ruido","vial"].map(x=>`<td class="mono">${p[x]}</td>`).join("")}</tr>`).join("")}</tbody>`;
+  const src=[["Calidad del aire","NO₂ troposférico, Sentinel‑5P (Google Earth Engine)","2018‑07 → 2026‑08, mensual","15 comunas"],["Espacios verdes","Espacio verde público, GCBA","vigente","2.176 polígonos"],["Arbolado","Arbolado público lineal, GCBA","censo 2017–2018","370.180 árboles"],["Ruido","Mapa de Ruido, APrA","2018","día y noche por comuna"],["Presión vial","OpenStreetMap + GTFS colectivos","2026 / 2019","15 comunas"],["Precio del m²","IDECBA, cuadros AX03 y AX08","2018–2025 (2025 provisorio)","por comuna y ambientes"],["Nacimientos","IDECBA","2006–2025","15 comunas"],["Control climático","ERA5 (ECMWF)","2018‑07 → 2026‑08","CABA"]];
+  $("#srcTable").innerHTML = `<thead><tr><th>Componente</th><th>Dataset</th><th>Período</th><th>Cobertura</th></tr></thead><tbody>${src.map(r=>`<tr>${r.map(x=>`<td>${x}</td>`).join("")}</tr>`).join("")}</tbody>`;
+}
+let CUR = null;
+function renderAll(opts={}){
+  const R = ranking(); CUR = R;
+  if(S.selected==null || !opts.keepSel) S.selected = R.top[0].id;
+  renderSearch(); renderChips(); renderMap(R.top); renderCards(R.top); renderWeights(); renderDetail(); renderCompare(R.top); renderMethod(); renderSugs();
+}
+
+// ===== Interacciones =====
+function segHandler(sel, fn){document.querySelector(sel).addEventListener("click",e=>{const b=e.target.closest("button[data-v]");if(!b)return;fn(b.dataset.v);S.source="manual";renderAll();});}
+segHandler("#segAmb", v=>S.amb=+v);
+segHandler("#segEtapa", v=>{S.etapa=v;S.w={...PRESETS[v]};S.franja=(v==="bebe"||v==="chicos")?"noche":S.franja;});
+segHandler("#segAl", v=>S.alergia=v);
+$("#segFranja").addEventListener("click",e=>{const b=e.target.closest("button[data-v]");if(!b)return;S.franja=b.dataset.v;renderAll({keepSel:true});});
+$("#budget").addEventListener("input",e=>{S.budget=+e.target.value;S.source="manual";renderAll();});
+$("#map").addEventListener("click",e=>{const p=e.target.closest("path[data-id]");if(!p)return;S.selected=+p.dataset.id;renderAll({keepSel:true});$("#detalle").scrollIntoView({behavior:"smooth"});});
+$("#map").addEventListener("keydown",e=>{if(e.key!=="Enter"&&e.key!==" ")return;const p=e.target.closest("path[data-id]");if(!p)return;e.preventDefault();S.selected=+p.dataset.id;renderAll({keepSel:true});});
+$("#cards").addEventListener("click",e=>{const b=e.target.closest(".card");if(!b)return;S.selected=+b.dataset.id;renderAll({keepSel:true});$("#detalle").scrollIntoView({behavior:"smooth"});});
+document.addEventListener("click",e=>{const l=e.target.closest(".lect");document.querySelectorAll('.lect[aria-expanded="true"]').forEach(x=>{if(x!==l)x.setAttribute("aria-expanded","false")});if(l)l.setAttribute("aria-expanded",l.getAttribute("aria-expanded")==="true"?"false":"true");});
+
+// ===== IA (capacidad sample) =====
+let SAMPLE = null;
+(async()=>{try{SAMPLE = window.claude ? await window.claude.use("sample") : null;}catch(e){SAMPLE=null;}})();
+const IA_OFF = "La IA no está disponible en esta vista. Abrí la página dentro de Claude para usarla.";
+function iaError(e){
+  const c=e&&e.code;
+  if(c==="not_granted"||c==="sampling_disabled") return "No se dio permiso para usar la IA en esta página.";
+  if(c==="rate_limited") return "Hubo demasiadas consultas seguidas. Probá de nuevo en un rato.";
+  if(c==="cancelled") return "";
+  return "No se pudo obtener la respuesta. Probá de nuevo.";
+}
+function dataFor(id){
+  const c=C[id];
+  const comp = Object.fromEntries(COMP.map(k=>[k.k,{valor:k.show(k.val(c)),posicion:rankOf(k.val,k.better,id),lectura:lectura(rankOf(k.val,k.better,id)).t}]));
+  return {comuna:c.name,barrios:c.barrios,indice_vs_caba:pct(index(c)),componentes:comp,
+    alergenos_pct:{platano:c.al.platano,fresno:c.al.fresno,ligustro:c.al.ligustro},
+    precio_usd_m2_2025:priceM2(c),depto_estimado_usd:depto(c),dentro_presupuesto:depto(c)<=S.budget,
+    nacimientos_2020:c.nac[14],nacimientos_2025:c.nac[19],cambio_nacimientos:pct(nacChange(c)),
+    precio_m2_serie_2018_2025:c.price[S.amb]};
+}
+function perfil(){return {operacion:"comprar",ambientes:S.amb,presupuesto_usd:S.budget,etapa:ETAPA_TXT[S.etapa],alergia:S.alergia,franja:S.franja,pesos:S.w};}
+
+function ruleParse(t){
+  const s=t.toLowerCase(), out={};
+  const a=s.match(/([23])\s*amb/); if(a) out.amb=+a[1];
+  if(/dos ambientes/.test(s)) out.amb=2; if(/tres ambientes/.test(s)) out.amb=3;
+  const m=s.replace(/\./g,"").match(/(\d{2,3})\s*(mil|k)\b|(\d{5,6})/);
+  if(m) out.budget = m[3]? +m[3] : +m[1]*1000;
+  if(/embaraz|bebé|bebe|esperando/.test(s)) out.etapa="bebe"; else if(/hijos? chic|nene|nena|jardín|jardin/.test(s)) out.etapa="chicos"; else if(/hijos? grande|adolesc/.test(s)) out.etapa="grandes"; else if(/sin hijos|solos?|pareja/.test(s)) out.etapa="sin";
+  if(/plátan|platan/.test(s)) out.alergia="platano"; else if(/fresno/.test(s)) out.alergia="fresno"; else if(/ligustr/.test(s)) out.alergia="ligustro";
+  if(/de noche|noche|dormir/.test(s)) out.franja="noche";
+  return out;
+}
+function applyFilters(f){
+  if(f.amb===2||f.amb===3) S.amb=f.amb;
+  if(f.budget && f.budget>=30000 && f.budget<=2000000) S.budget=clamp(Math.round(f.budget/5000)*5000,60000,320000);
+  if(PRESETS[f.etapa]){S.etapa=f.etapa;S.w={...PRESETS[f.etapa]};}
+  if(["no","platano","fresno","ligustro"].includes(f.alergia)) S.alergia=f.alergia;
+  if(f.franja==="noche"||f.franja==="dia") S.franja=f.franja;
+}
+$("#searchForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const text=$("#q").value.trim(); if(!text) return;
+  const btn=$("#parseBtn"), note=$("#parseNote");
+  if(!SAMPLE){applyFilters(ruleParse(text));S.source="reglas";note.textContent="La IA no está disponible acá: los filtros se leyeron con reglas simples.";renderAll();$("#resultados").scrollIntoView({behavior:"smooth"});return;}
+  btn.disabled=true; note.textContent="Interpretando…";
+  try{
+    const f = await SAMPLE.json(`Convertí este pedido de búsqueda de vivienda en Buenos Aires en filtros. Respondé solo con un objeto JSON con estas claves:
+{"amb": 2 o 3, "budget": número en USD o null, "etapa": "sin" | "bebe" | "chicos" | "grandes", "alergia": "no" | "platano" | "fresno" | "ligustro", "franja": "noche" | "dia"}
+Reglas: si menciona embarazo o bebé en camino, etapa "bebe". Si no dice ambientes, usá 3. "franja" es "noche" si le importa dormir o la tranquilidad nocturna o si tiene bebé o hijos chicos; si no, "dia". Si no menciona alergias, "no".
+Pedido: """${text.slice(0,1500)}"""`, {modelTier:"quick"});
+    applyFilters(f||{}); S.source="ia"; note.textContent="Listo. Revisá los filtros en Resultados.";
+  }catch(err){
+    applyFilters(ruleParse(text)); S.source="reglas"; note.textContent=(iaError(err)||"")+" Se usaron reglas simples.";
+  }finally{btn.disabled=false;}
+  renderAll(); $("#resultados").scrollIntoView({behavior:"smooth"});
+});
+
+async function iaInto(btn, out, prompt, tier){
+  if(!SAMPLE){out.textContent=IA_OFF;return;}
+  btn.disabled=true; out.textContent="Pensando…";
+  try{ await SAMPLE(prompt,{modelTier:tier,onText:({text})=>{out.textContent=text;}}); }
+  catch(e){ out.textContent=(e.text?e.text+"\n\n":"")+iaError(e); }
+  finally{ btn.disabled=false; }
+}
+const STYLE = "Escribí en español rioplatense, tuteando o con 'ustedes', en frases cortas y claras para una familia sin conocimientos técnicos. Usá solo los datos que te paso; si mencionás un número, que sea uno de esos datos. No afirmes causalidad entre contaminación y salud o precio: hablá de coincidencias. No uses markdown, ni listas, ni títulos.";
+$("#recBtn").addEventListener("click",()=>{
+  const top=CUR.top.map(r=>dataFor(r.id));
+  iaInto($("#recBtn"),$("#recText"),`Sos el asistente de RESPIRA, una app que recomienda comunas de CABA para comprar vivienda según su respirabilidad. ${STYLE}
+Perfil de la familia: ${JSON.stringify(perfil())}
+Ranking de 3 comunas (ordenado por el índice): ${JSON.stringify(top)}
+Escribí una recomendación final de 4 a 5 oraciones: cuál de las tres conviene más para esta familia y por qué, cuál es la principal concesión de cada alternativa (por ejemplo precio o alérgenos), y una tendencia de valor estimada (sube, estable o baja, sin dar un número) considerando la serie de precios y la baja de nacimientos. Aclarar que la tendencia es una estimación.`,"default");
+});
+$("#forYouBtn").addEventListener("click",()=>{
+  iaInto($("#forYouBtn"),$("#forYouText"),`Sos el asistente de RESPIRA. ${STYLE}
+Perfil de la familia: ${JSON.stringify(perfil())}
+Datos de la comuna (posición 1 = mejor entre 15): ${JSON.stringify(dataFor(S.selected))}
+En 3 oraciones, explicale a esta familia qué significan estos datos para su búsqueda: lo más a favor, lo más en contra y si el precio entra en su presupuesto.`,"quick");
+});
+
+// Chat
+const turns=[];
+function renderSugs(){
+  const sel=C[S.selected]; const t=CUR?CUR.top:[];
+  const qs=[`¿Por qué ${C[t[0]?.id]?.name||"la primera"} queda primera?`,`¿Qué tan ruidosa es ${sel.name} de noche?`,`¿Cuál conviene por precio?`];
+  $("#sugs").innerHTML=qs.map(q=>`<button type="button">${esc(q)}</button>`).join("");
+}
+$("#sugs").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;$("#chatIn").value=b.textContent;$("#chatForm").requestSubmit();});
+$("#bubble").addEventListener("click",()=>{const open=$("#chat").hidden;$("#chat").hidden=!open;$("#bubble").setAttribute("aria-expanded",String(open));if(open)$("#chatIn").focus();});
+$("#chatClose").addEventListener("click",()=>{$("#chat").hidden=true;$("#bubble").setAttribute("aria-expanded","false");});
+$("#chatForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const q=$("#chatIn").value.trim(); if(!q) return; $("#chatIn").value="";
+  const body=$("#chatBody");
+  body.append(el("div",{class:"msg u"},esc(q)));
+  const box=el("div",{class:"msg a ia"},`<div class="ia-k">IA</div><p class="ia-text">Pensando…</p>`); body.append(box); body.scrollTop=body.scrollHeight;
+  const out=box.querySelector(".ia-text");
+  if(!SAMPLE){out.textContent=IA_OFF;return;}
+  const rules=`Sos el asistente de RESPIRA, una app que ayuda a familias a elegir comuna en CABA para comprar vivienda según respirabilidad (aire, verde, arbolado, ruido, presión vial) y precio. ${STYLE} Respondé en 90 palabras como máximo. Si citás un dato, decí de qué fuente viene (por ejemplo "según el Mapa de Ruido 2018"). Si la pregunta no se puede responder con estos datos, decilo.
+Perfil: ${JSON.stringify(perfil())}
+Comuna que está mirando: ${C[S.selected].name}
+Ranking actual: ${CUR.top.map((r,i)=>(i+1)+". "+C[r.id].name).join(", ")}
+Datos de las 15 comunas (posición 1 = mejor): ${JSON.stringify(IDS.map(dataFor))}
+Promedios CABA: NO₂ ${fmt1(CABA.no2)} µmol/m², verde 7,75 %, 1.811 árboles/km², ruido día ${fmt1(CABA.rd)} dBA, noche ${fmt1(CABA.rn)} dBA. Referencia OMS 2018 para ruido de tránsito: menos de 45 dB de noche.`;
+  turns.push({role:"user",content:q});
+  const send=$("#chatSend"); send.disabled=true;
+  try{
+    const {text}=await SAMPLE([{role:"user",content:rules},...turns.slice(-8)],{cache:false,onText:({text})=>{out.textContent=text;body.scrollTop=body.scrollHeight;}});
+    turns.push({role:"assistant",content:text});
+  }catch(err){out.textContent=(err.text?err.text+"\n\n":"")+iaError(err);}
+  finally{send.disabled=false;}
+});
+
+renderAll();
+</script>
+
+</body>
+</html>
