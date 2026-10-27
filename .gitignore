@@ -13,3 +13,7 @@ datasets/medicion_de_ruido_nocturno_2018.csv
 .DS_Store
 Thumbs.db
 __pycache__/
+
+# GTFS de colectivos (209 MB comprimido, 1,4 GB descomprimido)
+datasets/colectivos-gtfs.zip
+datasets_procesados/colectivos-gtfs__filtrado_stop_times.csv
