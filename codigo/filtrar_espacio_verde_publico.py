@@ -1,7 +1,7 @@
 """Filtra los espacios verdes públicos del GCBA: deja los que suman verde y las columnas útiles.
 
 Uso:
-    python codigo/filtrar_espacio_verde_publico.py datasets/espacio_verde_publico.csv datasets_procesados/espacio_verde_publico_filtrado.csv
+    python codigo/filtrar_espacio_verde_publico.py datasets/espacio_verde_publico.csv datasets_procesados/espacio_verde_publico__filtrado.csv
 
 Solo recorta filas y columnas: no modifica ningún valor. Decisiones (ver decisiones.md, 2026-10-27):
 - Salen los patios de juegos (PATIO, PATIO RECREATIVO, PATIO DE JUEGOS INCLUSIVO: chicos y con piso duro),

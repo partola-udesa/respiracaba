@@ -10,16 +10,20 @@ Qué probamos, qué descartamos y por qué. La entrada más nueva va arriba.
 -->
 
 ## 2026-10-27 — Espacios verdes públicos (GCBA): filtrado
-- **Qué:** `espacio_verde_publico_filtrado.csv` (script `codigo/filtrar_espacio_verde_publico.py`) deja 2.127 de 2.176 espacios. Salen los patios de juegos (27: chicos y con piso duro), el Barrio Municipal Soldati (complejo de viviendas, no espacio verde) y 21 polígonos de menos de 10 m² (restos de dibujo que harían creer que una cuadra bordea un espacio verde).
+- **Qué:** `espacio_verde_publico__filtrado.csv` (script `codigo/filtrar_espacio_verde_publico.py`) deja 2.127 de 2.176 espacios. Salen los patios de juegos (27: chicos y con piso duro), el Barrio Municipal Soldati (complejo de viviendas, no espacio verde) y 21 polígonos de menos de 10 m² (restos de dibujo que harían creer que una cuadra bordea un espacio verde).
 - **Quedan** parques, parques semipúblicos (Reserva Ecológica, Costanera Norte, Balneario Norte, Parque de la Raza, Bosque Alegre), plazas, plazoletas, canteros centrales (boulevards arbolados), jardines y paseos.
 - **Columnas que quedan:** `id`, `nombre`, `clasificac`, `area` (m²) y `geometry`. Salen nombre abreviado, barrio, comuna, ubicación, perímetro, patio de juegos, padrinazgo, datos legales y `observacio` (vacía).
 - **Pendiente para el índice:** hay dos fuentes de verde (este dataset y los parques de OSM) que se superponen. Propuesta: GCBA como fuente principal (oficial, con superficie) y OSM para lo que no tiene, como las sendas dentro de los parques.
 
 ## 2026-10-27 — Arbolado público lineal: filtrado
-- **Qué:** `arbolado_publico_lineal_filtrado.csv` (script `codigo/filtrar_arbolado_lineal.py`) deja 354.838 de 370.180 árboles. Salen los 15.342 sin coordenadas: no se pueden asignar a una cuadra y solo el 15 % tiene dirección para ubicarlos. Faltan más en las comunas 8 (9,5 %), 1 (8,5 %) y 4 (7 %): ahí el arbolado queda algo subestimado.
+- **Qué:** `arbolado-publico-lineal-2017-2018__filtrado.csv` (script `codigo/filtrar_arbolado_lineal.py`) deja 354.838 de 370.180 árboles. Salen los 15.342 sin coordenadas: no se pueden asignar a una cuadra y solo el 15 % tiene dirección para ubicarlos. Faltan más en las comunas 8 (9,5 %), 1 (8,5 %) y 4 (7 %): ahí el arbolado queda algo subestimado.
 - **Quedan** los árboles con diámetro 0 (6.378), sin altura (4.322) o de especie "No identificado" (9.411): el árbol existe aunque falte la medida o la especie.
 - **Columnas que quedan:** `nro_registro`, `long`, `lat`, `nombre_cientifico` (alergias), `altura_arbol` y `diametro_altura_pecho` (sombra), `ancho_acera` (espacio para correr), `calle_nombre` y `calle_altura` (verificar la asignación a la cuadra). Salen `tipo_activ` (siempre "Lineal"), `comuna`, `manzana` (60 % vacía), `calle_chapa` y `direccion_normalizada` (repiten la dirección), `ubicacion` y los tres datos de la cazuela.
 - **Para el procesado:** especies alergénicas = `Fraxinus` (fresno, 153.118), `Platanus` (plátano, 32.319) y `Ligustrum` (ligustro, 17.175). Ojo: `Acer pseudoplatanus` no es plátano. 124.396 árboles comparten la coordenada exacta con otro (el censo ubicó varios árboles de una cuadra en el mismo punto): sirve para contar por cuadra, no para la posición exacta.
+
+## 2026-10-27 — Ruido: la versión 2025 es el mismo modelo que 2018
+- **Qué:** se comparó el Mapa de Ruido 2025 con el 2018, rango de dB por rango de dB. El nocturno es idéntico (mismas superficies, polígonos coincidentes al 100 %). En el diurno, donde hay datos en ambas versiones, los polígonos coinciden exactamente; a 2025 le faltan partes (la Comuna 1 y algunas zonas tranquilas).
+- **Conclusión:** la versión 2025 no es una medición nueva, es el modelo 2018 republicado con huecos. Se sigue usando 2018, la versión completa. En el portal no hay años posteriores a 2025 (revisado el 2026-10-27; la fecha de actualización del 2026-10-02 corresponde a la página, no a datos nuevos).
 
 ## 2026-10-27 — Limpieza: se borran los procesados por comuna
 - **Qué:** se borran los procesados que trabajaban por comuna (`colectivos-gtfs__pasadas_por_comuna_dia_noche.csv`, `osm_vias_principales_caba__presion_vial_por_comuna.csv`, `osm_vias_principales_caba__presion_vial_combinada_con_colectivos.csv`, `medicion_de_ruido_2018__promedio_por_comuna.csv`) y sus scripts; `conteo-vehicular__con_comuna.csv` y su script (el original ya no está en `datasets/` y las pasadas de colectivo por tramo lo reemplazan como dato de tránsito); `convertir_xlsx_a_csv.py` (convertía los Excel inmobiliarios, descartados).

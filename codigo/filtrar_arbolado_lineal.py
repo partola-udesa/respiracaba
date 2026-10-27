@@ -1,7 +1,7 @@
 """Filtra el arbolado público lineal (censo 2017–2018): deja los árboles ubicables y las columnas útiles.
 
 Uso:
-    python codigo/filtrar_arbolado_lineal.py datasets/arbolado-publico-lineal-2017-2018.csv datasets_procesados/arbolado_publico_lineal_filtrado.csv
+    python codigo/filtrar_arbolado_lineal.py datasets/arbolado-publico-lineal-2017-2018.csv datasets_procesados/arbolado-publico-lineal-2017-2018__filtrado.csv
 
 Solo recorta filas y columnas: no modifica ningún valor. Decisiones (ver decisiones.md, 2026-10-27):
 - Salen los árboles sin coordenadas (no se pueden asignar a una cuadra).
