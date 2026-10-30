@@ -41,7 +41,8 @@ El detalle de cada dataset (columnas, unidades y transformaciones) está en [`da
 | Espacios verdes públicos | Vegetación | GCBA – Buenos Aires Data | https://data.buenosaires.gob.ar/dataset/espacios-verdes | 2026-09-22 |
 | Arbolado en espacios verdes (censo 2011) | Vegetación dentro de parques (complementario) | GCBA – Buenos Aires Data | https://data.buenosaires.gob.ar/dataset/arbolado-espacios-verdes | 2026-09-15 |
 | Mapa de Ruido, diurno y nocturno (modelo 2018) ⚠️ | Ruido | APrA / GCBA – Buenos Aires Data | https://data.buenosaires.gob.ar/dataset/mapa-ruido · CSV diurno: https://data.buenosaires.gob.ar/dataset/mapa-ruido/resource/ce377913-43ac-4686-b244-0ac4c55012da · CSV nocturno: https://data.buenosaires.gob.ar/dataset/mapa-ruido/resource/cc46de8c-04a9-49b1-8329-2dd800dd2a49 | 2026-09-22 |
-| NO2 por comuna (mensual) y por estación (diario) | Calidad del aire | Copernicus Sentinel-5P vía Google Earth Engine | https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S5P_OFFL_L3_NO2 | 2026-10-05 |
+| NO2 en grilla (mensual) | Calidad del aire: NO2 de la zona para cada tramo | Copernicus Sentinel-5P vía Google Earth Engine | https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S5P_OFFL_L3_NO2 · script en `codigo/gee_no2_grilla_mensual.js` | 2026-10-30 |
+| NO2 por comuna (mensual, reemplazado por la grilla) y por estación (diario) | Antecedente y control | Copernicus Sentinel-5P vía Google Earth Engine | https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S5P_OFFL_L3_NO2 | 2026-10-05 |
 | Meteorología ERA5 | Control climático (viento, temperatura, humedad) | ECMWF ERA5 vía Google Earth Engine | _colección GEE (completar)_ | 2026-10-05 |
 | Comunas (límites) | Recorte de todos los datos al límite de CABA | GCBA – Buenos Aires Data | https://data.buenosaires.gob.ar/dataset/comunas | 2026-10-05 |
 
@@ -57,6 +58,7 @@ Superan el límite de tamaño del repositorio y están en `.gitignore`. Se desca
 | `medicion_de_ruido_nocturno_2018.csv` | 67 MB | `datasets/` |
 | `colectivos-gtfs.zip` (sin descomprimir) | 209 MB | `datasets/` |
 | `colectivos-gtfs__filtrado_stop_times.csv` | 269 MB | `datasets_procesados/` · no se descarga: se regenera con `codigo/filtrar_colectivos_gtfs.py` |
+| `medicion_de_ruido_diurno_2018__filtrado.csv` / `medicion_de_ruido_nocturno_2018__filtrado.csv` | 67 MB c/u | `datasets_procesados/` · se regeneran con `codigo/filtrar_mapa_ruido.py` |
 
 ## Cómo reproducir los datos procesados
 ```bash
@@ -76,6 +78,8 @@ python codigo/filtrar_osm_vias_principales.py datasets/osm_vias_principales_caba
 python codigo/filtrar_colectivos_gtfs.py datasets/colectivos-gtfs.zip datasets/comunas.zip datasets_procesados
 python codigo/filtrar_arbolado_lineal.py datasets/arbolado-publico-lineal-2017-2018.csv datasets_procesados/arbolado-publico-lineal-2017-2018__filtrado.csv
 python codigo/filtrar_espacio_verde_publico.py datasets/espacio_verde_publico.csv datasets_procesados/espacio_verde_publico__filtrado.csv
+python codigo/filtrar_mapa_ruido.py datasets/medicion_de_ruido_diurno_2018.csv datasets_procesados/medicion_de_ruido_diurno_2018__filtrado.csv
+python codigo/filtrar_mapa_ruido.py datasets/medicion_de_ruido_nocturno_2018.csv datasets_procesados/medicion_de_ruido_nocturno_2018__filtrado.csv
 
 # 3. Procesados (tarda ~6 minutos)
 python codigo/colectivos_pasadas_por_tramo.py datasets_procesados datasets_procesados/osm_red_peatonal_caba__filtrado.csv datasets_procesados/colectivos-gtfs__pasadas_por_tramo_franja.csv

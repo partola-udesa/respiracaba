@@ -17,3 +17,5 @@ __pycache__/
 # GTFS de colectivos (209 MB comprimido, 1,4 GB descomprimido)
 datasets/colectivos-gtfs.zip
 datasets_procesados/colectivos-gtfs__filtrado_stop_times.csv
+datasets_procesados/medicion_de_ruido_diurno_2018__filtrado.csv
+datasets_procesados/medicion_de_ruido_nocturno_2018__filtrado.csv

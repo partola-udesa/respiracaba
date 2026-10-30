@@ -17,8 +17,9 @@ Qué contiene cada dataset de `datasets/`, qué significa cada columna, en qué 
 | `arbolado-publico-lineal-2017-2018.csv` ⚠️ no está en git | Vegetación, sombra y alergias | Censo 2017–2018 | Árbol por árbol | `arbolado-publico-lineal-2017-2018__filtrado.csv` |
 | `espacio_verde_publico.csv` | Vegetación | Actual | Polígono | `espacio_verde_publico__filtrado.csv` |
 | `arbolado-en-espacios-verdes.csv` | Vegetación dentro de parques (complementario) | Censo 2011 | Árbol por árbol | — |
-| `medicion_de_ruido_diurno_2018.csv` / `medicion_de_ruido_nocturno_2018.csv` ⚠️ no están en git | Ruido (resta) | Modelo 2018 | Polígonos sobre la vía pública | pendiente |
-| `no2_comunas_mensual.csv` | Calidad del aire (NO2 satelital) | 2018-07 → 2026-08, mensual | 15 comunas (a reemplazar por grilla) | pendiente |
+| `medicion_de_ruido_diurno_2018.csv` / `medicion_de_ruido_nocturno_2018.csv` ⚠️ no están en git | Ruido (resta) | Modelo 2018 | Polígonos sobre la vía pública | `medicion_de_ruido_diurno_2018__filtrado.csv` / `medicion_de_ruido_nocturno_2018__filtrado.csv` |
+| `no2_grilla_mensual.csv` | **Calidad del aire (NO2 satelital)** | 2018-07 → 2026-08, mensual | Píxel de 0,01° (≈ 1,1 km) | `no2_grilla_mensual__filtrado.csv` |
+| `no2_comunas_mensual.csv` | Calidad del aire (reemplazado por la grilla) | 2018-07 → 2026-08, mensual | 15 comunas | — |
 | `no2_estaciones_diario.csv` | Calidad del aire (control) | 2018-07 → 2026-08, diario | 3 estaciones | pendiente |
 | `era5_meteo_caba.csv` | Control: viento, temperatura, humedad | 2018-07 → 2026-08, diario | CABA | pendiente |
 | `comunas.zip` | Límite de CABA para recortar todos los datos | 2026 | 15 comunas | — |
@@ -309,6 +310,45 @@ Qué contiene cada dataset de `datasets/`, qué significa cada columna, en qué 
 - El portal publica dos años: **2018 y 2025**. Los archivos sin año (`medicion_de_ruido_diurno.csv` / `_nocturno.csv`) son la versión 2025. Se eligió 2018 porque en la descarga de 2025 (22-09-2026) la Comuna 1 está casi vacía (2 zonas, 0,03 km²). Se volvió a bajar el 2026-10-19 y sigue igual.
 - **La versión 2025 es el mismo modelo que 2018** (comparado el 2026-10-27): el nocturno es idéntico y, en el diurno, los polígonos coinciden exactamente donde hay datos en ambas versiones; a 2025 le faltan la Comuna 1 y algunas zonas tranquilas. Por eso se usa 2018. En la app se presenta como "Mapa de Ruido APrA, modelo 2018".
 
+### Versión procesada: `datasets_procesados/medicion_de_ruido_diurno_2018__filtrado.csv` y `..._nocturno_2018__filtrado.csv`
+- **Script:** `codigo/filtrar_mapa_ruido.py` (se corre una vez por archivo)
+- **Transformación:** solo recorta. Salen los 11 duplicados exactos del diurno. Quedan 156 zonas de día y 149 de noche.
+- **Columnas:** `wkt`, `limite_inferior_rango_db`, `limite_superior_rango_db` (dBA), `periodo`.
+- **Quedan** 9 geometrías inválidas de día y 7 de noche: se corrigen en el procesado.
+
+---
+
+## NO2 satelital en grilla (mensual)
+
+| | |
+|---|---|
+| **Archivo** | `datasets/no2_grilla_mensual.csv` |
+| **Fuente** | Copernicus Sentinel-5P / TROPOMI, colección `COPERNICUS/S5P/OFFL/L3_NO2` de Google Earth Engine, banda `tropospheric_NO2_column_number_density` |
+| **Script** | `codigo/gee_no2_grilla_mensual.js` (se corre en code.earthengine.google.com y exporta a Google Drive) |
+| **Fecha de descarga** | 2026-10-30 |
+| **Cobertura temporal** | 2018-07 a 2026-08 (98 meses, todos completos) |
+| **Cobertura espacial** | Rectángulo de CABA + margen (lon −58,55 a −58,32; lat −34,72 a −34,51): 483 píxeles |
+| **Tamaño** | 47.334 filas × 5 columnas |
+| **Uso en RESPIRA** | Componente "calidad del aire" del índice: cada tramo toma el valor del píxel en el que cae. Es **NO2 de la zona, no de la cuadra** |
+
+### Columnas
+| Columna | Descripción |
+|---|---|
+| `mes` | Mes (AAAA-MM) |
+| `longitude`, `latitude` | Centro del píxel (grados, WGS84). El píxel es un cuadrado de 0,01° × 0,01° |
+| `no2_umol_m2` | NO2 troposférico promedio del mes en el píxel, en **µmol/m²** (la banda viene en mol/m² y se multiplica por 1.000.000). Es la cantidad de NO2 en toda la columna de aire, no la concentración a nivel de calle |
+| `n_obs` | Cantidad de pasadas válidas del satélite ese mes en ese píxel (5 a 35, mediana 23). GEE ya descarta las pasadas con calidad < 75 % |
+
+### Transformación → `datasets_procesados/no2_grilla_mensual__filtrado.csv`
+- **Script:** `codigo/filtrar_no2_grilla.py`
+- **Transformación:** solo recorta. Quedan los 249 píxeles cuyo cuadrado toca el límite de CABA (203 tienen el centro adentro; los otros 46 cubren calles del borde: General Paz, Riachuelo, Costanera). 24.402 filas, mismas columnas.
+
+### Observaciones
+- **Resolución real:** la grilla de 1,1 km es la de Earth Engine, pero el satélite mide en manchas de ~3,5 × 5,5 km (~3,5 × 7 km antes de agosto 2019). Valores vecinos se parecen mucho: el rango del promedio 2018–2026 dentro de CABA va de 85 µmol/m² (Núñez, sobre el río) a 135 µmol/m² (Parque Patricios / Boedo).
+- **Estacionalidad fuerte:** el promedio de la ciudad va de ~88 µmol/m² en enero y noviembre a ~164 en julio (en invierno el aire se mezcla menos y el NO2 dura más).
+- El promedio de toda la grilla en CABA (120 µmol/m²) coincide con el del archivo por comuna (123), que confirma la unidad de ese archivo.
+- No hay valores vacíos ni negativos.
+
 ---
 
 ## NO2 satelital por comuna (mensual)
@@ -322,7 +362,7 @@ Qué contiene cada dataset de `datasets/`, qué significa cada columna, en qué 
 | **Cobertura temporal** | 2018-07 a 2026-08 (98 meses) |
 | **Cobertura espacial** | Las 15 comunas, completas (98 meses × 15 comunas) |
 | **Tamaño** | 1.470 filas × 11 columnas |
-| **Uso en RESPIRA** | Componente "calidad del aire" del índice. ⚠️ Está por comuna: se reemplazará por la grilla de píxeles de Sentinel-5P (exportación pendiente desde GEE) para asignar un valor a cada tramo |
+| **Uso en RESPIRA** | Reemplazado por `no2_grilla_mensual.csv` (2026-10-30). Queda como antecedente |
 
 ### Columnas
 | Columna | Descripción |

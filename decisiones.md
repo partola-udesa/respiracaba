@@ -9,6 +9,12 @@ Qué probamos, qué descartamos y por qué. La entrada más nueva va arriba.
 - **Alternativa descartada:** …
 -->
 
+## 2026-10-30 — Calidad del aire: NO2 satelital en grilla en lugar de por comuna
+- **Qué:** se bajó de Google Earth Engine el NO2 de Sentinel-5P por píxel (0,01° ≈ 1,1 km) y por mes, julio 2018 – agosto 2026 (`datasets/no2_grilla_mensual.csv`, script `codigo/gee_no2_grilla_mensual.js`). Se recortó a los 249 píxeles que tocan CABA (`datasets_procesados/no2_grilla_mensual__filtrado.csv`, script `codigo/filtrar_no2_grilla.py`). Reemplaza a `no2_comunas_mensual.csv` como componente "calidad del aire" del índice.
+- **Por qué:** la unidad del proyecto es el tramo de calle; un valor por comuna no se puede asignar a cada calle. Se queda el píxel si toca CABA aunque sea en parte, para que las calles del borde también tengan valor.
+- **Límite del dato:** el satélite mide en manchas de ~3,5 × 5,5 km; la grilla de 1,1 km es un remuestreo. En la app se presenta como **"NO2 de la zona"**, no de la cuadra. La diferencia entre cuadras de una misma zona la marcan presión vial, ruido y arbolado.
+- **Alternativas descartadas:** (1) modelar el NO2 por cuadra a partir del tránsito: el tránsito contaría dos veces en el índice y los senderos en parques saldrían mejor por construcción, sesgando la hipótesis; (2) modelo global de NO2 a 50 m (Larkin et al., 2023): solo llega a 2019, las estimaciones no están publicadas para descargar y tiene pocos medidores en Sudamérica; (3) productos globales descargables (≈ 10 km): más gruesos que el satélite. Pendiente opcional: pedir al INQUIMAE (campaña de tubos pasivos 2018) o al CIMA-UBA (proyecto 2025–2026) mediciones a nivel de calle para validar.
+
 ## 2026-10-27 — Espacios verdes públicos (GCBA): filtrado
 - **Qué:** `espacio_verde_publico__filtrado.csv` (script `codigo/filtrar_espacio_verde_publico.py`) deja 2.127 de 2.176 espacios. Salen los patios de juegos (27: chicos y con piso duro), el Barrio Municipal Soldati (complejo de viviendas, no espacio verde) y 21 polígonos de menos de 10 m² (restos de dibujo que harían creer que una cuadra bordea un espacio verde).
 - **Quedan** parques, parques semipúblicos (Reserva Ecológica, Costanera Norte, Balneario Norte, Parque de la Raza, Bosque Alegre), plazas, plazoletas, canteros centrales (boulevards arbolados), jardines y paseos.
@@ -20,6 +26,12 @@ Qué probamos, qué descartamos y por qué. La entrada más nueva va arriba.
 - **Quedan** los árboles con diámetro 0 (6.378), sin altura (4.322) o de especie "No identificado" (9.411): el árbol existe aunque falte la medida o la especie.
 - **Columnas que quedan:** `nro_registro`, `long`, `lat`, `nombre_cientifico` (alergias), `altura_arbol` y `diametro_altura_pecho` (sombra), `ancho_acera` (espacio para correr), `calle_nombre` y `calle_altura` (verificar la asignación a la cuadra). Salen `tipo_activ` (siempre "Lineal"), `comuna`, `manzana` (60 % vacía), `calle_chapa` y `direccion_normalizada` (repiten la dirección), `ubicacion` y los tres datos de la cazuela.
 - **Para el procesado:** especies alergénicas = `Fraxinus` (fresno, 153.118), `Platanus` (plátano, 32.319) y `Ligustrum` (ligustro, 17.175). Ojo: `Acer pseudoplatanus` no es plátano. 124.396 árboles comparten la coordenada exacta con otro (el censo ubicó varios árboles de una cuadra en el mismo punto): sirve para contar por cuadra, no para la posición exacta.
+
+## 2026-10-27 — Mapa de Ruido 2018: filtrado
+- **Qué:** `medicion_de_ruido_diurno_2018__filtrado.csv` (156 zonas) y `medicion_de_ruido_nocturno_2018__filtrado.csv` (149 zonas), con el script `codigo/filtrar_mapa_ruido.py`. Salen 11 duplicados exactos del diurno (10 zonas de la Comuna 10 y 1 de la Comuna 9).
+- **Columnas que quedan:** `wkt`, `limite_inferior_rango_db`, `limite_superior_rango_db` y `periodo` (redundante dentro de cada archivo, pero permite juntar día y noche). Salen `rango_db` (repite los límites en texto), `leyenda` (agrupa todo lo que supera 80 dBA y en el nocturno etiqueta 35–40 dBA como "35 dBA o menos"), `color` y `comuna`.
+- **Quedan** 9 geometrías inválidas en el diurno y 7 en el nocturno (bordes que se cruzan): corregirlas es transformar, se hace en el procesado.
+- **Para el procesado:** el mapa modela el ruido sobre la calzada (58 km² de día y de noche, sin zonas superpuestas). Las veredas y sendas dibujadas aparte en OSM pueden quedar fuera de los polígonos: tomar el polígono más cercano.
 
 ## 2026-10-27 — Ruido: la versión 2025 es el mismo modelo que 2018
 - **Qué:** se comparó el Mapa de Ruido 2025 con el 2018, rango de dB por rango de dB. El nocturno es idéntico (mismas superficies, polígonos coincidentes al 100 %). En el diurno, donde hay datos en ambas versiones, los polígonos coinciden exactamente; a 2025 le faltan partes (la Comuna 1 y algunas zonas tranquilas).
