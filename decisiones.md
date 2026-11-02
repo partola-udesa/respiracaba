@@ -9,6 +9,14 @@ Qué probamos, qué descartamos y por qué. La entrada más nueva va arriba.
 - **Alternativa descartada:** …
 -->
 
+## 2026-11-02 — Clima para el runner: pronóstico hora por hora de Open-Meteo
+- **Qué:** la variable del usuario "condiciones meteorológicas" se resuelve con la API de pronóstico de Open-Meteo, consultada en vivo desde la app (`app/clima.js`). Para el punto de partida del runner trae, hora por hora y para 2 días: temperatura, sensación térmica, humedad, probabilidad de lluvia, viento medio, dirección del viento, ráfagas, índice UV y si es de día o de noche.
+- **Para armar rutas:** con la dirección del viento y el rumbo de cada tramo se calcula cuánto viento le pega de frente al runner (positivo en contra, negativo a favor). Además, la app muestra avisos (calor, frío, UV alto, lluvia, ráfagas, viento fuerte, de noche).
+- **Umbrales de los avisos (decisión de diseño, no dato duro):** sensación térmica ≥ 28 °C (calor) o ≤ 5 °C (frío), UV ≥ 6, lluvia ≥ 50 %, ráfagas ≥ 40 km/h, viento medio ≥ 25 km/h. Se pueden ajustar en `UMBRALES` dentro de `app/clima.js`.
+- **Por qué:** es gratis para uso no comercial, no pide clave, responde en el navegador y da el pronóstico por hora que necesita la recomendación de ruta. No es un dataset que se guarde en `datasets/`: cambia cada hora.
+- **Alternativas descartadas:** (1) copiar los datos de una página meteorológica (scraping): se rompe si la página cambia y muchas lo prohíben; (2) ERA5: es histórico, sirve como control del NO2 pero no para el día de hoy; (3) pronóstico de NO2 de Open-Meteo: cuadros de ~45 km, toda la ciudad tendría el mismo valor. Queda como idea para un aviso general del tipo "hoy el aire está peor que lo normal".
+- **Cita obligatoria en la app:** "Datos meteorológicos: Open-Meteo.com (CC BY 4.0)".
+
 ## 2026-10-30 — Calidad del aire: NO2 satelital en grilla en lugar de por comuna
 - **Qué:** se bajó de Google Earth Engine el NO2 de Sentinel-5P por píxel (0,01° ≈ 1,1 km) y por mes, julio 2018 – agosto 2026 (`datasets/no2_grilla_mensual.csv`, script `codigo/gee_no2_grilla_mensual.js`). Se recortó a los 249 píxeles que tocan CABA (`datasets_procesados/no2_grilla_mensual__filtrado.csv`, script `codigo/filtrar_no2_grilla.py`). Reemplaza a `no2_comunas_mensual.csv` como componente "calidad del aire" del índice.
 - **Por qué:** la unidad del proyecto es el tramo de calle; un valor por comuna no se puede asignar a cada calle. Se queda el píxel si toca CABA aunque sea en parte, para que las calles del borde también tengan valor.
