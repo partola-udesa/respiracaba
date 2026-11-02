@@ -103,7 +103,7 @@
       const largo = decimas * PX_DECIMA;
       escala.style.width = (largo + 2 * mitad) + 'px';
       escala.style.backgroundPosition = `${mitad - 1}px 0, ${mitad}px 0`;
-      escala.style.backgroundSize = `${largo + 2}px 28px, ${largo + 1}px 14px`;
+      escala.style.backgroundSize = `${largo + 2}px 20px, ${largo + 1}px 10px`;   // = alto de las rayitas en estilos.css (balanza compacta)
       escala.querySelectorAll('.regla__numero').forEach(n => n.remove());
       for (let kg = desde; kg <= hasta; kg++) {               // un número por cada kilo
         const n = document.createElement('span');

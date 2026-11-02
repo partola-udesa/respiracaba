@@ -58,7 +58,9 @@
     const reloj = setTimeout(() => corte.abort(), ESPERA_MAX_MS);
     let r;
     try {
-      r = await fetch('https://api.open-meteo.com/v1/forecast?' + params, { signal: corte.signal });
+      // Open-Meteo NO pide clave (uso no comercial). La URL está en config.js.
+      const url = (globalThis.CONFIG && CONFIG.climaURL) || 'https://api.open-meteo.com/v1/forecast';
+      r = await fetch(url + '?' + params, { signal: corte.signal });
     } catch (e) {
       throw new Error(e.name === 'AbortError' ? 'Open-Meteo no respondió a tiempo' : 'No se pudo conectar con Open-Meteo');
     } finally {

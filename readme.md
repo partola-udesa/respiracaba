@@ -100,6 +100,10 @@ python codigo/filtrar_no2_grilla.py datasets/no2_grilla_mensual.csv datasets/com
 
 # 3. Procesados (tarda ~6 minutos)
 python codigo/colectivos_pasadas_por_tramo.py datasets_procesados datasets_procesados/osm_red_peatonal_caba__filtrado.csv datasets_procesados/colectivos-gtfs__pasadas_por_tramo_franja.csv
+
+# 4. Lo que usa la app (desde la carpeta del repo)
+python codigo/construir_red_respirabilidad.py     # → app/datos/red.js y app/datos/lugares.js (índice por tramo)
+python codigo/construir_capas_alergias_agua.py    # → app/datos/capas.js (polen por especie y cercanía al agua; necesita red.js)
 ```
 Las descargas de OpenStreetMap devuelven el estado actual de la base, que cambia con el tiempo: para obtener exactamente los mismos datos, usar los JSON del repositorio. El paso 3 necesita las salidas de `filtrar_colectivos_gtfs.py` y `filtrar_osm_red_peatonal.py` del paso 2.
 
@@ -107,10 +111,11 @@ Las descargas de OpenStreetMap devuelven el estado actual de la base, que cambia
 | Parte | Qué se usa | Para qué |
 |---|---|---|
 | Interfaz | HTML, CSS y JavaScript sin frameworks (`app/index.html`, `app/estilos.css`, `app/app.js`, `app/selectores.js`, `app/datos.js`, `app/buscador.js`) | Pantallas, estilos copiados de las variables de Figma y comportamiento. App mobile: ocupa toda la pantalla del celular y en la compu se ve dentro de un marco de teléfono |
-| Tipografía | Josefin Sans (títulos y números) + Inter (textos), de Google Fonts | Las mismas que en Figma |
-| Íconos | Material Symbols, outlined peso 300 (Apache 2.0), dentro de `app/index.html` | Solo donde reemplazan un texto por convención |
-| Mapa | Leaflet 1.9.4 + teselas de CARTO con datos de OpenStreetMap (`app/mapa.js`) | Mapa interactivo con las tres opciones de recorrido |
-| Recorridos | Red peatonal con índice por tramo (`app/datos/red.js`, generado por `codigo/construir_red_respirabilidad.py`) + algoritmo de Dijkstra (`app/red.js`) | Armar tres recorridos según las condiciones elegidas |
+| Sistema gráfico | v6 "Estilo oscuro": variables en `app/estilos.css` (sección 1) — paleta oscura con un solo acento `#C8F169`, vidrio, 7 estilos de texto, espacios en múltiplos de 4 | Mapa protagonista, hojas que suben desde abajo y animaciones de dibujo de la ruta |
+| Tipografía | Figtree (300 a 700), de Google Fonts | Números grandes en peso 300; textos en 400–700 |
+| Íconos | Material Symbols, outlined peso 300 (Apache 2.0) + íconos de línea propios para las condiciones, dentro de `app/index.html` | Navegación y condiciones |
+| Mapa | Leaflet 1.9.4 + mapa base oscuro de CARTO con datos de OpenStreetMap (`app/mapa.js`) | Mapa a pantalla completa: las tres opciones tocables, el detalle del recorrido y la corrida |
+| Recorridos | Red peatonal con índice por tramo (`app/datos/red.js`) + capas de polen y agua (`app/datos/capas.js`) + algoritmo de Dijkstra (`app/red.js`) | Armar tres recorridos según las condiciones elegidas, evitando el polen de las especies a las que el runner es alérgico según el viento y la época |
 | Buscador | Datasets (`app/datos/lugares.js`), esquinas de la red y geocodificador de OpenStreetMap (Photon / Nominatim) | Partida y llegada en cualquier lugar de CABA |
 | Clima | API de pronóstico de Open-Meteo (`app/clima.js`) | Clima hora por hora y viento a favor o en contra por tramo |
 | IA | Groq (modelos Llama) a través de una función de Vercel (`app/api/ia.js` + `app/ia.js`) | Interpretar la búsqueda en texto libre y explicar y recomendar los recorridos calculados |
@@ -133,7 +138,30 @@ La app se publica en **Vercel** con la carpeta `app/` como raíz del proyecto (*
    npx vercel dev                              # abre http://localhost:3000 con /api/ia funcionando
    ```
 
-La clave nunca va en el código ni en el repositorio. Los prompts están versionados en `prompts/prompts_v2.md`.
+La clave nunca va en el código ni en el repositorio. Los prompts están versionados en `prompts/prompts_v3.md`.
+
+### Claves y servicios externos
+Todo está anotado en `app/config.js`. Plantilla de variables: `.env.example` (en la raíz).
+
+| Servicio | Para qué | ¿Clave? | Dónde se configura |
+|---|---|---|---|
+| Open-Meteo | Pronóstico por hora: viento (dirección y velocidad), temperatura, lluvia, UV | **No.** Gratis para uso no comercial (CC BY 4.0, se cita en la app) | `CONFIG.climaURL` en `app/config.js` |
+| CARTO | Mapa base oscuro | No (con atribución) | `CONFIG.teselas` |
+| Photon / Nominatim (OSM) | Buscar direcciones | No (uso moderado) | `app/buscador.js` |
+| Groq | IA (modelos Llama) | **Sí:** `GROQ_API_KEY` | Vercel → Settings → Environment Variables (nunca en `app/`, salvo `app/api/`) |
+
+### Dónde entra la IA en el código
+Buscar `[API IA]` en `app/`. Las marcadas como **PENDIENTE** necesitan una tarea nueva en `app/api/ia.js` (o una pantalla que use una que ya existe).
+
+| Dónde | Qué hace | Estado |
+|---|---|---|
+| `app/app.js` → `calcularRecorridos` | Título, explicación y recomendado de los 3 recorridos (tarea `recorridos`) | Funciona (si está la clave en Vercel) |
+| `app/app.js` → `dibujarDetalle` | Chat "Preguntale a RESPIRA" sobre el recorrido (tarea `chat`, ya existe en el servidor) | PENDIENTE: falta el campo en la pantalla |
+| `app/app.js` → arranque | Búsqueda en texto libre → partida, km, horario y condiciones (tarea `busqueda`, ya existe) | PENDIENTE: falta el campo en "¿Qué querés hacer hoy?" |
+| `app/app.js` → micrófono | Dictado con Whisper para navegadores sin dictado | PENDIENTE: tarea nueva `transcribir` |
+| `app/app.js` → `guardar-corrida` | Aprender de la experiencia (sensación, ambiente, comentario) y sugerir condiciones | PENDIENTE: tarea nueva `experiencia` |
+| `app/ia.js` | Cliente: todas las llamadas pasan por acá hacia `/api/ia` | Funciona |
+| `app/api/ia.js` | Función del servidor que agrega la clave y los prompts | Funciona |
 
 ## Estructura del repositorio
 | Carpeta / archivo | Contenido |
@@ -147,4 +175,4 @@ La clave nunca va en el código ni en el repositorio. Los prompts están version
 | `prompts/` | Prompts del LLM, versionados (`prompts_v1.md`, `_v2`…) |
 | `diseno/` | Referencias (`referencias/`) y prototipos (`prototipos/`, una carpeta por versión) |
 | `entregas/` | Estado del proyecto en cada entrega (`entrega_N/`: capturas de la app y link al sitio) |
-| `app/` | Solo lo que se publica en Vercel: la página (`index.html`), los estilos (`estilos.css`), el comportamiento (`app.js`), la rueda y la balanza (`selectores.js`), las condiciones y su dataset (`datos.js`), el armado de recorridos (`red.js`), el buscador de lugares (`buscador.js`), el mapa (`mapa.js`), `clima.js` (pronóstico), `ia.js` (cliente de la IA), `api/ia.js` (función que llama a Groq) y `datos/` (red de calles con índice por tramo y lugares, generados por `codigo/construir_red_respirabilidad.py`) |
+| `app/` | Solo lo que se publica en Vercel: la página (`index.html`), los estilos (`estilos.css`), el comportamiento (`app.js`), la rueda y la balanza (`selectores.js`), las condiciones y su dataset (`datos.js`), el armado de recorridos (`red.js`), el buscador de lugares (`buscador.js`), el mapa (`mapa.js`), `clima.js` (pronóstico), `ia.js` (cliente de la IA), `api/ia.js` (función que llama a Groq) `config.js` (servicios y claves) y `datos/` (red de calles con índice por tramo y lugares, de `codigo/construir_red_respirabilidad.py`; polen y agua por tramo, de `codigo/construir_capas_alergias_agua.py`) |

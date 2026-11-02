@@ -6,18 +6,24 @@
       un tramo con mal puntaje cuesta como si fuera más largo.
    3. Busca el camino de menor costo (algoritmo de Dijkstra) y arma tres opciones
       distintas. Devuelve para cada una el largo, el índice y los datos duros.
-   Uso: const opciones = await RespiraRed.armarRecorridos({ desde, hasta, circular, km, factores, nocturno });
+   4. ALERGIAS: si el runner marcó plátano, fresno o ligustro, cada tramo suma un
+      "riesgo de polen" según los árboles de esa especie que tiene al lado, los que
+      quedan del lado de donde viene el viento (pronóstico por hora) y la época del
+      año (ESTACION_POLEN en datos.js). Un tramo con mucho riesgo cuesta más.
+   Uso: const opciones = await RespiraRed.armarRecorridos({ desde, hasta, circular, km, factores, nocturno, alergias, fecha, viento });
    ===================================================================== */
 (function () {
-  const URL_RED = 'datos/red.js';   // define window.RESPIRA_RED (se carga con <script> para que funcione también sin servidor)
-  const FACTORES = ['vegetacion', 'aire', 'ruido', 'transito', 'sombra', 'terreno', 'luz'];
+  const URL_RED = 'datos/red.js';     // define window.RESPIRA_RED (se carga con <script> para que funcione también sin servidor)
+  const URL_CAPAS = 'datos/capas.js'; // define window.RESPIRA_CAPAS: agua y polen por tramo
+  const FACTORES = ['vegetacion', 'aire', 'ruido', 'transito', 'sombra', 'agua', 'terreno', 'luz'];
+  const SECTORES = ['norte', 'noreste', 'este', 'sureste', 'sur', 'suroeste', 'oeste', 'noroeste'];
   let red = null, cargando = null;
 
   /* ---------- 1. Cargar la red y preparar las estructuras ---------- */
   function cargar() {
     if (red) return Promise.resolve(red);
     if (cargando) return cargando;
-    cargando = cargarScript(URL_RED, 'RESPIRA_RED').then(j => {
+    cargando = Promise.all([cargarScript(URL_RED, 'RESPIRA_RED'), cargarScript(URL_CAPAS, 'RESPIRA_CAPAS')]).then(([j, capas]) => {
       const E = j.escala_coordenadas, t = j.tramos;
       const nN = j.nodos.lon.length, nT = t.a.length;
       const lon = Float64Array.from(j.nodos.lon, v => v / E), lat = Float64Array.from(j.nodos.lat, v => v / E);
@@ -41,13 +47,23 @@
         indice: u8('indice'), vegetacion: u8('vegetacion'), aire: u8('aire'), ruido_dia: u8('ruido_dia'), ruido_noche: u8('ruido_noche'),
         transito: u8('transito'), sombra: u8('sombra'), terreno: u8('terreno'), luz: u8('luz'),
         arboles_100m: Float32Array.from(t.arboles_100m), db_dia: Uint8Array.from(t.db_dia), no2: Uint16Array.from(t.no2),
-        fuentes: j.fuentes, nN, nT
+        fuentes: { ...j.fuentes, ...capas.fuentes }, nN, nT,
+        // capas.js: un carácter en base 36 por número (0-9, a-z)
+        agua: Uint8Array.from(capas.agua), agua_m: Uint16Array.from(capas.agua_m),
+        polen: Object.fromEntries(Object.entries(capas.polen).map(([k, v]) => [k, { cerca: base36(v.cerca), sectores: base36(v.sectores), tope: v.tope_100m || 10 }]))
       };
-      delete globalThis.RESPIRA_RED;   // ya se copió a estructuras compactas: se libera la memoria
+      if (capas.tramos !== nT) console.warn('capas.js no coincide con red.js: volvé a correr codigo/construir_capas_alergias_agua.py');
+      delete globalThis.RESPIRA_RED; delete globalThis.RESPIRA_CAPAS;   // ya se copió a estructuras compactas: se libera la memoria
       return red;
     });
     cargando.catch(() => { cargando = null; });
     return cargando;
+  }
+
+  function base36(texto) {
+    const v = new Uint8Array(texto.length);
+    for (let i = 0; i < texto.length; i++) { const c = texto.charCodeAt(i); v[i] = c <= 57 ? c - 48 : c - 87; }
+    return v;
   }
 
   function cargarScript(src, variable) {
@@ -93,6 +109,38 @@
       p[i] = s / arrays.length;
     }
     return p;
+  }
+
+  /* ---------- 2b. Riesgo de polen por tramo (0 = nada, 100 = mucho) ----------
+     Para cada especie marcada en el perfil:
+       árboles equivalentes = árboles al lado del tramo (≤ 25 m)
+                            + arrastre del viento × árboles del lado de donde viene el viento (25–120 m)
+     y eso se multiplica por la época del año (ESTACION_POLEN). Se pasa a "cada 100 m" para que
+     un tramo largo no parezca peor solo por ser largo. Escala por especie: 100 = lo que tiene el 5 % de
+     los tramos más cargados de esa especie (tope_100m en capas.js), porque el fresno está en casi todas
+     las cuadras y el ligustro en pocas. Si marcás varias especies, se suman. */
+  function riesgoPolen(alergias, fecha, viento) {
+    const especies = (alergias || []).filter(a => red.polen[a]);
+    const mes = (fecha || new Date()).getMonth();
+    const activas = especies.map(a => ({ a, estacion: ESTACION_POLEN[a][mes] })).filter(x => x.estacion > 0);
+    if (!activas.length) return null;
+    // Viento: de qué sector viene y cuánto arrastra (sin viento, el polen queda cerca del árbol).
+    const hayViento = viento && Number.isFinite(viento.direccion) && Number.isFinite(viento.kmh);
+    const s = hayViento ? Math.round(viento.direccion / 45) % 8 : -1;
+    const arrastre = hayViento ? Math.min(1, viento.kmh / 20) : 0;
+    const r = new Float32Array(red.nT);
+    for (const { a, estacion } of activas) {
+      const { cerca, sectores, tope } = red.polen[a];
+      for (let i = 0; i < red.nT; i++) {
+        let lejos;
+        if (s >= 0) lejos = sectores[i * 8 + s] + 0.5 * (sectores[i * 8 + (s + 1) % 8] + sectores[i * 8 + (s + 7) % 8]);
+        else { lejos = 0; for (let k = 0; k < 8; k++) lejos += sectores[i * 8 + k]; lejos *= 0.1; }   // sin dato de viento: un poco de todo
+        const equivalentes = cerca[i] + (hayViento ? 0.6 * arrastre : 1) * lejos;
+        r[i] += estacion * equivalentes * 100 / Math.max(red.largo[i], 30) / tope * 100;
+      }
+    }
+    for (let i = 0; i < red.nT; i++) r[i] = Math.min(100, r[i]);
+    return { r, activas, viento: hayViento ? { ...viento, desde: SECTORES[s] } : null, mes };
   }
 
   /* ---------- 3. Dijkstra: el camino de menor costo entre dos esquinas ---------- */
@@ -143,9 +191,16 @@
     }
   }
 
+  // Costo de cada tramo: más largo si tiene mal puntaje en lo que elegiste y, si tenés alergia,
+  // si tiene riesgo de polen. polenActual lo arma armarRecorridos antes de buscar.
+  let polenActual = null;
+  const LAMBDA_POLEN = 3;
   function costos(pref, lambda, penal) {
-    const c = new Float32Array(red.nT);
-    for (let i = 0; i < red.nT; i++) c[i] = red.largo[i] * (1 + lambda * (100 - pref[i]) / 100) * (penal ? penal[i] : 1);
+    const c = new Float32Array(red.nT), pol = polenActual && polenActual.r;
+    for (let i = 0; i < red.nT; i++) {
+      c[i] = red.largo[i] * (1 + lambda * (100 - pref[i]) / 100) * (penal ? penal[i] : 1);
+      if (pol) c[i] *= 1 + LAMBDA_POLEN * pol[i] / 100;
+    }
     return c;
   }
   function penalizar(penal, pasos, factor) { for (const p of pasos) penal[p.tramo] *= factor; }
@@ -176,8 +231,9 @@
   }
 
   /* ---------- 4. Las tres opciones ---------- */
-  async function armarRecorridos({ desde, hasta, circular, km, factores, nocturno = false }) {
+  async function armarRecorridos({ desde, hasta, circular, km, factores, nocturno = false, alergias = [], fecha = new Date(), viento = null }) {
     await cargar();
+    polenActual = riesgoPolen(alergias, fecha, viento);
     const A = esquinaCercana(desde.lon, desde.lat);
     if (A.distancia > 500) throw new Error('El punto de partida está lejos de las calles de la Ciudad.');
     const B = circular ? A : esquinaCercana(hasta.lon, hasta.lat);
@@ -231,19 +287,22 @@
         listas.push(r1, r2, r3);
       }
     }
-    return listas.filter(Boolean).map(p => describir(p, pref, nocturno));
+    return listas.filter(Boolean).map(p => describir(p, pref, nocturno, polenActual));
   }
 
   /* ---------- 5. Describir un recorrido: geometría, índice y datos duros ---------- */
-  function describir(pasos, pref, nocturno) {
+  function describir(pasos, pref, nocturno, polen) {
     const E = 1e5;
-    let largo = 0, sIndice = 0, sPref = 0, sArb = 0, sDb = 0, sNo2 = 0;
+    let largo = 0, sIndice = 0, sPref = 0, sArb = 0, sDb = 0, sNo2 = 0, sPolen = 0, aguaMin = Infinity;
+    const arbolesAlLado = {};
     const sF = Object.fromEntries(FACTORES.map(f => [f, 0]));
     const porCalle = new Map(), tramos = [], coords = [];
     for (const { tramo: e, alReves } of pasos) {
       const L = red.largo[e];
       largo += L; sIndice += red.indice[e] * L; sPref += pref[e] * L;
       sArb += red.arboles_100m[e] * L; sDb += red.db_dia[e] * L; sNo2 += red.no2[e] * L;
+      aguaMin = Math.min(aguaMin, red.agua_m[e]);
+      if (polen) { sPolen += polen.r[e] * L; for (const { a } of polen.activas) arbolesAlLado[a] = (arbolesAlLado[a] || 0) + red.polen[a].cerca[e]; }
       for (const f of FACTORES) sF[f] += (f === 'ruido' ? red[nocturno ? 'ruido_noche' : 'ruido_dia'][e] : red[f][e]) * L;
       if (red.nombre[e] >= 0) { const n = red.nombres[red.nombre[e]]; porCalle.set(n, (porCalle.get(n) || 0) + L); }
       // geometría del tramo, en el sentido en que se corre
@@ -251,7 +310,7 @@
       for (let k = 0; k < g.length; k += 2) pts.push([g[k + 1] / E, g[k] / E]);
       pts.push([red.lat[red.b[e]], red.lon[red.b[e]]]);
       if (alReves) pts.reverse();
-      tramos.push({ coords: pts, indice: red.indice[e] });
+      tramos.push({ coords: pts, indice: red.indice[e], polen: polen ? polen.r[e] : 0 });
       coords.push(...(coords.length ? pts.slice(1) : pts));
     }
     const prom = s => Math.round(s / Math.max(largo, 1));
@@ -260,8 +319,15 @@
       largo: Math.round(largo), km: Math.round(largo / 100) / 10,
       indice: prom(sIndice), preferencias: prom(sPref),
       factores: Object.fromEntries(FACTORES.map(f => [f, prom(sF[f])])),
-      datos: { arboles_100m: Math.round(sArb / Math.max(largo, 1) * 10) / 10, db: prom(sDb), no2: prom(sNo2) },
-      calles, tramos: unirTramos(tramos), coords
+      datos: { arboles_100m: Math.round(sArb / Math.max(largo, 1) * 10) / 10, db: prom(sDb), no2: prom(sNo2), agua_m: Math.round(aguaMin) },
+      polen: polen ? {
+        riesgo: prom(sPolen),                                  // 0–100, promedio pesado por largo
+        nivel: prom(sPolen) >= 45 ? 'alto' : prom(sPolen) >= 18 ? 'medio' : 'bajo',
+        especies: polen.activas.map(({ a, estacion }) => ({ especie: a, estacion, arboles_al_lado: arbolesAlLado[a] || 0 })),
+        viento: polen.viento, mes: polen.mes
+      } : null,
+      calles, tramos: unirTramos(tramos), coords,
+      tramosPolen: polen ? tramos.filter(t => t.polen >= 45).map(t => t.coords) : []   // para marcarlos en el mapa
     };
   }
   // Une tramos seguidos con índice parecido, para dibujar menos líneas en el mapa

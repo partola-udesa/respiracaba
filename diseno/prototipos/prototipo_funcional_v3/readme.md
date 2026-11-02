@@ -10,4 +10,4 @@ Qué tiene:
 
 Para verla: abrir `index.html` en Chrome. La interpretación de la IA solo funciona publicada en Vercel; sin eso aparece el resumen automático.
 
-> Orden de versiones: prototipo_funcional_v1 → prototipo_funcional_v2 → prototipo_funcional_v3 (esta). La versión en desarrollo vive en `app/`.
+> Orden de versiones: prototipo_funcional_v1 → prototipo_funcional_v2 → prototipo_funcional_v3 (esta) → prototipo_funcional_v4. La versión en desarrollo vive en `app/`.

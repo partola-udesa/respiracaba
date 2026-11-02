@@ -1,7 +1,9 @@
 /* RESPIRA — Función de Vercel que habla con el LLM (Groq).
  *
  * La clave de Groq nunca llega al navegador: la página llama a /api/ia y esta función le agrega la clave
- * y el prompt del sistema. Los prompts están acá y versionados en prompts/prompts_v2.md.
+ * y el prompt del sistema. Los prompts están acá y versionados en prompts/prompts_v3.md.
+ * [API IA] Este es el único lugar que conoce la clave. Para sumar una función de IA nueva (ver "Dónde entra la IA" en el readme),
+ * se agrega una "tarea" acá y una función en app/ia.js.
  *
  * Variables de entorno (Vercel → Settings → Environment Variables, o .env.local para `vercel dev`):
  *   GROQ_API_KEY        obligatoria (https://console.groq.com/keys)
@@ -85,7 +87,8 @@ async function chat(res, { mensajes, contexto }) {
   return responder(res, 200, { texto: texto.trim() });
 }
 
-const REGLAS_RECORRIDOS = `Sos el asistente de RESPIRA, una app para runners de la Ciudad de Buenos Aires. La app ya calculó tres recorridos sobre la red de calles; cada tramo tiene un puntaje de 0 a 100 por condición (más alto = mejor para correr) que sale de datasets de la Ciudad: vegetación (arbolado lineal y espacios verdes), aire (NO2 satelital Sentinel-5P), ruido (Mapa de ruido 2018), tránsito (vías principales y colectivos), sombra (altura del arbolado), terreno e iluminación (OpenStreetMap).
+const REGLAS_RECORRIDOS = `Sos el asistente de RESPIRA, una app para runners de la Ciudad de Buenos Aires. La app ya calculó tres recorridos sobre la red de calles; cada tramo tiene un puntaje de 0 a 100 por condición (más alto = mejor para correr) que sale de datasets de la Ciudad: vegetación (arbolado lineal y espacios verdes), aire (NO2 satelital Sentinel-5P), ruido (Mapa de ruido 2018), tránsito (vías principales y colectivos), sombra (altura del arbolado), terreno e iluminación (OpenStreetMap), cercanía al agua (río, Riachuelo y lagos de OpenStreetMap).
+Si el runner tiene alergia a plátano, fresno o ligustro, cada recorrido trae "polen": un riesgo de 0 a 100 armado con los árboles de esa especie del arbolado público lineal que hay al lado de la ruta, los que quedan del lado de donde viene el viento según el pronóstico de Open-Meteo y la época del año. No es una medición de polen: decilo así si lo mencionás, y no des consejos médicos.
 Te paso esos números en el CONTEXTO. Tu tarea es interpretarlos para el runner, teniendo en cuenta sus preferencias, el horario y el clima si está.
 Respondé SOLO con un objeto JSON: {"recomendado": número del recorrido que más se ajusta a las preferencias, "recorridos": [{"numero": 1, "titulo": "2 a 4 palabras que lo distingan de los otros (por ejemplo 'Más verde', 'Más tranquilo', 'Más directo')", "explicacion": "una o dos frases, 35 palabras como máximo"}]} con un elemento por cada recorrido del contexto.
 Reglas: español rioplatense, tuteando, frases simples, sin tecnicismos. Usá solo los números del contexto y no inventes otros; si citás uno, decí de dónde sale (por ejemplo "según el Mapa de Ruido 2018"). Compará los recorridos entre sí. No des consejos médicos ni digas que algo causa un efecto en la salud. Los títulos tienen que ser distintos entre sí.`;

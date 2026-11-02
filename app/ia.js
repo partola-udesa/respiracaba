@@ -11,7 +11,9 @@
  *   const respuesta = await chat.preguntar('¿Por qué esta ruta es mejor?', { ruta: ..., clima: ... });
  */
 (function () {
-  const ENDPOINT = '/api/ia';
+  // [API IA] Todas las llamadas a la IA pasan por acá → función del servidor app/api/ia.js → Groq.
+  // La clave (GROQ_API_KEY) vive SOLO en Vercel; esta página no la ve nunca.
+  const ENDPOINT = (globalThis.CONFIG && CONFIG.iaURL) || '/api/ia';
   const ESPERA_MAX_MS = 30000;
 
   async function llamar(cuerpo, espera = ESPERA_MAX_MS) {
