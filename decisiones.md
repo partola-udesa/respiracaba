@@ -9,6 +9,23 @@ Qué probamos, qué descartamos y por qué. La entrada más nueva va arriba.
 - **Alternativa descartada:** …
 -->
 
+## 2026-11-02 — Devolución docente de la entrega 1 y cambios en la app
+- **Qué se aplicó ya en la app (pantallas de inicio y perfil):**
+  - **Volver** en todas las pantallas (menos el splash y el inicio, que es la primera), también con el gesto o el botón "atrás" del celular y con Esc en la compu. Pedido del equipo.
+  - **Enter** en la compu ejecuta la acción principal de la pantalla o confirma la rueda o la balanza. Pedido del equipo.
+  - **Comunidad fuera** ("Corré acompañado"), para enfocarse en lo central y en el análisis de datos (devolución 3 y q).
+  - **Sin "Crear cuenta"** ni registro: se borraron la bienvenida y la pantalla de nombre y foto. El perfil corredor es opcional ("Ahora no") y se guarda en el navegador (devolución 4 y c). Con eso el logo ya no se repite en las dos primeras pantallas (b).
+  - **Edad y altura con rueda** (como la alarma del iPhone, con los números no elegidos sombreados) y **peso con una balanza** (visor grande y regla). Las tres se abren igual: tocando el campo aparece una hoja desde abajo con "Listo" (devolución d). La balanza fue pedido del equipo; la devolución sugería la misma herramienta para los tres datos, por eso se unificó la forma de abrirlas.
+  - **Orden:** primero los datos personales (edad, altura, peso, nivel, objetivo) y después la alergia, que es información de salud (e).
+  - **Alergia:** desplegable con chips de opción múltiple (g) y un ícono "i" con la explicación y la estacionalidad aproximada del polen de plátano, fresno y ligustro (f y 9).
+  - **Un solo color de selección** para chips y opciones elegidas (l).
+  - **Logo:** primer boceto de la "S" como figura humana (a). Falta cerrarlo en Figma.
+  - **App mobile:** ocupa toda la pantalla del celular, respeta el notch y la barra de inicio, y en la compu se ve dentro de un marco de teléfono. Pedido del equipo.
+  - **CSS aparte** (`app/estilos.css`) y tecnologías en el readme (buenas prácticas).
+- **Pendiente para las próximas pantallas:** completar partida y destino en "Definí tu recorrido" y revisar el trayecto circular y la distancia combinada con ellos (i, j, k); índice de respirabilidad solo con barras, sin "x/100" (m); reflexión de la experiencia con scroll largo, cuadrantes desplegables y comentario por voz con Whisper + LLM (n, o, p); resumen con selector hoy/semana/mes y qué muestra el mapa fuera de "hoy" (r).
+- **Pendiente de datos e hipótesis:** mostrar de cada dataset sus variables, frecuencia y fuente (7); fuente que vincule especies de árboles y viento con alergias (8); umbral del índice para recomendar un recorrido y su "peor valor" de referencia (10); sumar comercios y tipos de calle con tránsito (11); cruzar NO2 con colectivos para validar la extrapolación (12); reformular la hipótesis hacia el comportamiento de los runners, por ejemplo la consistencia de los entrenamientos en zonas de mayor respirabilidad (13, 14, 15); pensar el tipo de runner y sus rutas fijas como preferencia (1, 2); persistencia de preferencias más adelante (5, 6).
+- **Sin resolver:** "pantalla iniciar = publicidad" (h). Se interpretó que la bienvenida no aporta y se sacó; confirmar con el docente.
+
 ## 2026-11-02 — IA con Groq a través de una función de Vercel; se borra la app de vivienda
 - **Qué:** se borró `app/index.html`, que era el prototipo de la etapa anterior (comprar vivienda por comuna); queda en el historial de git. La IA pasa a Groq (`llama-3.3-70b-versatile` para el chat, `llama-3.1-8b-instant` para interpretar la búsqueda), llamada desde una función de Vercel (`app/api/ia.js`). La página usa `app/ia.js`. Prompts en `prompts/prompts_v2.md`. El sitio se publica en Vercel en lugar de Netlify.
 - **Por qué:** la capacidad `sample` de Claude solo funciona dentro de Claude, así que en el sitio publicado la IA nunca andaba. La clave de Groq no puede quedar en el navegador: la función la guarda como variable de entorno y fija los prompts del lado del servidor, así nadie puede usar la clave para otra cosa. El servidor revisa los filtros que devuelve el LLM antes de pasarlos a la página.

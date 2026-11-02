@@ -103,6 +103,20 @@ python codigo/colectivos_pasadas_por_tramo.py datasets_procesados datasets_proce
 ```
 Las descargas de OpenStreetMap devuelven el estado actual de la base, que cambia con el tiempo: para obtener exactamente los mismos datos, usar los JSON del repositorio. El paso 3 necesita las salidas de `filtrar_colectivos_gtfs.py` y `filtrar_osm_red_peatonal.py` del paso 2.
 
+## Tecnologías
+| Parte | Qué se usa | Para qué |
+|---|---|---|
+| Interfaz | HTML, CSS y JavaScript sin frameworks (`app/index.html`, `app/estilos.css`, `app/app.js`, `app/selectores.js`) | Pantallas, estilos copiados de las variables de Figma y comportamiento. App mobile: ocupa toda la pantalla del celular y en la compu se ve dentro de un marco de teléfono |
+| Tipografía | Figtree (Google Fonts) | La misma que en Figma |
+| Clima | API de pronóstico de Open-Meteo (`app/clima.js`) | Clima hora por hora y viento a favor o en contra por tramo |
+| IA | Groq (modelos Llama) a través de una función de Vercel (`app/api/ia.js` + `app/ia.js`) | Interpretar la búsqueda en texto libre y explicar los recorridos |
+| Publicación | Vercel, con `app/` como carpeta raíz | Sitio público y función de la IA con la clave guardada en el servidor |
+| Datos | Python 3 con pandas, shapely y pyshp (`codigo/`) | Filtrar los datasets y calcular el índice por tramo |
+| Datos satelitales | Google Earth Engine (`codigo/gee_*.js`) | NO2 de Sentinel-5P y meteorología ERA5-Land |
+| Diseño | Figma | Prototipos y componentes |
+
+Para ver la app sin publicar: abrir `app/index.html` en Chrome. Después de cambiar un archivo, recargar con Cmd + Shift + R (Ctrl + Shift + R en Windows) para que no quede la versión vieja guardada.
+
 ## Cómo correr la app
 La app se publica en **Vercel** con la carpeta `app/` como raíz del proyecto (*Root Directory* = `app`). La IA usa Groq a través de la función `app/api/ia.js`, que guarda la clave del lado del servidor. El clima se consulta en vivo a Open-Meteo desde `app/clima.js` y no necesita clave.
 
@@ -129,4 +143,4 @@ La clave nunca va en el código ni en el repositorio. Los prompts están version
 | `prompts/` | Prompts del LLM, versionados (`prompts_v1.md`, `_v2`…) |
 | `diseno/` | Referencias (`referencias/`) y prototipos (`prototipos/`, una carpeta por versión) |
 | `entregas/` | Estado del proyecto en cada entrega (`entrega_N/`: capturas de la app y link al sitio) |
-| `app/` | Solo lo que se publica en Vercel: la página, `clima.js` (pronóstico), `ia.js` (cliente de la IA) y `api/ia.js` (función que llama a Groq) |
+| `app/` | Solo lo que se publica en Vercel: la página (`index.html`), los estilos (`estilos.css`), el comportamiento (`app.js`), la rueda y la balanza (`selectores.js`), `clima.js` (pronóstico), `ia.js` (cliente de la IA) y `api/ia.js` (función que llama a Groq) |

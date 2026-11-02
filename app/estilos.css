@@ -1,0 +1,288 @@
+/* =====================================================================
+   RESPIRA — Estilos
+   Todo lo que define CÓMO SE VE la app. Es el equivalente al panel de
+   diseño de Figma: colores, tipografías, espacios y componentes.
+   ===================================================================== */
+
+/* ---------- 1. VARIABLES (= las variables de Figma "RESPIRA · Color" y "RESPIRA · Medidas") ----------
+   Si cambiás un valor acá, cambia en toda la app. Se usan con var(--nombre). */
+:root {
+  /* Fondos */
+  --fondo-app: #F8F5EE;
+  --fondo-superficie: #FFFDF8;
+  --fondo-suave: #EEF2E4;
+  --fondo-verde-claro: #DCE7C8;
+  /* Marca */
+  --verde-primario: #1F5B2D;
+  --verde-oscuro: #163A1E;
+  --verde-medio: #6F9A5E;
+  --verde-acento: #A9C78F;
+  /* Selección: UN solo color para todo lo que está elegido (chips, tarjetas, rueda) */
+  --seleccion: var(--verde-primario);
+  --seleccion-texto: #FFFFFF;
+  /* Texto */
+  --texto-principal: #22291F;
+  --texto-secundario: #5A6155;
+  --texto-terciario: #8A9084;
+  --texto-sobre-primario: #FFFFFF;
+  /* Bordes y barras */
+  --borde-suave: #E3E1D6;
+  --barra-pista: #DCE2D2;
+  --sombra-hoja: 0 -8px 30px rgba(22, 58, 30, 0.18);
+
+  /* Espacios */
+  --espacio-4: 4px;  --espacio-8: 8px;  --espacio-12: 12px; --espacio-16: 16px;
+  --espacio-20: 20px; --espacio-24: 24px; --espacio-32: 32px;
+  /* Radios */
+  --radio-chico: 10px; --radio-medio: 14px; --radio-grande: 20px; --radio-pastilla: 999px;
+
+  /* Tipografía */
+  --fuente: "Figtree", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+
+  /* Márgenes seguros del celular (notch, barra de inicio). En la compu valen 0. */
+  --seguro-arriba: env(safe-area-inset-top, 0px);
+  --seguro-abajo: env(safe-area-inset-bottom, 0px);
+}
+
+/* ---------- 2. BASE ---------- */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: var(--fuente);
+  color: var(--texto-principal);
+  background: var(--fondo-app);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible, .rueda__lista:focus-visible, .regla__pista:focus-visible {
+  outline: 3px solid var(--verde-acento); outline-offset: 2px;
+}
+
+/* ---------- 3. EL MARCO DE LA APP (adaptación al celular) ----------
+   En el celular, la app ocupa toda la pantalla.
+   En la compu, se muestra como un teléfono centrado para poder probarla. */
+.app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;            /* dvh = alto real visible del celular, sin la barra del navegador */
+  overflow: hidden;
+  background: var(--fondo-app);
+}
+@media (min-width: 600px) {
+  body { background: #E4E2DA; display: grid; place-items: center; min-height: 100dvh; }
+  .app {
+    width: 402px;
+    height: min(874px, calc(100dvh - 40px));
+    border-radius: 40px;
+    box-shadow: 0 0 0 10px #22291F, 0 30px 60px rgba(0, 0, 0, 0.25);
+  }
+}
+
+/* ---------- 4. ESTILOS DE TEXTO (= "Título/Display", "Título/H1", "Cuerpo/Base"… de Figma) ---------- */
+.titulo-display { font-size: 32px; font-weight: 700; line-height: 1.12; letter-spacing: -0.02em; margin: 0; }
+.titulo-h1      { font-size: 28px; font-weight: 700; line-height: 1.15; letter-spacing: -0.01em; margin: 0; }
+.titulo-h3      { font-size: 17px; font-weight: 600; line-height: 1.25; margin: 0; }
+.cuerpo         { font-size: 15px; line-height: 1.4; color: var(--texto-secundario); margin: 0; }
+.cuerpo-chico   { font-size: 13px; line-height: 1.38; color: var(--texto-secundario); margin: 0; }
+.centrado       { text-align: center; }
+
+/* ---------- 5. PANTALLA (= el frame de 402 × 874 de Figma) ----------
+   Cada <section class="pantalla"> es una pantalla. Solo se ve una a la vez:
+   las demás tienen el atributo "hidden" (lo maneja app.js). */
+.pantalla {
+  position: absolute; inset: 0;
+  display: flex;
+  flex-direction: column;          /* = auto layout vertical */
+  background: var(--fondo-app);
+  padding-top: var(--seguro-arriba);
+}
+.pantalla[hidden] { display: none; }
+
+.contenido {                       /* = el frame "Contenido" de cada pantalla en Figma */
+  flex: 1;                         /* = layoutGrow: ocupa todo el alto que sobra */
+  min-height: 0;
+  overflow-y: auto;                /* si no entra, se scrollea solo el contenido */
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-16);          /* = itemSpacing del auto layout */
+  padding: var(--espacio-16) var(--espacio-24) var(--espacio-24);
+  position: relative;
+  z-index: 1;
+}
+.contenido--centrado { align-items: center; justify-content: center; }
+.espacio-flexible { flex: 1; min-height: var(--espacio-8); }   /* empuja el pie hacia abajo */
+
+.pie {                              /* botones fijos abajo de la pantalla */
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; gap: var(--espacio-12);
+  padding: var(--espacio-12) var(--espacio-24) calc(var(--espacio-24) + var(--seguro-abajo));
+}
+
+/* Ondas de abajo (= componente "Fondo / Ondas") */
+.ondas {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 150px; z-index: 0; pointer-events: none;
+  background: no-repeat bottom / 100% 100% url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 402 150' preserveAspectRatio='none'%3E%3Cpath d='M0 52C70 18 140 18 205 42S330 74 402 34V150H0Z' fill='%23EEF2E4'/%3E%3Cpath d='M0 92C80 60 150 66 225 86S345 104 402 76V150H0Z' fill='%23DCE7C8'/%3E%3C/svg%3E");
+}
+
+/* ---------- 6. COMPONENTES ---------- */
+
+/* Íconos: todos salen del "sprite" que está al principio de index.html */
+.icono { width: 24px; height: 24px; flex: none; stroke: currentColor; fill: none;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.icono--chico { width: 20px; height: 20px; }
+
+/* Marca: la palabra RESPIRA con la "S" como corredor */
+.marca { display: inline-flex; align-items: baseline; font-weight: 800; letter-spacing: 0.04em; color: var(--verde-primario); line-height: 1; }
+.marca__s { width: 0.68em; height: 0.98em; margin: 0 0.02em 0 0.01em; align-self: flex-end; transform: translateY(0.02em);
+  stroke: currentColor; fill: none; stroke-width: 6.2; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
+.marca__s circle { fill: currentColor; stroke: none; }
+
+/* Header con volver (= "Navegación / Header"). Está en todas las pantallas menos el splash. */
+.header {
+  display: grid; grid-template-columns: 44px 1fr 44px; align-items: center;
+  padding: var(--espacio-12) var(--espacio-16) 0;
+  position: relative; z-index: 1;
+}
+.header .marca { font-size: 20px; justify-self: center; }
+.header__boton { width: 44px; height: 44px; display: grid; place-items: center; background: none; border: 0; padding: 0;
+  color: var(--verde-primario); border-radius: 50%; }
+.header__boton:active { background: var(--fondo-suave); }
+.header__boton[hidden] { display: grid; visibility: hidden; }   /* deja el lugar para que la marca quede centrada */
+.header__boton .icono { width: 26px; height: 26px; }
+
+/* Logo del splash */
+.logo { display: flex; flex-direction: column; align-items: center; gap: 10px; color: var(--verde-primario); }
+.logo .marca { font-size: 48px; }
+.logo__lema { font-size: 12px; font-weight: 500; letter-spacing: 0.28em; color: var(--texto-principal); }
+
+/* Botón (= "Botón", variantes Tipo=Primario / Tipo=Secundario / enlace) */
+.boton {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; min-height: 56px; padding: 0 var(--espacio-24);
+  border-radius: var(--radio-pastilla); border: 0;
+  font-size: 17px; font-weight: 600;
+  background: var(--verde-primario); color: var(--texto-sobre-primario);
+}
+.boton--secundario { background: transparent; color: var(--verde-primario); border: 1.5px solid var(--verde-primario); }
+.boton--enlace { background: none; color: var(--verde-primario); min-height: 44px; font-size: 15px; }
+.boton:active { transform: scale(0.98); }
+
+/* Campo (= "Campo / Entrada" y "Campo / Fila con valor") */
+.campo {
+  display: flex; align-items: center; gap: var(--espacio-12); width: 100%;
+  padding: 0 var(--espacio-16); min-height: 54px; text-align: left;
+  background: var(--fondo-superficie); border: 1px solid var(--borde-suave); border-radius: var(--radio-medio);
+  color: var(--verde-primario); font-size: 16px;
+}
+.campo:focus-within { border: 1.5px solid var(--verde-primario); }
+.campo select {
+  flex: 1; min-width: 0; border: 0; background: none; outline: none; appearance: none; cursor: pointer;
+  font: inherit; font-size: 16px; color: var(--texto-principal);    /* 16px evita que el iPhone haga zoom */
+}
+.campo__etiqueta { flex: 1; color: var(--texto-principal); }
+.campo__valor { font-weight: 600; color: var(--texto-principal); }
+.campo__valor--vacio { font-weight: 400; color: var(--texto-terciario); }
+
+/* Grupos y chips (= "Selección / Chip"). Lo elegido lo marca aria-pressed="true" */
+.grupo { display: flex; flex-direction: column; gap: var(--espacio-8); }
+.grupo__titulo { display: flex; align-items: center; gap: var(--espacio-8); color: var(--verde-primario); }
+.grupo__titulo > span { color: var(--texto-principal); font-size: 15px; font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: var(--espacio-8); }
+.chip {
+  display: inline-flex; align-items: center; gap: 4px; min-height: 36px;
+  padding: 0 14px; border-radius: var(--radio-pastilla);
+  background: var(--fondo-superficie); border: 1px solid var(--borde-suave);
+  font-size: 13px; font-weight: 600; color: var(--texto-principal);
+}
+.chip[aria-pressed="true"] { background: var(--seleccion); border-color: var(--seleccion); color: var(--seleccion-texto); }
+
+/* Desplegable de alergias */
+.desplegable { border: 1px solid var(--borde-suave); border-radius: var(--radio-medio); background: var(--fondo-superficie); }
+.desplegable summary { list-style: none; display: flex; align-items: center; gap: var(--espacio-12); min-height: 54px; padding: 0 var(--espacio-16); cursor: pointer; }
+.desplegable summary::-webkit-details-marker { display: none; }
+.desplegable summary .icono:last-child { transition: transform .2s; color: var(--verde-primario); }
+.desplegable[open] summary .icono:last-child { transform: rotate(180deg); }
+.desplegable .chips { padding: 0 var(--espacio-16) var(--espacio-16); }
+
+/* Tooltip de información (alergias) */
+.info { margin-left: auto; }
+.info__boton { width: 28px; height: 28px; display: grid; place-items: center; padding: 0; border-radius: 50%;
+  border: 1.5px solid var(--verde-acento); background: var(--fondo-superficie); color: var(--verde-primario); font-size: 14px; font-weight: 700; font-style: italic; }
+.info__globo {
+  padding: var(--espacio-12) var(--espacio-16); border-radius: var(--radio-medio);
+  background: var(--verde-oscuro); color: #F3F6EE; font-size: 13px; line-height: 1.45;
+  box-shadow: 0 10px 24px rgba(0,0,0,.18);
+}
+.info__globo p { margin: 0 0 6px; }
+.info__globo ul { margin: 0; padding-left: 16px; }
+.info__globo[hidden] { display: none; }
+@media (hover: hover) { .grupo:has(.info:hover) .info__globo { display: block; } }   /* en la compu también aparece al pasar el mouse */
+
+/* Tarjeta de acción (= "Tarjeta / Acción", variantes Destacada / Normal) */
+.tarjeta-accion {
+  display: flex; align-items: center; gap: var(--espacio-16); width: 100%; text-align: left;
+  padding: var(--espacio-20) 14px var(--espacio-20) 18px; border-radius: var(--radio-grande);
+  background: var(--fondo-superficie); border: 1px solid var(--borde-suave); color: var(--verde-primario);
+}
+.tarjeta-accion--destacada { background: var(--fondo-verde-claro); border-color: transparent; }
+.tarjeta-accion .icono:first-child { width: 36px; height: 36px; }
+.tarjeta-accion__textos { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.tarjeta-accion__titulo { font-size: 17px; font-weight: 600; color: var(--verde-oscuro); }
+.tarjeta-accion__descripcion { font-size: 13px; line-height: 1.38; color: var(--texto-secundario); }
+
+/* ---------- 7. HOJA INFERIOR (el panel que sube desde abajo) ---------- */
+.hoja-fondo { position: absolute; inset: 0; z-index: 20; background: rgba(22, 30, 20, 0.4); }
+.hoja-fondo[hidden], .hoja[hidden] { display: none; }
+.hoja {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 21;
+  display: flex; flex-direction: column; gap: var(--espacio-16);
+  padding: var(--espacio-12) var(--espacio-24) calc(var(--espacio-24) + var(--seguro-abajo));
+  background: var(--fondo-superficie); border-radius: 24px 24px 0 0; box-shadow: var(--sombra-hoja);
+  animation: subir .22s ease-out;
+}
+@keyframes subir { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .hoja { animation: none; } }
+.hoja__manija { width: 40px; height: 5px; border-radius: 3px; background: var(--borde-suave); align-self: center; }
+.hoja__titulo { font-size: 17px; font-weight: 600; text-align: center; margin: 0; }
+
+/* Rueda (estilo alarma del iPhone): el número del medio es el elegido, los demás quedan sombreados */
+.rueda { position: relative; height: 220px; }
+.rueda__banda { position: absolute; left: 0; right: 0; top: 88px; height: 44px; border-radius: 12px; background: var(--fondo-suave); }
+.rueda__lista {
+  position: relative; height: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none;
+  padding: 88px 0; margin: 0; list-style: none;
+  -webkit-mask-image: linear-gradient(transparent, #000 38%, #000 62%, transparent);
+          mask-image: linear-gradient(transparent, #000 38%, #000 62%, transparent);
+}
+.rueda__lista::-webkit-scrollbar { display: none; }
+.rueda__item { height: 44px; scroll-snap-align: center; display: flex; align-items: center; justify-content: center;
+  font-size: 22px; color: var(--texto-terciario); font-variant-numeric: tabular-nums; cursor: pointer; transition: color .12s, font-size .12s; }
+.rueda__item.activo { color: var(--texto-principal); font-size: 26px; font-weight: 600; }
+.rueda__unidad { position: absolute; top: 88px; height: 44px; left: calc(50% + 46px); display: flex; align-items: center;
+  font-size: 17px; font-weight: 600; color: var(--texto-principal); pointer-events: none; }
+
+/* Balanza (para el peso): visor arriba como el display de una balanza, regla abajo */
+.balanza { display: flex; flex-direction: column; gap: var(--espacio-12); }
+.balanza__visor {
+  align-self: center; display: flex; align-items: baseline; gap: 8px;
+  padding: 14px 28px; border-radius: 18px; background: var(--fondo-suave);
+  font-variant-numeric: tabular-nums;
+}
+.balanza__numero { font-size: 56px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; color: var(--verde-oscuro); }
+.balanza__unidad { font-size: 20px; font-weight: 600; color: var(--texto-secundario); }
+.regla { position: relative; height: 92px; }
+.regla__pista {
+  height: 100%; overflow-x: scroll; scrollbar-width: none; cursor: grab;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 20%, #000 80%, transparent);
+          mask-image: linear-gradient(to right, transparent, #000 20%, #000 80%, transparent);
+}
+.regla__pista::-webkit-scrollbar { display: none; }
+.regla__escala { position: relative; height: 100%;
+  /* rayitas: una cada 0,1 kg (8 px), una más larga cada 1 kg (80 px) */
+  background:
+    repeating-linear-gradient(to right, var(--texto-principal) 0 2px, transparent 2px 80px) left 0 top 0 / 100% 40px no-repeat,
+    repeating-linear-gradient(to right, var(--texto-terciario) 0 1px, transparent 1px 8px) left 0 top 0 / 100% 22px no-repeat;
+}
+.regla__numero { position: absolute; top: 48px; transform: translateX(-50%); font-size: 13px; font-weight: 600; color: var(--texto-secundario); font-variant-numeric: tabular-nums; }
+.regla__aguja { position: absolute; top: -6px; left: 50%; width: 4px; height: 56px; margin-left: -2px; border-radius: 2px; background: var(--seleccion); pointer-events: none; }
