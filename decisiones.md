@@ -9,6 +9,18 @@ Qué probamos, qué descartamos y por qué. La entrada más nueva va arriba.
 - **Alternativa descartada:** …
 -->
 
+## 2026-11-02 — App armada con los frames de "Prototipo funcional" (Figma, Page 1)
+- **Qué:** la app tiene las 11 pantallas del flujo según los frames de Figma: splash, perfil corredor, inicio, definí tu recorrido, condiciones, recorridos ideales, detalle del recorrido (una plantilla para los tres), recorrido completado, tu experiencia, comentario y recorrido guardado.
+- **Edad, altura y peso** con la misma rueda horizontal de los frames: el número del medio queda resaltado y los demás sombreados. Es la "herramienta unificada" de la devolución (d) y reemplaza a la rueda en hoja inferior y a la balanza de la versión anterior. La distancia usa la misma rueda.
+- **Definí tu recorrido:** autocompletado de partida y llegada con 14 lugares de la ciudad (i); el trayecto circular oculta la llegada (j); avisa si falta un dato antes de seguir; día y hora quedan en "ahora" salvo que se tilde "Programar para más tarde".
+- **Recorridos ideales:** los tres recorridos del diseño, ordenados según las condiciones elegidas. Son datos de ejemplo hasta tener el índice por tramo; la pantalla lo aclara.
+- **Detalle:** barras de los componentes sin porcentaje (devolución m), como en el frame corregido.
+- **Comentario:** dictado por voz con el reconocimiento del navegador (devolución p). Pendiente: Whisper a través de Groq.
+- **La corrida** (sensación, si cumplió, ambiente y comentario) se guarda en el navegador para el futuro resumen.
+- **Se mantuvo fuera** lo que pidió sacar el docente aunque esté en algunos frames: bienvenida, crear cuenta y "Corré acompañado".
+- **Encabezado** igual en todas las pantallas (volver · RESPIRA · menú), tomado de los frames más nuevos.
+- **Pendiente:** "Repetí un trayecto" todavía no tiene pantalla; "Elegir este recorrido" salta directo al final de la corrida porque no hay seguimiento en vivo; el menú lleva al perfil.
+
 ## 2026-11-02 — Devolución docente de la entrega 1 y cambios en la app
 - **Qué se aplicó ya en la app (pantallas de inicio y perfil):**
   - **Volver** en todas las pantallas (menos el splash y el inicio, que es la primera), también con el gesto o el botón "atrás" del celular y con Esc en la compu. Pedido del equipo.

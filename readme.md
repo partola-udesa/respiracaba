@@ -106,7 +106,7 @@ Las descargas de OpenStreetMap devuelven el estado actual de la base, que cambia
 ## Tecnologías
 | Parte | Qué se usa | Para qué |
 |---|---|---|
-| Interfaz | HTML, CSS y JavaScript sin frameworks (`app/index.html`, `app/estilos.css`, `app/app.js`, `app/selectores.js`) | Pantallas, estilos copiados de las variables de Figma y comportamiento. App mobile: ocupa toda la pantalla del celular y en la compu se ve dentro de un marco de teléfono |
+| Interfaz | HTML, CSS y JavaScript sin frameworks (`app/index.html`, `app/estilos.css`, `app/app.js`, `app/selectores.js`, `app/datos.js`) | Pantallas, estilos copiados de las variables de Figma y comportamiento. App mobile: ocupa toda la pantalla del celular y en la compu se ve dentro de un marco de teléfono |
 | Tipografía | Figtree (Google Fonts) | La misma que en Figma |
 | Clima | API de pronóstico de Open-Meteo (`app/clima.js`) | Clima hora por hora y viento a favor o en contra por tramo |
 | IA | Groq (modelos Llama) a través de una función de Vercel (`app/api/ia.js` + `app/ia.js`) | Interpretar la búsqueda en texto libre y explicar los recorridos |
@@ -143,4 +143,4 @@ La clave nunca va en el código ni en el repositorio. Los prompts están version
 | `prompts/` | Prompts del LLM, versionados (`prompts_v1.md`, `_v2`…) |
 | `diseno/` | Referencias (`referencias/`) y prototipos (`prototipos/`, una carpeta por versión) |
 | `entregas/` | Estado del proyecto en cada entrega (`entrega_N/`: capturas de la app y link al sitio) |
-| `app/` | Solo lo que se publica en Vercel: la página (`index.html`), los estilos (`estilos.css`), el comportamiento (`app.js`), la rueda y la balanza (`selectores.js`), `clima.js` (pronóstico), `ia.js` (cliente de la IA) y `api/ia.js` (función que llama a Groq) |
+| `app/` | Solo lo que se publica en Vercel: la página (`index.html`), los estilos (`estilos.css`), el comportamiento (`app.js`), la rueda horizontal de números (`selectores.js`), los datos de ejemplo y el mapa ilustrado (`datos.js`), `clima.js` (pronóstico), `ia.js` (cliente de la IA) y `api/ia.js` (función que llama a Groq) |
