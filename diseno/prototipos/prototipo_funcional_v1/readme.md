@@ -10,4 +10,4 @@ se reconstruyó el 2 de noviembre a partir del código exacto que quedó en la c
 Para verla: abrir `index.html` de esta carpeta en Chrome. Como el perfil queda guardado en el navegador,
 para ver el registro desde el principio escribir `localStorage.clear()` en la consola y recargar.
 
-> Orden de versiones: prototipo_funcional_v1 → prototipo_funcional_v2 → la versión actual (v3), que vive en `app/`.
+> Orden de versiones: prototipo_funcional_v1 → prototipo_funcional_v2 → prototipo_funcional_v3. La versión en desarrollo vive en `app/`.

@@ -10,4 +10,4 @@ Recuperada del commit `c4487f4` y guardada aparte, sin tocar la app actual de `a
 
 Para verla: abrir `index.html` de esta carpeta en Chrome.
 
-> Orden de versiones: prototipo_funcional_v1 → prototipo_funcional_v2 → la versión actual (v3), que vive en `app/`.
+> Orden de versiones: prototipo_funcional_v1 → prototipo_funcional_v2 → prototipo_funcional_v3. La versión en desarrollo vive en `app/`.
