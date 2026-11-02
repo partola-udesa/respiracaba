@@ -357,7 +357,7 @@ Qué contiene cada dataset de `datasets/`, qué significa cada columna, en qué 
 |---|---|
 | **Archivo** | `datasets/no2_comunas_mensual.csv` |
 | **Fuente** | Copernicus Sentinel-5P / TROPOMI, exportado desde Google Earth Engine, promediado sobre los polígonos de comunas |
-| **Script** | `codigo/` ← subir el script de GEE |
+| **Script** | `codigo/gee_no2_comunas_estaciones.js` (genera este archivo y el de estaciones; recuperado el 2026-11-02) |
 | **Fecha de descarga** | 2026-10-05 (fecha del archivo descargado) |
 | **Cobertura temporal** | 2018-07 a 2026-08 (98 meses) |
 | **Cobertura espacial** | Las 15 comunas, completas (98 meses × 15 comunas) |
@@ -373,8 +373,8 @@ Qué contiene cada dataset de `datasets/`, qué significa cada columna, en qué 
 | `area`, `perimetro` | Área (m²) y perímetro (m) de la comuna |
 | `objeto` | Siempre "COMUNA" |
 | `mes` | Mes (AAAA-MM) |
-| `mean` | NO2 troposférico promedio del mes en la comuna. **Unidad a confirmar** (probablemente µmol/m²) |
-| `count` | Cantidad de mediciones o píxeles promediados (11–38) ← confirmar en el script |
+| `mean` | NO2 troposférico promedio del mes en la comuna, en **µmol/m²** (el script multiplica mol/m² × 1.000.000) |
+| `count` | Cantidad de píxeles válidos de la grilla (~1,1 km) dentro de la comuna que entraron en el promedio del mes (11–38) |
 | `.geo` | Geometría vacía (se puede descartar) |
 
 ### Observaciones
@@ -389,8 +389,8 @@ Qué contiene cada dataset de `datasets/`, qué significa cada columna, en qué 
 | | |
 |---|---|
 | **Archivo** | `datasets/no2_estaciones_diario.csv` |
-| **Fuente** | Copernicus Sentinel-5P / TROPOMI, exportado desde Google Earth Engine. Colección: `COPERNICUS/S5P/OFFL/L3_NO2` ← confirmar en el script |
-| **Script** | `codigo/` ← subir el script de GEE |
+| **Fuente** | Copernicus Sentinel-5P / TROPOMI, exportado desde Google Earth Engine. Colección: `COPERNICUS/S5P/OFFL/L3_NO2`, **confirmada en el script**. Promedio de los píxeles dentro de un radio de 2 km de cada estación |
+| **Script** | `codigo/gee_no2_comunas_estaciones.js` (genera este archivo y el de estaciones; recuperado el 2026-11-02) |
 | **Fecha de descarga** | 2026-10-05 (fecha del archivo descargado) |
 | **Cobertura temporal** | 08-07-2018 a 30-08-2026, diario, con huecos (días nublados o sin pasada del satélite) |
 | **Cobertura espacial** | Alrededor de 3 estaciones APrA: Córdoba, Centenario y La Boca |
@@ -403,14 +403,14 @@ Qué contiene cada dataset de `datasets/`, qué significa cada columna, en qué 
 | `system:index` | ID interno de GEE (imagen + estación) |
 | `estacion` | CORDOBA / CENTENARIO / LA_BOCA |
 | `fecha` | Fecha |
-| `mean` | NO2 troposférico promedio alrededor de la estación. **Unidad a confirmar** en el script (probablemente µmol/m²) |
+| `mean` | NO2 troposférico promedio en un radio de 2 km alrededor de la estación, en **µmol/m²** |
 | `.geo` | Geometría vacía (se puede descartar) |
 
 ### Observaciones
 - **Es NO2 medido desde el satélite (columna de aire), no la concentración a nivel de calle que miden las estaciones APrA (µg/m³).** No son la misma variable, y hay que aclararlo en la app como "dato duro satelital".
 - No incluye la estación Palermo, aunque el catálogo de Estaciones ambientales tiene 4.
 - Valores raros: 5 negativos (ruido del sensor) y 372 mayores a 300 (máximo 980). Hay que decidir cómo filtrarlos y anotarlo en `decisiones.md`.
-- Falta documentar el radio del área alrededor de cada estación (está en el script).
+- El área alrededor de cada estación es un círculo de 2 km de radio. Las coordenadas de las estaciones en el script son aproximadas.
 
 ---
 
@@ -419,8 +419,8 @@ Qué contiene cada dataset de `datasets/`, qué significa cada columna, en qué 
 | | |
 |---|---|
 | **Archivo** | `datasets/era5_meteo_caba.csv` |
-| **Fuente** | ECMWF ERA5, exportado desde Google Earth Engine. Colección: `ECMWF/ERA5_LAND/HOURLY` o `ECMWF/ERA5/HOURLY` ← confirmar en el script |
-| **Script** | `codigo/` ← subir el script de GEE que generó este archivo |
+| **Fuente** | ECMWF ERA5, exportado desde Google Earth Engine. Colección: `ECMWF/ERA5_LAND/HOURLY` (https://developers.google.com/earth-engine/datasets/catalog/ECMWF_ERA5_LAND_HOURLY), **confirmada en el script**. Valor del píxel que contiene a Parque Centenario (−58,4325; −34,6066), escala 11.132 m |
+| **Script** | `codigo/gee_era5_meteo_caba.js` (recuperado el 2026-11-02) |
 | **Fecha de descarga** | 2026-10-05 (fecha del archivo descargado) |
 | **Cobertura temporal** | 01-07-2018 a 31-08-2026, diario, horas 16, 17 y 18 UTC |
 | **Cobertura espacial** | CABA (un solo valor para toda la ciudad) |
