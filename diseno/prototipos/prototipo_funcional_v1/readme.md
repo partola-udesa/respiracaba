@@ -1,4 +1,4 @@
-# App · primera versión (2 de noviembre de 2026)
+# Prototipo funcional v1 — primera versión de la app (2 de noviembre de 2026)
 
 Primera base de la app, armada antes de la devolución docente. Nunca se commiteó en `app/`:
 se reconstruyó el 2 de noviembre a partir del código exacto que quedó en la conversación con Claude.
@@ -9,3 +9,5 @@ se reconstruyó el 2 de noviembre a partir del código exacto que quedó en la c
 
 Para verla: abrir `index.html` de esta carpeta en Chrome. Como el perfil queda guardado en el navegador,
 para ver el registro desde el principio escribir `localStorage.clear()` en la consola y recargar.
+
+> Orden de versiones: prototipo_funcional_v1 → prototipo_funcional_v2 → la versión actual (v3), que vive en `app/`.

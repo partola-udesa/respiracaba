@@ -1,4 +1,4 @@
-# App · versión rueda + balanza (2 de noviembre de 2026)
+# Prototipo funcional v2 — rueda + balanza (2 de noviembre de 2026)
 
 Versión de la app anterior a la que se armó con los frames de "Prototipo funcional" de Figma.
 Recuperada del commit `c4487f4` y guardada aparte, sin tocar la app actual de `app/`.
@@ -9,3 +9,5 @@ Recuperada del commit `c4487f4` y guardada aparte, sin tocar la app actual de `a
 - **Además:** volver en todas las pantallas, Enter ejecuta la acción principal, alergia desplegable con globo de información.
 
 Para verla: abrir `index.html` de esta carpeta en Chrome.
+
+> Orden de versiones: prototipo_funcional_v1 → prototipo_funcional_v2 → la versión actual (v3), que vive en `app/`.
