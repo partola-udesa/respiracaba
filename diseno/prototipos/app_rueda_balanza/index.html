@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <!-- viewport-fit=cover: la app usa toda la pantalla del celular, incluso alrededor del notch -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F8F5EE">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>RESPIRA · Corré a tu ritmo</title>
+  <!-- Tipografía Figtree (la misma de Figma) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+<!-- =====================================================================
+     ÍCONOS
+     Cada <symbol> es un ícono (= los componentes "Ícono / …" de Figma).
+     Para usarlo en cualquier lugar: <svg class="icono"><use href="#i-hoja"/></svg>
+     ===================================================================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <!-- La "S" de RESPIRA como corredor: cabeza + cuerpo en forma de S -->
+  <symbol id="s-corredor" viewBox="0 0 30 44"><circle cx="26" cy="5.5" r="5"/><path d="M22 17C15 13.5 6.5 16 7.5 22.5C8.5 28.5 23.5 27 23.5 34C23.5 40.5 13 42.5 5 39"/></symbol>
+  <symbol id="i-flecha-izquierda" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-chevron-derecha" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-chevron-abajo" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-edad" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="17" rx="2.5"/><path d="M16 2.5v4M8 2.5v4M3 10h18"/></symbol>
+  <symbol id="i-altura" viewBox="0 0 24 24"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2M11.5 9.5l2-2M8.5 6.5l2-2M17.5 15.5l2-2"/></symbol>
+  <symbol id="i-peso" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M8.5 9a5 5 0 0 1 7 0l-2.3 2.5h-2.4Z"/></symbol>
+  <symbol id="i-hoja" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></symbol>
+  <symbol id="i-nivel" viewBox="0 0 24 24"><path d="M5 20v-4M10 20v-8M15 20v-12M20 20V4"/></symbol>
+  <symbol id="i-objetivo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+  <symbol id="i-recorrido" viewBox="0 0 24 24"><circle cx="5" cy="17" r="2.2"/><circle cx="19" cy="7" r="2.2"/><path d="M7 16c2.5-1 2-5 5-5s2.5 2.5 4.8-3"/></symbol>
+  <symbol id="i-repetir" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/></symbol>
+</svg>
+
+<!-- La app entera. En el celular ocupa toda la pantalla; en la compu se ve como un teléfono. -->
+<div class="app" id="app">
+
+<!-- =====================================================================
+     PANTALLAS
+     Cada <section class="pantalla" id="..."> es un frame de Figma.
+     - data-ir="otra-pantalla" en un botón = conexión del prototipo.
+     - data-volver = vuelve a la pantalla anterior.
+     - data-enter = el botón que se activa al apretar Enter en la compu.
+     ===================================================================== -->
+
+<!-- 01 · Splash (única pantalla con el logo grande) -->
+<section class="pantalla" id="splash">
+  <div class="ondas"></div>
+  <div class="contenido contenido--centrado">
+    <div class="logo">
+      <span class="marca" aria-label="RESPIRA">RE<svg class="marca__s" aria-hidden="true"><use href="#s-corredor"/></svg>PIRA</span>
+      <span class="logo__lema">CORRÉ A TU RITMO</span>
+    </div>
+  </div>
+</section>
+
+<!-- 02 · Perfil corredor (opcional: se puede saltear) -->
+<section class="pantalla" id="perfil" hidden>
+  <header class="header">
+    <button class="header__boton" data-volver aria-label="Volver"><svg class="icono"><use href="#i-flecha-izquierda"/></svg></button>
+    <span class="marca" aria-label="RESPIRA">RE<svg class="marca__s" aria-hidden="true"><use href="#s-corredor"/></svg>PIRA</span>
+    <button class="header__boton" data-ir="inicio" aria-label="Ir al inicio"><svg class="icono"><use href="#i-menu"/></svg></button>
+  </header>
+  <div class="contenido" style="gap: 14px;">
+    <h1 class="titulo-h1">Tu perfil corredor</h1>
+    <p class="cuerpo-chico">Es opcional. Nos ayuda a sugerirte recorridos más cómodos para vos.</p>
+
+    <!-- Datos personales. Los tres se eligen tocando el campo: se abre una rueda (edad, altura) o una balanza (peso). -->
+    <button class="campo" data-selector="edad"><svg class="icono icono--chico"><use href="#i-edad"/></svg><span class="campo__etiqueta">Edad</span><span class="campo__valor campo__valor--vacio">Elegí</span></button>
+    <button class="campo" data-selector="altura"><svg class="icono icono--chico"><use href="#i-altura"/></svg><span class="campo__etiqueta">Altura</span><span class="campo__valor campo__valor--vacio">Elegí</span></button>
+    <button class="campo" data-selector="peso"><svg class="icono icono--chico"><use href="#i-peso"/></svg><span class="campo__etiqueta">Peso</span><span class="campo__valor campo__valor--vacio">Elegí</span></button>
+
+    <div class="grupo">
+      <div class="grupo__titulo"><svg class="icono icono--chico"><use href="#i-nivel"/></svg><span>Nivel de experiencia</span></div>
+      <div class="chips" data-grupo="nivel" data-tipo="uno">
+        <button class="chip" data-valor="principiante" aria-pressed="false">Principiante</button>
+        <button class="chip" data-valor="intermedio" aria-pressed="false">Intermedio</button>
+        <button class="chip" data-valor="avanzado" aria-pressed="false">Avanzado</button>
+      </div>
+    </div>
+    <div class="grupo">
+      <div class="grupo__titulo"><svg class="icono icono--chico"><use href="#i-objetivo"/></svg><span>Objetivo principal</span></div>
+      <label class="campo">
+        <select id="objetivo">
+          <option value="">Elegí tu objetivo</option>
+          <option value="resistencia">Mejorar mi resistencia</option>
+          <option value="velocidad">Correr más rápido</option>
+          <option value="salud">Cuidar mi salud</option>
+          <option value="estres">Bajar el estrés</option>
+        </select>
+        <svg class="icono icono--chico"><use href="#i-chevron-abajo"/></svg>
+      </label>
+    </div>
+
+    <!-- Alergias: después de los datos personales, porque es información de salud -->
+    <div class="grupo">
+      <div class="grupo__titulo">
+        <svg class="icono icono--chico"><use href="#i-hoja"/></svg><span>Alergia a árboles</span>
+        <div class="info">
+          <button class="info__boton" aria-label="Por qué te lo preguntamos" aria-expanded="false" aria-controls="info-alergias">i</button>
+        </div>
+      </div>
+      <div class="info__globo" id="info-alergias" role="tooltip" hidden>
+        <p>Usamos el censo de arbolado de la Ciudad para que tus recorridos eviten las cuadras con muchos árboles de las especies que te dan alergia, en la época en que liberan polen.</p>
+        <ul>
+          <li><b>Plátano:</b> fin de invierno y primavera (aprox. agosto a octubre).</li>
+          <li><b>Fresno:</b> fin de invierno (aprox. julio a septiembre).</li>
+          <li><b>Ligustro:</b> fines de primavera y verano (aprox. noviembre a enero).</li>
+        </ul>
+      </div>
+      <details class="desplegable" id="alergias-desplegable">
+        <summary><span class="campo__etiqueta">Especies</span><span class="campo__valor campo__valor--vacio" id="alergias-resumen">Ninguna elegida</span><svg class="icono icono--chico"><use href="#i-chevron-abajo"/></svg></summary>
+        <div class="chips" data-grupo="alergias" data-tipo="varios">
+          <button class="chip" data-valor="ninguna" aria-pressed="false">No tengo</button>
+          <button class="chip" data-valor="platano" aria-pressed="false">Plátano</button>
+          <button class="chip" data-valor="fresno" aria-pressed="false">Fresno</button>
+          <button class="chip" data-valor="ligustro" aria-pressed="false">Ligustro</button>
+        </div>
+      </details>
+    </div>
+  </div>
+  <div class="pie">
+    <button class="boton" id="guardar-perfil" data-enter>Guardar perfil <svg class="icono"><use href="#i-check"/></svg></button>
+    <button class="boton boton--enlace" data-ir="inicio">Ahora no</button>
+  </div>
+</section>
+
+<!-- 03 · Inicio -->
+<section class="pantalla" id="inicio" hidden>
+  <div class="ondas"></div>
+  <header class="header">
+    <button class="header__boton" data-volver aria-label="Volver"><svg class="icono"><use href="#i-flecha-izquierda"/></svg></button>
+    <span class="marca" aria-label="RESPIRA">RE<svg class="marca__s" aria-hidden="true"><use href="#s-corredor"/></svg>PIRA</span>
+    <button class="header__boton" data-ir="perfil" aria-label="Mi perfil"><svg class="icono"><use href="#i-menu"/></svg></button>
+  </header>
+  <div class="contenido" style="gap: 14px;">
+    <h1 class="titulo-display">¿Qué querés hacer hoy?</h1>
+    <p class="cuerpo">Elegí una opción para salir a correr según tu objetivo.</p>
+    <div style="height: 6px"></div>
+    <button class="tarjeta-accion tarjeta-accion--destacada" data-ir="definir" data-enter>
+      <svg class="icono"><use href="#i-recorrido"/></svg>
+      <span class="tarjeta-accion__textos">
+        <span class="tarjeta-accion__titulo">Armá tu recorrido</span>
+        <span class="tarjeta-accion__descripcion">Personalizá tu salida según tus tiempos, distancia y entorno.</span>
+      </span>
+      <svg class="icono"><use href="#i-chevron-derecha"/></svg>
+    </button>
+    <button class="tarjeta-accion" data-ir="repetir">
+      <svg class="icono"><use href="#i-repetir"/></svg>
+      <span class="tarjeta-accion__textos">
+        <span class="tarjeta-accion__titulo">Repetí un trayecto</span>
+        <span class="tarjeta-accion__descripcion">Volvé a correr un recorrido que ya hiciste.</span>
+      </span>
+      <svg class="icono"><use href="#i-chevron-derecha"/></svg>
+    </button>
+  </div>
+</section>
+
+<!-- Próximas pantallas: definir · condiciones · recorridos · detalle · experiencia · resumen -->
+
+<!-- =====================================================================
+     HOJA INFERIOR: una sola para toda la app. app.js le pone adentro
+     la rueda o la balanza según el campo que se tocó.
+     ===================================================================== -->
+<div class="hoja-fondo" id="hoja-fondo" hidden></div>
+<div class="hoja" id="hoja" role="dialog" aria-modal="true" aria-labelledby="hoja-titulo" hidden>
+  <div class="hoja__manija"></div>
+  <h2 class="hoja__titulo" id="hoja-titulo"></h2>
+  <div id="hoja-cuerpo"></div>
+  <button class="boton" id="hoja-listo">Listo</button>
+</div>
+
+</div><!-- /app -->
+
+<script src="clima.js"></script>
+<script src="ia.js"></script>
+<script src="selectores.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
