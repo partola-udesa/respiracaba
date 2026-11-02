@@ -9,6 +9,11 @@ Qué probamos, qué descartamos y por qué. La entrada más nueva va arriba.
 - **Alternativa descartada:** …
 -->
 
+## 2026-11-02 — IA con Groq a través de una función de Vercel; se borra la app de vivienda
+- **Qué:** se borró `app/index.html`, que era el prototipo de la etapa anterior (comprar vivienda por comuna); queda en el historial de git. La IA pasa a Groq (`llama-3.3-70b-versatile` para el chat, `llama-3.1-8b-instant` para interpretar la búsqueda), llamada desde una función de Vercel (`app/api/ia.js`). La página usa `app/ia.js`. Prompts en `prompts/prompts_v2.md`. El sitio se publica en Vercel en lugar de Netlify.
+- **Por qué:** la capacidad `sample` de Claude solo funciona dentro de Claude, así que en el sitio publicado la IA nunca andaba. La clave de Groq no puede quedar en el navegador: la función la guarda como variable de entorno y fija los prompts del lado del servidor, así nadie puede usar la clave para otra cosa. El servidor revisa los filtros que devuelve el LLM antes de pasarlos a la página.
+- **Alternativa descartada:** llamar a Groq directo desde el navegador: expone la clave.
+
 ## 2026-11-02 — Clima para el runner: pronóstico hora por hora de Open-Meteo
 - **Qué:** la variable del usuario "condiciones meteorológicas" se resuelve con la API de pronóstico de Open-Meteo, consultada en vivo desde la app (`app/clima.js`). Para el punto de partida del runner trae, hora por hora y para 2 días: temperatura, sensación térmica, humedad, probabilidad de lluvia, viento medio, dirección del viento, ráfagas, índice UV y si es de día o de noche.
 - **Para armar rutas:** con la dirección del viento y el rumbo de cada tramo se calcula cuánto viento le pega de frente al runner (positivo en contra, negativo a favor). Además, la app muestra avisos (calor, frío, UV alto, lluvia, ráfagas, viento fuerte, de noche).

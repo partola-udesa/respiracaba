@@ -7,7 +7,10 @@ datasets/medicion_de_ruido_nocturno_2018.csv
 
 # --- Claves y entorno ---
 .env
+.env.local
+.env*.local
 *.key
+.vercel/
 
 # --- Sistema ---
 .DS_Store

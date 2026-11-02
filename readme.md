@@ -24,7 +24,7 @@ Los senderos y circuitos donde ya corren los runners de CABA van a presentar mej
 - Malena Sciaroni Bouer
 
 ## Sitio
-🔗 _link a Netlify (completar)_
+🔗 _link a Vercel (completar)_
 
 <!-- Captura de la app: agregar la imagen en entregas/entrega_N/ y enlazarla acá -->
 
@@ -44,7 +44,7 @@ El detalle de cada dataset (columnas, unidades y transformaciones) está en [`da
 | NO2 en grilla (mensual) | Calidad del aire: NO2 de la zona para cada tramo | Copernicus Sentinel-5P vía Google Earth Engine | https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S5P_OFFL_L3_NO2 · script en `codigo/gee_no2_grilla_mensual.js` | 2026-10-30 |
 | NO2 por comuna (mensual, reemplazado por la grilla) y por estación (diario) | Antecedente y control | Copernicus Sentinel-5P vía Google Earth Engine | https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S5P_OFFL_L3_NO2 | 2026-10-05 |
 | Pronóstico meteorológico por hora (en vivo, no se descarga) | Variable del usuario: clima a la hora de correr y viento a favor/en contra por tramo | Open-Meteo (licencia CC BY 4.0) | https://open-meteo.com/en/docs · consulta en `app/clima.js` | se consulta en vivo |
-| Meteorología ERA5 | Control climático (viento, temperatura, humedad) | ECMWF ERA5 vía Google Earth Engine | _colección GEE (completar)_ | 2026-10-05 |
+| Meteorología ERA5 | Control climático (viento, temperatura, humedad) | ECMWF ERA5-Land vía Google Earth Engine | https://developers.google.com/earth-engine/datasets/catalog/ECMWF_ERA5_LAND_HOURLY · colección `ECMWF/ERA5_LAND/HOURLY` · script en `codigo/gee_era5_meteo_caba.js` | 2026-10-05 |
 | Comunas (límites) | Recorte de todos los datos al límite de CABA | GCBA – Buenos Aires Data | https://data.buenosaires.gob.ar/dataset/comunas | 2026-10-05 |
 
 \* Fecha del archivo descargado en la computadora del equipo. Para OpenStreetMap es la fecha de la consulta (el estado de la base OSM queda registrado dentro de cada JSON).
@@ -62,8 +62,23 @@ Superan el límite de tamaño del repositorio y están en `.gitignore`. Se desca
 | `medicion_de_ruido_diurno_2018__filtrado.csv` / `medicion_de_ruido_nocturno_2018__filtrado.csv` | 67 MB c/u | `datasets_procesados/` · se regeneran con `codigo/filtrar_mapa_ruido.py` |
 
 ## Cómo reproducir los datos procesados
+Requisitos: Python 3.9 o más nuevo y **shapely 2** (con shapely 1.x, `colectivos_pasadas_por_tramo.py` falla porque el árbol espacial devuelve geometrías en lugar de posiciones). Todos los comandos se corren desde la carpeta `respira/`.
+
 ```bash
-pip install pandas numpy shapely pyshp
+pip install "pandas>=2" "numpy>=1.24" "shapely>=2" "pyshp>=2.3"
+
+# 0. Archivos pesados que no están en el repo (ver la tabla de arriba)
+curl -L -o datasets/arbolado-publico-lineal-2017-2018.csv https://cdn.buenosaires.gob.ar/datosabiertos/datasets/atencion-ciudadana/arbolado-publico-lineal/arbolado-publico-lineal-2017-2018.csv
+curl -L -o datasets/colectivos-gtfs.zip https://cdn.buenosaires.gob.ar/datosabiertos/datasets/transporte-y-obras-publicas/colectivos-gtfs/colectivos-gtfs.zip
+#    Mapa de Ruido: bajar a mano los CSV diurno y nocturno desde los links de la tabla de fuentes
+#    y guardarlos como datasets/medicion_de_ruido_diurno_2018.csv y datasets/medicion_de_ruido_nocturno_2018.csv
+
+# 0b. NO2 en grilla (Google Earth Engine): ya está en el repo como datasets/no2_grilla_mensual.csv.
+#     Para regenerarlo: pegar codigo/gee_no2_grilla_mensual.js en https://code.earthengine.google.com,
+#     tocar "Run", ejecutar la tarea "no2_grilla_mensual" en la pestaña Tasks, bajar el CSV de Google Drive
+#     y guardarlo como datasets/no2_grilla_mensual.csv
+#     Meteorología ERA5 (ya está en el repo como datasets/era5_meteo_caba.csv): mismo procedimiento con
+#     codigo/gee_era5_meteo_caba.js; la tarea "era5_meteo_caba" deja el CSV en la carpeta RESPIRA_GEE de Drive
 
 # 1. Descargas de OpenStreetMap (Overpass API) y conversión a CSV
 curl -X POST --data-urlencode data@codigo/overpass_red_peatonal_caba.overpassql https://overpass-api.de/api/interpreter -o datasets/osm_red_peatonal_caba.json
@@ -81,11 +96,26 @@ python codigo/filtrar_arbolado_lineal.py datasets/arbolado-publico-lineal-2017-2
 python codigo/filtrar_espacio_verde_publico.py datasets/espacio_verde_publico.csv datasets_procesados/espacio_verde_publico__filtrado.csv
 python codigo/filtrar_mapa_ruido.py datasets/medicion_de_ruido_diurno_2018.csv datasets_procesados/medicion_de_ruido_diurno_2018__filtrado.csv
 python codigo/filtrar_mapa_ruido.py datasets/medicion_de_ruido_nocturno_2018.csv datasets_procesados/medicion_de_ruido_nocturno_2018__filtrado.csv
+python codigo/filtrar_no2_grilla.py datasets/no2_grilla_mensual.csv datasets/comunas.zip datasets_procesados/no2_grilla_mensual__filtrado.csv
 
 # 3. Procesados (tarda ~6 minutos)
 python codigo/colectivos_pasadas_por_tramo.py datasets_procesados datasets_procesados/osm_red_peatonal_caba__filtrado.csv datasets_procesados/colectivos-gtfs__pasadas_por_tramo_franja.csv
 ```
-Las descargas de OpenStreetMap devuelven el estado actual de la base, que cambia con el tiempo: para obtener exactamente los mismos datos, usar los JSON del repositorio.
+Las descargas de OpenStreetMap devuelven el estado actual de la base, que cambia con el tiempo: para obtener exactamente los mismos datos, usar los JSON del repositorio. El paso 3 necesita las salidas de `filtrar_colectivos_gtfs.py` y `filtrar_osm_red_peatonal.py` del paso 2.
+
+## Cómo correr la app
+La app se publica en **Vercel** con la carpeta `app/` como raíz del proyecto (*Root Directory* = `app`). La IA usa Groq a través de la función `app/api/ia.js`, que guarda la clave del lado del servidor. El clima se consulta en vivo a Open-Meteo desde `app/clima.js` y no necesita clave.
+
+1. Crear una clave en https://console.groq.com/keys.
+2. En Vercel → *Settings → Environment Variables*, cargar `GROQ_API_KEY` con esa clave. Opcionales: `GROQ_MODEL` (chat) y `GROQ_MODEL_RAPIDO` (interpretar la búsqueda).
+3. Para probar en la computadora:
+   ```bash
+   cd app
+   echo "GROQ_API_KEY=tu_clave" > .env.local   # no se sube: está en .gitignore
+   npx vercel dev                              # abre http://localhost:3000 con /api/ia funcionando
+   ```
+
+La clave nunca va en el código ni en el repositorio. Los prompts están versionados en `prompts/prompts_v2.md`.
 
 ## Estructura del repositorio
 | Carpeta / archivo | Contenido |
@@ -99,4 +129,4 @@ Las descargas de OpenStreetMap devuelven el estado actual de la base, que cambia
 | `prompts/` | Prompts del LLM, versionados (`prompts_v1.md`, `_v2`…) |
 | `diseno/` | Referencias (`referencias/`) y prototipos (`prototipos/`, una carpeta por versión) |
 | `entregas/` | Estado del proyecto en cada entrega (`entrega_N/`: capturas de la app y link al sitio) |
-| `app/` | Solo lo que se publica en Netlify |
+| `app/` | Solo lo que se publica en Vercel: la página, `clima.js` (pronóstico), `ia.js` (cliente de la IA) y `api/ia.js` (función que llama a Groq) |
