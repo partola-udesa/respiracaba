@@ -4,9 +4,9 @@
  * Todo lo que devuelve es INFERENCIA del LLM: mostrarlo con el estilo de "inferencia", nunca como dato duro.
  *
  * Uso en la página:
- *   <script src="ia.js"></script>
  *   const filtros = await RespiraIA.interpretarBusqueda('8 km desde Plaza Italia mañana a las 7, con poco ruido');
- *   // → { partida, llegada, km, horario, prioridades }
+ *   const lectura = await RespiraIA.interpretarRecorridos({ preferencias, horario, clima, recorridos });
+ *   // → { recomendado: 2, recorridos: [{ numero, titulo, explicacion }, …] }
  *   const chat = RespiraIA.nuevoChat();
  *   const respuesta = await chat.preguntar('¿Por qué esta ruta es mejor?', { ruta: ..., clima: ... });
  */
@@ -14,9 +14,9 @@
   const ENDPOINT = '/api/ia';
   const ESPERA_MAX_MS = 30000;
 
-  async function llamar(cuerpo) {
+  async function llamar(cuerpo, espera = ESPERA_MAX_MS) {
     const corte = new AbortController();
-    const reloj = setTimeout(() => corte.abort(), ESPERA_MAX_MS);
+    const reloj = setTimeout(() => corte.abort(), espera);
     let r;
     try {
       r = await fetch(ENDPOINT, {
@@ -40,6 +40,11 @@
     return (await llamar({ tarea: 'busqueda', texto })).datos;
   }
 
+  /** Lee los tres recorridos calculados (dato duro) y devuelve un título, una explicación y cuál recomienda. */
+  async function interpretarRecorridos(contexto) {
+    return (await llamar({ tarea: 'recorridos', contexto }, 15000)).datos;
+  }
+
   /** Una pregunta suelta, sin historial. `contexto` son los datos que muestra la página (dato duro). */
   async function preguntar(pregunta, contexto) {
     return (await llamar({ tarea: 'chat', mensajes: [{ role: 'user', content: pregunta }], contexto })).texto;
@@ -60,5 +65,5 @@
     };
   }
 
-  globalThis.RespiraIA = { interpretarBusqueda, preguntar, nuevoChat };
+  globalThis.RespiraIA = { interpretarBusqueda, interpretarRecorridos, preguntar, nuevoChat };
 })();

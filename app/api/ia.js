@@ -13,6 +13,8 @@
  *     → { "texto": "..." }
  *   { "tarea": "busqueda", "texto": "Quiero correr 8 km desde Plaza Italia mañana a las 7" }
  *     → { "datos": { "partida", "llegada", "km", "horario", "prioridades" } }
+ *   { "tarea": "recorridos", "contexto": { "preferencias", "horario", "clima", "recorridos": [ … ] } }
+ *     → { "datos": { "recomendado": 1, "recorridos": [{ "numero", "titulo", "explicacion" }] } }
  */
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const MODELO_CHAT = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
@@ -49,7 +51,8 @@ module.exports = async function handler(req, res) {
   try {
     if (cuerpo.tarea === 'chat') return await chat(res, cuerpo);
     if (cuerpo.tarea === 'busqueda') return await busqueda(res, cuerpo);
-    return responder(res, 400, { error: 'tarea tiene que ser "chat" o "busqueda"' });
+    if (cuerpo.tarea === 'recorridos') return await recorridos(res, cuerpo);
+    return responder(res, 400, { error: 'tarea tiene que ser "chat", "busqueda" o "recorridos"' });
   } catch (e) {
     return responder(res, e.estado || 502, { error: e.message || 'No se pudo obtener la respuesta' });
   }
@@ -80,6 +83,38 @@ async function chat(res, { mensajes, contexto }) {
     max_tokens: 400
   });
   return responder(res, 200, { texto: texto.trim() });
+}
+
+const REGLAS_RECORRIDOS = `Sos el asistente de RESPIRA, una app para runners de la Ciudad de Buenos Aires. La app ya calculó tres recorridos sobre la red de calles; cada tramo tiene un puntaje de 0 a 100 por condición (más alto = mejor para correr) que sale de datasets de la Ciudad: vegetación (arbolado lineal y espacios verdes), aire (NO2 satelital Sentinel-5P), ruido (Mapa de ruido 2018), tránsito (vías principales y colectivos), sombra (altura del arbolado), terreno e iluminación (OpenStreetMap).
+Te paso esos números en el CONTEXTO. Tu tarea es interpretarlos para el runner, teniendo en cuenta sus preferencias, el horario y el clima si está.
+Respondé SOLO con un objeto JSON: {"recomendado": número del recorrido que más se ajusta a las preferencias, "recorridos": [{"numero": 1, "titulo": "2 a 4 palabras que lo distingan de los otros (por ejemplo 'Más verde', 'Más tranquilo', 'Más directo')", "explicacion": "una o dos frases, 35 palabras como máximo"}]} con un elemento por cada recorrido del contexto.
+Reglas: español rioplatense, tuteando, frases simples, sin tecnicismos. Usá solo los números del contexto y no inventes otros; si citás uno, decí de dónde sale (por ejemplo "según el Mapa de Ruido 2018"). Compará los recorridos entre sí. No des consejos médicos ni digas que algo causa un efecto en la salud. Los títulos tienen que ser distintos entre sí.`;
+
+async function recorridos(res, { contexto }) {
+  if (!contexto || !Array.isArray(contexto.recorridos) || !contexto.recorridos.length) return responder(res, 400, { error: 'Faltan los recorridos' });
+  const texto = JSON.stringify(contexto);
+  if (texto.length > MAX_CARACTERES_CONTEXTO) return responder(res, 413, { error: 'El contexto es demasiado grande' });
+  const crudo = await groq({
+    model: MODELO_CHAT,
+    messages: [{ role: 'system', content: REGLAS_RECORRIDOS }, { role: 'user', content: 'CONTEXTO: ' + texto }],
+    temperature: 0.3,
+    max_tokens: 600,
+    response_format: { type: 'json_object' }
+  });
+  let j;
+  try { j = JSON.parse(crudo); } catch { return responder(res, 502, { error: 'La IA no devolvió JSON válido' }); }
+  // Lo que devuelve el LLM se revisa antes de mandarlo a la página.
+  const numeros = contexto.recorridos.map(r => r.numero);
+  const lista = Array.isArray(j.recorridos) ? j.recorridos : [];
+  const datos = {
+    recomendado: numeros.includes(Number(j.recomendado)) ? Number(j.recomendado) : null,
+    recorridos: numeros.map(n => {
+      const r = lista.find(x => Number(x && x.numero) === n) || {};
+      const t = v => (typeof v === 'string' ? v.trim() : '');
+      return { numero: n, titulo: t(r.titulo).slice(0, 40) || null, explicacion: t(r.explicacion).slice(0, 320) || null };
+    })
+  };
+  return responder(res, 200, { datos });
 }
 
 async function busqueda(res, { texto }) {

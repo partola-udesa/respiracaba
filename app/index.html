@@ -8,68 +8,52 @@
   <title>RESPIRA · Corré a tu ritmo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Josefin+Sans:wght@400;600;700&display=swap">
+  <!-- Mapa: Leaflet (librería libre para mapas) con las calles de OpenStreetMap -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <link rel="stylesheet" href="estilos.css">
 </head>
 <body>
 
-<!-- ÍCONOS (= componentes "Ícono / …" de Figma). Uso: <svg class="icono"><use href="#i-hoja"/></svg> -->
+<!-- ÍCONOS: Material Symbols (outlined, peso 300 · licencia Apache 2.0) = componentes "Ícono / …" de Figma.
+     Se usan SOLO donde reemplazan un texto por convención. Uso: <svg class="icono"><use href="#i-buscar"/></svg> -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-volver" viewBox="0 -960 960 960"><path d="M266.31-457.31 512-212l-32 32-300-300 300-300 32 32-245.69 245.31H780v45.38H266.31Z"/></symbol>
+  <symbol id="i-perfil" viewBox="0 -960 960 960"><path d="M384.69-530.31q-37.38-37.38-37.38-95.5 0-58.11 37.38-95.3 37.39-37.2 95.31-37.2t95.31 37.2q37.38 37.19 37.38 95.3 0 58.12-37.38 95.5-37.39 37.39-95.31 37.39t-95.31-37.39ZM180-187.69v-75.93q0-32.23 17.08-56.15t44.38-36.77q63.16-28.07 121.77-42.31 58.62-14.23 116.77-14.23t116.46 14.54q58.31 14.54 121.46 42 27.92 12.85 45 36.77T780-263.62v75.93H180Zm45.39-45.39h509.22v-30.54q0-15.61-9.88-29.92-9.88-14.31-25.81-22.46-59-28.69-111.3-40.19-52.3-11.5-107.62-11.5-55.32 0-108.43 11.5-53.11 11.5-111.11 40.19-15.92 8.15-25.5 22.46-9.57 14.31-9.57 29.92v30.54Zm316.99-330.15q24.93-24.92 24.93-62.38 0-37.47-24.93-62.39-24.92-24.92-62.38-24.92T417.62-688q-24.93 24.92-24.93 62.39 0 37.46 24.93 62.38 24.92 24.92 62.38 24.92t62.38-24.92ZM480-625.61Zm0 392.53Z"/></symbol>
+  <symbol id="i-abajo" viewBox="0 -960 960 960"><path d="M480-357.85 253.85-584l32.61-32.61L480-423.08l193.54-193.53L706.15-584 480-357.85Z"/></symbol>
+  <symbol id="i-derecha" viewBox="0 -960 960 960"><path d="M536.92-480.62 342.77-675.15l32.61-32.62 226.77 227.15-226.77 226.77-32.61-32.61 194.15-194.16Z"/></symbol>
+  <symbol id="i-buscar" viewBox="0 -960 960 960"><path d="M790.61-137.54 531.08-397.08q-29.85 26.42-69.65 40.71-39.81 14.29-82.28 14.29-101.62 0-172.31-70.57-70.68-70.58-70.68-171 0-100.43 70.57-171 70.58-70.58 171.72-70.58 100.14 0 170.69 70.58 70.55 70.57 70.55 170.86 0 42.17-14.38 81.98-14.39 39.81-41.62 72.12l260.15 258.54-33.23 33.61ZM378.54-387.46q81.7 0 138.74-57.12 57.03-57.11 57.03-139.07 0-81.97-57.03-139.08-57.04-57.12-138.74-57.12-82.39 0-139.69 57.12-57.31 57.11-57.31 139.08 0 81.96 57.31 139.07 57.3 57.12 139.69 57.12Z"/></symbol>
+  <symbol id="i-mi-ubicacion" viewBox="0 -960 960 960"><path d="M457.31-72v-65.77Q323.39-150.62 237-237q-86.38-86.39-99.23-220.31H72v-45.38h65.77Q150.62-636.61 237-723q86.39-86.38 220.31-99.61V-888h45.38v65.39Q636.61-809.38 723-723q86.38 86.39 99.61 220.31H888v45.38h-65.39Q809.38-323.39 723-237q-86.39 86.38-220.31 99.23V-72h-45.38Zm232.77-197.92q87.38-87.39 87.38-210.08 0-122.69-87.38-210.08-87.39-87.38-210.08-87.38-122.69 0-210.08 87.38-87.38 87.39-87.38 210.08 0 122.69 87.38 210.08 87.39 87.38 210.08 87.38 122.69 0 210.08-87.38ZM385.81-385.81q-38.5-38.5-38.5-94.19t38.5-94.19q38.5-38.5 94.19-38.5t94.19 38.5q38.5 38.5 38.5 94.19t-38.5 94.19q-38.5 38.5-94.19 38.5t-94.19-38.5Zm156.27-32.11q25.23-25.23 25.23-62.08 0-36.85-25.23-62.08-25.23-25.23-62.08-25.23-36.85 0-62.08 25.23-25.23 25.23-25.23 62.08 0 36.85 25.23 62.08 25.23 25.23 62.08 25.23 36.85 0 62.08-25.23ZM480-480Z"/></symbol>
+  <symbol id="i-partida" viewBox="0 -960 960 960"><path d="M526.04-511.65Q545-530.62 545-557.69q0-27.08-18.96-46.04T480-622.69q-27.08 0-46.04 18.96T415-557.69q0 27.07 18.96 46.04 18.96 18.96 46.04 18.96t46.04-18.96ZM480-159.77q125.31-111.77 190.92-213.15 65.62-101.39 65.62-177.16 0-116.07-73.77-190.5Q589-815 480-815q-109 0-182.77 74.42-73.77 74.43-73.77 190.5 0 75.77 66.73 177.16Q356.92-271.54 480-159.77Zm0 60.15Q329-230.46 253.54-343.15q-75.46-112.7-75.46-206.93 0-138.46 89.57-224.19Q357.23-860 480-860t212.35 85.73q89.57 85.73 89.57 224.19 0 94.23-75.46 206.93Q631-230.46 480-99.62Zm0-458.07Z"/></symbol>
+  <symbol id="i-llegada" viewBox="0 -960 960 960"><path d="M220-130v-650h311.46l18.23 84.46H780v338.08H553.62l-18.14-83.85H265.39V-130H220Zm280-438.92Zm92.69 166.07h141.92v-247.3H510.62l-18.24-84.46H265.39v247.92h309.07l18.23 83.84Z"/></symbol>
+  <symbol id="i-cerrar" viewBox="0 -960 960 960"><path d="m250.92-218.92-32-32L448-480 218.92-709.08l32-32L480-512l229.08-229.08 32 32L512-480l229.08 229.08-32 32L480-448 250.92-218.92Z"/></symbol>
+  <symbol id="i-info" viewBox="0 -960 960 960"><path d="M459.54-290h45.38v-230h-45.38v230Zm39.73-301.56q7.96-7.57 7.96-19.05 0-11.95-7.85-19.9-7.85-7.95-19.36-7.95-11.9 0-19.58 7.95-7.67 7.95-7.67 19.9 0 11.48 7.94 19.05 7.95 7.56 19.27 7.56 11.33 0 19.29-7.56ZM480.33-100q-78.95 0-147.89-29.92-68.95-29.92-120.76-81.71-51.81-51.79-81.75-120.78Q100-401.39 100-480.43q0-78.66 29.92-147.87 29.92-69.21 81.71-120.52 51.79-51.31 120.78-81.25Q401.39-860 480.43-860q78.66 0 147.87 29.92 69.21 29.92 120.52 81.21 51.31 51.29 81.25 120.63Q860-558.9 860-480.33q0 78.95-29.92 147.89-29.92 68.95-81.21 120.57-51.29 51.63-120.63 81.75Q558.9-100 480.33-100Zm.17-45.39q139.19 0 236.65-97.76 97.46-97.77 97.46-237.35 0-139.19-97.27-236.65-97.27-97.46-237.34-97.46-139.08 0-236.85 97.27-97.76 97.27-97.76 237.34 0 139.08 97.76 236.85 97.77 97.76 237.35 97.76ZM480-480Z"/></symbol>
+  <symbol id="i-check" viewBox="0 -960 960 960"><path d="M379.15-258.31 168.62-468.85l32.61-32.23 177.92 177.93 379-379.39 32.62 32.62-411.62 411.61Z"/></symbol>
+  <symbol id="i-microfono" viewBox="0 -960 960 960"><path d="M418.58-462.92Q394-489 394-526.69v-247.92q0-35.52 25.02-60.45Q444.04-860 479.94-860q35.91 0 60.98 24.94Q566-810.13 566-774.61v247.92q0 37.69-24.58 63.77-24.57 26.07-61.42 26.07t-61.42-26.07Zm61.42-185ZM457.31-130v-141.39q-100.23-9.07-168.77-82.07T220-526.69h45.39q0 89.07 62.69 150.11 62.7 61.04 151.66 61.04 88.95 0 151.91-61.04 62.96-61.04 62.96-150.11H740q0 100.23-68.54 173.23-68.54 73-168.77 82.07V-130h-45.38Zm51.81-365.15q11.5-12.93 11.5-31.7v-247.76q0-17-11.68-28.5T480-814.61q-17.26 0-28.94 11.5t-11.68 28.5v247.76q0 18.77 11.5 31.7 11.5 12.92 29.12 12.92t29.12-12.92Z"/></symbol>
+  <symbol id="i-ia" viewBox="0 -960 960 960"><path d="m843.92-236-95.61-96 31.61-31.61 96 95.61-32 32ZM708-708.69l-31.61-31.62L772-835.92l32 31.61-96 95.62Zm-456 .38-95.61-96L188-835.92l96 95.61-32 32ZM115.69-236l-31.61-32 95.61-95.61 32 31.61-96 96Zm198.08 1L480-334.77l166.62 101.16-43.93-188.77 146.08-126.54L556-566.08l-76-177.61-75.62 176.61-192.77 16.77L357.69-423l-43.92 188Zm-68.46 95 61.92-266L100-585.38l273.39-23.47L480-860l107 251.15 273.38 23.47L653.15-406l61.93 266L480-281.31 245.31-140Zm235.07-348.85Z"/></symbol>
+  <symbol id="i-cara-bien" viewBox="0 -960 960 960"><path d="M620.71-537.23q20.21 0 33.98-13.86 13.77-13.86 13.77-34.08 0-20.21-13.86-33.98-13.86-13.77-34.08-13.77-20.21 0-33.98 13.86-13.77 13.86-13.77 34.07 0 20.22 13.86 33.99 13.86 13.77 34.08 13.77Zm-281.23 0q20.21 0 33.98-13.86 13.77-13.86 13.77-34.08 0-20.21-13.86-33.98-13.86-13.77-34.08-13.77-20.21 0-33.98 13.86-13.77 13.86-13.77 34.07 0 20.22 13.86 33.99 13.86 13.77 34.08 13.77Zm253.56 231.31q51.65-33 76.27-89h-42.39q-23 39.23-62.04 60.73-39.03 21.5-84.26 21.5-45.85 0-85.2-21.19-39.34-21.2-61.34-61.04h-43.39q25.23 56 76.58 89 51.35 33 112.73 33t113.04-33Zm-261.18 176q-69.37-29.92-120.68-81.21-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100q-78.84 0-148.21-29.92ZM480-480Zm237.15 237.15q97.46-97.46 97.46-237.15t-97.46-237.15Q619.69-814.61 480-814.61t-237.15 97.46Q145.39-619.69 145.39-480t97.46 237.15q97.46 97.46 237.15 97.46t237.15-97.46Z"/></symbol>
+  <symbol id="i-cara-regular" viewBox="0 -960 960 960"><path d="M620.71-537.23q19.71 0 33.73-13.86 14.02-13.86 14.02-34.08 0-20.21-14.11-33.98-14.11-13.77-33.83-13.77-19.71 0-33.73 13.86-14.02 13.86-14.02 34.07 0 20.22 14.11 33.99 14.11 13.77 33.83 13.77Zm-281.23 0q19.71 0 33.73-13.86 14.02-13.86 14.02-34.08 0-20.21-14.11-33.98-14.11-13.77-33.83-13.77-19.71 0-33.73 13.86-14.02 13.86-14.02 34.07 0 20.22 14.11 33.99 14.11 13.77 33.83 13.77Zm19.14 191.69H602v-39.38H358.62v39.38Zm-26.76 215.62q-69.37-29.92-120.68-81.21-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100q-78.84 0-148.21-29.92ZM480-480Zm237.15 237.19q97.46-97.42 97.46-237.15 0-139.73-97.42-237.19-97.42-97.46-237.15-97.46-139.73 0-237.19 97.42-97.46 97.42-97.46 237.15 0 139.73 97.42 237.19 97.42 97.46 237.15 97.46 139.73 0 237.19-97.42Z"/></symbol>
+  <symbol id="i-cara-mal" viewBox="0 -960 960 960"><path d="M620.71-537.23q20.21 0 33.98-13.86 13.77-13.86 13.77-34.08 0-20.21-13.86-33.98-13.86-13.77-34.08-13.77-20.21 0-33.98 13.86-13.77 13.86-13.77 34.07 0 20.22 13.86 33.99 13.86 13.77 34.08 13.77Zm-281.23 0q20.21 0 33.98-13.86 13.77-13.86 13.77-34.08 0-20.21-13.86-33.98-13.86-13.77-34.08-13.77-20.21 0-33.98 13.86-13.77 13.86-13.77 34.07 0 20.22 13.86 33.99 13.86 13.77 34.08 13.77Zm27.48 153.69q-51.04 34.23-76.27 91.23h43.39q22-40.46 61.04-63.08Q434.15-378 480.62-378q45.84 0 84.57 22.92 38.73 22.93 61.73 62.77h42.39q-24.62-57.61-75.96-91.54Q542-417.77 480-417.77q-62 0-113.04 34.23Zm-35.1 253.62q-69.37-29.92-120.68-81.21-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100q-78.84 0-148.21-29.92ZM480-480Zm237.15 237.15q97.46-97.46 97.46-237.15t-97.46-237.15Q619.69-814.61 480-814.61t-237.15 97.46Q145.39-619.69 145.39-480t97.46 237.15q97.46 97.46 237.15 97.46t237.15-97.46Z"/></symbol>
+  <symbol id="i-mas" viewBox="0 -960 960 960"><path d="M457.31-457.31H220v-45.38h237.31V-740h45.38v237.31H740v45.38H502.69V-220h-45.38v-237.31Z"/></symbol>
+  <symbol id="i-menos" viewBox="0 -960 960 960"><path d="M220-457.31v-45.38h520v45.38H220Z"/></symbol>
   <symbol id="i-onda" viewBox="0 0 24 10"><path d="M1.5 8.5C4 2 7.5 1 10.5 5s7 3 12-3.5"/></symbol>
-  <symbol id="i-flecha-izquierda" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
-  <symbol id="i-flecha-derecha" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
-  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
-  <symbol id="i-chevron-derecha" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
-  <symbol id="i-chevron-abajo" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
-  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
-  <symbol id="i-perfil" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
-  <symbol id="i-altura" viewBox="0 0 24 24"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2M11.5 9.5l2-2M8.5 6.5l2-2M17.5 15.5l2-2"/></symbol>
-  <symbol id="i-peso" viewBox="0 0 24 24"><path d="M6 8h12l2 12H4L6 8z"/><circle cx="12" cy="5" r="2.2"/></symbol>
-  <symbol id="i-nivel" viewBox="0 0 24 24"><path d="M5 20v-4M10 20v-8M15 20v-12M20 20V4"/></symbol>
-  <symbol id="i-objetivo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
-  <symbol id="i-arboles" viewBox="0 0 24 24"><path d="M7 15a4 4 0 1 1 3.5-6.5"/><path d="M7 15v6"/><path d="M14 17a4.5 4.5 0 1 1 4.6-.3"/><path d="M16.5 17v4"/></symbol>
-  <symbol id="i-hoja" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></symbol>
-  <symbol id="i-arbol" viewBox="0 0 24 24"><path d="M8 19a4 4 0 0 1-2.24-7.32A3.5 3.5 0 0 1 9 6.03V6a3 3 0 1 1 6 0v.04a3.5 3.5 0 0 1 3.24 5.65A4 4 0 0 1 16 19Z"/><path d="M12 19v3"/></symbol>
-  <symbol id="i-rayo" viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></symbol>
-  <symbol id="i-recorrido" viewBox="0 0 24 24"><circle cx="5" cy="17" r="2.2"/><circle cx="19" cy="7" r="2.2"/><path d="M7 16c2.5-1 2-5 5-5s2.5 2.5 4.8-3"/></symbol>
-  <symbol id="i-repetir" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/></symbol>
-  <symbol id="i-ubicacion" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></symbol>
-  <symbol id="i-bandera" viewBox="0 0 24 24"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></symbol>
-  <symbol id="i-calendario" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="17" rx="2.5"/><path d="M16 2.5v4M8 2.5v4M3 10h18"/></symbol>
-  <symbol id="i-reloj" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
-  <symbol id="i-corredor" viewBox="0 0 24 24"><circle cx="15" cy="4.5" r="1.8"/><path d="M5.5 21l3.5-5 3 2 1.2-5"/><path d="M7.5 10.5l3-3 4 1.5 2 3.5h3.5"/><path d="M10.5 7.5l2.7 5.5"/></symbol>
-  <symbol id="i-silencio" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M22 9l-6 6M16 9l6 6"/></symbol>
-  <symbol id="i-ruido" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></symbol>
-  <symbol id="i-viento" viewBox="0 0 24 24"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></symbol>
-  <symbol id="i-auto" viewBox="0 0 24 24"><path d="M5 17V12l2-5h10l2 5v5"/><path d="M3 17h18M4 12h16"/><circle cx="7.5" cy="17" r="1.6"/><circle cx="16.5" cy="17" r="1.6"/></symbol>
-  <symbol id="i-sol" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
-  <symbol id="i-escudo" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
-  <symbol id="i-gente" viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="2.5"/><circle cx="5" cy="9" r="2"/><circle cx="19" cy="9" r="2"/><path d="M7.5 19v-1.5a4.5 4.5 0 0 1 9 0V19"/><path d="M1.5 19v-1a3.5 3.5 0 0 1 5-3.2"/><path d="M22.5 19v-1a3.5 3.5 0 0 0-5-3.2"/></symbol>
-  <symbol id="i-montana" viewBox="0 0 24 24"><path d="m8 4 4 7 4-4 6 13H2L8 4z"/></symbol>
-  <symbol id="i-agua" viewBox="0 0 24 24"><path d="M2 8c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 14c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></symbol>
-  <symbol id="i-edificio" viewBox="0 0 24 24"><rect x="4" y="2.5" width="16" height="19" rx="2"/><path d="M9 21.5v-4h6v4M8.5 7h1M14.5 7h1M8.5 11h1M14.5 11h1M8.5 15h1M14.5 15h1"/></symbol>
-  <symbol id="i-chispa" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15z"/></symbol>
-  <symbol id="i-cara-bien" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9.5h.01M15 9.5h.01"/></symbol>
-  <symbol id="i-cara-regular" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 15h7M9 9.5h.01M15 9.5h.01"/></symbol>
-  <symbol id="i-cara-mal" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 16s1.5-2 4-2 4 2 4 2M9 9.5h.01M15 9.5h.01"/></symbol>
-  <symbol id="i-microfono" viewBox="0 0 24 24"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5"/></symbol>
 </svg>
 
 <div class="app" id="app">
 
 <!-- =====================================================================
-     PANTALLAS (= frames de Figma, Page 1 → "Prototipo funcional")
+     PANTALLAS (= frames de Figma)
      - data-ir="pantalla"  → conexión de prototipo
      - data-volver         → vuelve a la pantalla anterior
      - data-enter          → el botón que se activa con Enter en la compu
-     El encabezado (volver · RESPIRA · menú) lo agrega app.js en todas menos el splash.
+     El encabezado (volver · RESPIRA · perfil) lo agrega app.js en todas menos el splash.
      ===================================================================== -->
 
 <!-- 01 · Splash -->
 <section class="pantalla" id="splash">
   <div class="ondas"></div>
   <div class="contenido contenido--centrado" style="gap: 14px;">
-    <div class="splash__onda"><svg class="icono" viewBox="0 0 24 10"><use href="#i-onda"/></svg></div>
+    <div class="splash__onda"><svg viewBox="0 0 24 10"><use href="#i-onda"/></svg></div>
     <span class="splash__marca">RESPIRA</span>
     <span class="splash__lema">CORRÉ A TU RITMO</span>
   </div>
@@ -77,28 +61,30 @@
 
 <!-- 02 · Perfil corredor (opcional) -->
 <section class="pantalla" id="perfil" hidden>
-  <div class="contenido" style="gap: 14px;">
-    <h1 class="titulo-h1 centrado verde">Tu perfil corredor</h1>
-    <p class="cuerpo centrado verde" style="margin-top:-6px">Completá tu información para definir recorridos más seguros, cómodos y efectivos.</p>
+  <div class="contenido">
+    <div class="encabezado">
+      <h1 class="titulo-h1">Tu perfil corredor</h1>
+      <p class="cuerpo">Completá tu información para definir recorridos más seguros, cómodos y efectivos.</p>
+    </div>
 
-    <div class="grupo"><div class="grupo__titulo"><svg class="icono"><use href="#i-perfil"/></svg><span>Edad</span></div><div data-rueda="edad"></div></div>
-    <div class="grupo"><div class="grupo__titulo"><svg class="icono"><use href="#i-altura"/></svg><span>Altura</span></div><div data-rueda="altura"></div></div>
-    <div class="grupo"><div class="grupo__titulo"><svg class="icono"><use href="#i-peso"/></svg><span>Peso</span></div><div data-rueda="peso"></div></div>
+    <div class="grupo"><span class="rotulo" id="r-edad">Edad</span><div data-rueda="edad"></div></div>
+    <div class="grupo"><span class="rotulo" id="r-altura">Altura</span><div data-rueda="altura"></div></div>
+    <div class="grupo"><span class="rotulo" id="r-peso">Peso</span><div data-balanza="peso"></div></div>
 
     <div class="grupo">
-      <div class="grupo__titulo"><svg class="icono"><use href="#i-nivel"/></svg><span>Nivel de experiencia</span>
-        <button class="info__boton" aria-label="Más información sobre el nivel" aria-expanded="false" aria-controls="info-nivel">i</button></div>
-      <div class="info__globo" id="info-nivel" hidden>Lo usamos para sugerirte distancias y recorridos acordes a tu ritmo.</div>
+      <div class="rotulo">Nivel de experiencia
+        <button class="info__boton" aria-label="Más información sobre el nivel" aria-expanded="false" aria-controls="info-nivel"><svg class="icono"><use href="#i-info"/></svg></button></div>
+      <div class="info__globo" id="info-nivel" hidden>Lo usamos para sugerirte distancias y calcular cuánto vas a tardar.</div>
       <div class="chips chips--parejos" data-grupo="nivel" data-tipo="uno">
-        <button class="chip" data-valor="principiante" aria-pressed="false">Principiante<svg class="icono"><use href="#i-check"/></svg></button>
-        <button class="chip" data-valor="intermedio" aria-pressed="false">Intermedio<svg class="icono"><use href="#i-check"/></svg></button>
-        <button class="chip" data-valor="avanzado" aria-pressed="false">Avanzado<svg class="icono"><use href="#i-check"/></svg></button>
+        <button class="chip" data-valor="principiante" aria-pressed="false">Principiante</button>
+        <button class="chip" data-valor="intermedio" aria-pressed="false">Intermedio</button>
+        <button class="chip" data-valor="avanzado" aria-pressed="false">Avanzado</button>
       </div>
     </div>
 
     <div class="grupo">
-      <div class="grupo__titulo"><svg class="icono"><use href="#i-objetivo"/></svg><span>Objetivo principal</span></div>
-      <label class="campo">
+      <label class="rotulo" for="objetivo">Objetivo principal</label>
+      <div class="campo">
         <select id="objetivo">
           <option value="">Elegí tu objetivo</option>
           <option value="resistencia">Mejorar mi resistencia</option>
@@ -106,14 +92,14 @@
           <option value="salud">Cuidar mi salud</option>
           <option value="estres">Bajar el estrés</option>
         </select>
-        <svg class="icono icono--chico"><use href="#i-chevron-abajo"/></svg>
-      </label>
+        <svg class="icono"><use href="#i-abajo"/></svg>
+      </div>
     </div>
 
     <!-- Alergias: al final, porque es información de salud -->
     <div class="grupo">
-      <div class="grupo__titulo"><svg class="icono"><use href="#i-arboles"/></svg><span>Alergias a árboles</span>
-        <button class="info__boton" aria-label="Más información sobre alergias" aria-expanded="false" aria-controls="info-alergias">i</button></div>
+      <div class="rotulo">Alergias a árboles
+        <button class="info__boton" aria-label="Más información sobre alergias" aria-expanded="false" aria-controls="info-alergias"><svg class="icono"><use href="#i-info"/></svg></button></div>
       <div class="info__globo" id="info-alergias" hidden>
         <p>Esta información nos ayuda a identificar recorridos con presencia de especies de árboles que preferís evitar. No representa una medición de polen ni una evaluación médica.</p>
         <p>Época aproximada de polen en Buenos Aires:</p>
@@ -122,14 +108,14 @@
       <div class="multiselect" id="alergias" data-abierto="false">
         <div class="multiselect__cabeza" role="button" tabindex="0" aria-expanded="false" aria-controls="alergias-lista">
           <span class="multiselect__elegidas" id="alergias-elegidas"><span class="multiselect__vacio">Seleccioná tus alergias</span></span>
-          <svg class="icono icono--chico"><use href="#i-chevron-abajo"/></svg>
+          <svg class="icono"><use href="#i-abajo"/></svg>
         </div>
         <ul class="multiselect__lista" id="alergias-lista" hidden></ul>
       </div>
     </div>
   </div>
   <div class="pie">
-    <button class="boton" id="guardar-perfil" data-enter>Guardar perfil <svg class="icono"><use href="#i-check"/></svg></button>
+    <button class="boton" id="guardar-perfil" data-enter>Guardar perfil</button>
     <button class="boton boton--enlace" data-ir="inicio">Ahora no</button>
   </div>
 </section>
@@ -137,182 +123,181 @@
 <!-- 03 · Inicio -->
 <section class="pantalla" id="inicio" hidden>
   <div class="ondas"></div>
-  <div class="contenido" style="gap: 14px;">
-    <h1 class="titulo-display verde">¿Qué querés hacer hoy?</h1>
-    <p class="cuerpo">Elegí una opción para salir a correr según tu objetivo.</p>
-    <div style="height: 6px"></div>
+  <div class="contenido">
+    <div class="encabezado">
+      <h1 class="titulo-display">¿Qué querés hacer hoy?</h1>
+      <p class="cuerpo">Elegí una opción para salir a correr según tu objetivo.</p>
+    </div>
     <button class="tarjeta-accion tarjeta-accion--destacada" data-ir="definir" data-enter>
-      <svg class="icono"><use href="#i-recorrido"/></svg>
       <span class="tarjeta-accion__textos"><span class="tarjeta-accion__titulo">Armá tu recorrido</span><span class="tarjeta-accion__descripcion">Personalizá tu salida según tus tiempos, distancia y entorno.</span></span>
-      <svg class="icono"><use href="#i-chevron-derecha"/></svg>
+      <svg class="icono"><use href="#i-derecha"/></svg>
     </button>
     <button class="tarjeta-accion" data-ir="repetir">
-      <svg class="icono"><use href="#i-repetir"/></svg>
       <span class="tarjeta-accion__textos"><span class="tarjeta-accion__titulo">Repetí un trayecto</span><span class="tarjeta-accion__descripcion">Volvé a correr un recorrido que ya hiciste.</span></span>
-      <svg class="icono"><use href="#i-chevron-derecha"/></svg>
+      <svg class="icono"><use href="#i-derecha"/></svg>
     </button>
   </div>
 </section>
 
 <!-- 04 · Definí tu recorrido -->
 <section class="pantalla" id="definir" hidden>
-  <div class="ondas"></div>
-  <div class="contenido" style="gap: 12px;">
-    <div class="stepper" aria-label="Paso 1 de 3"><span class="stepper__punto stepper__punto--hecho"></span><span class="stepper__linea"></span><span class="stepper__punto"></span><span class="stepper__linea"></span><span class="stepper__punto"></span></div>
-    <h1 class="titulo-h1 verde">Definí tu recorrido</h1>
-    <p class="cuerpo-chico">Elegí las condiciones de tu salida y encontrá la mejor opción para correr en Buenos Aires.</p>
-
-    <div class="autocompletar">
-      <label class="campo" id="campo-partida"><svg class="icono icono--chico"><use href="#i-ubicacion"/></svg>
-        <input id="partida" type="text" placeholder="Buscá un punto de partida" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="sugerencias-partida"></label>
-      <ul class="sugerencias" id="sugerencias-partida" role="listbox" hidden></ul>
+  <div class="contenido">
+    <div class="encabezado">
+      <div class="pasos"><span class="etiqueta">Paso 1 de 3</span><span class="pasos__barras"><span class="hecho"></span><span></span><span></span></span></div>
+      <h1 class="titulo-h1">Definí tu recorrido</h1>
+      <p class="cuerpo-chico">Buscá cualquier dirección, esquina, plaza o parque de la Ciudad.</p>
     </div>
-    <p class="mensaje-error" id="error-partida" hidden>Elegí desde dónde salís.</p>
+
+    <div class="grupo">
+      <label class="rotulo" for="partida">Partida</label>
+      <div class="autocompletar">
+        <div class="campo" id="campo-partida"><svg class="icono"><use href="#i-partida"/></svg>
+          <input id="partida" type="text" placeholder="Buscá un punto de partida" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugerencias-partida">
+          <button class="campo__boton" data-borrar="partida" aria-label="Borrar partida" hidden><svg class="icono icono--chico"><use href="#i-cerrar"/></svg></button></div>
+        <ul class="sugerencias" id="sugerencias-partida" role="listbox" hidden></ul>
+      </div>
+      <p class="mensaje-error" id="error-partida" hidden>Elegí desde dónde salís en la lista de sugerencias.</p>
+    </div>
 
     <div class="opcion">
       <div class="opcion__textos"><span class="opcion__titulo">Trayecto circular</span><span class="opcion__descripcion">Termina en el mismo lugar donde empieza</span></div>
       <button class="toggle" id="circular" role="switch" aria-checked="false" aria-label="Trayecto circular"></button>
     </div>
 
-    <div class="autocompletar" id="bloque-llegada">
-      <label class="campo" id="campo-llegada"><svg class="icono icono--chico"><use href="#i-bandera"/></svg>
-        <input id="llegada" type="text" placeholder="Buscá un punto de llegada" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="sugerencias-llegada"></label>
-      <ul class="sugerencias" id="sugerencias-llegada" role="listbox" hidden></ul>
+    <div class="grupo" id="bloque-llegada">
+      <label class="rotulo" for="llegada">Llegada</label>
+      <div class="autocompletar">
+        <div class="campo" id="campo-llegada"><svg class="icono"><use href="#i-llegada"/></svg>
+          <input id="llegada" type="text" placeholder="Buscá un punto de llegada" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugerencias-llegada">
+          <button class="campo__boton" data-borrar="llegada" aria-label="Borrar llegada" hidden><svg class="icono icono--chico"><use href="#i-cerrar"/></svg></button></div>
+        <ul class="sugerencias" id="sugerencias-llegada" role="listbox" hidden></ul>
+      </div>
+      <p class="mensaje-error" id="error-llegada" hidden>Elegí dónde terminás, o activá el trayecto circular.</p>
     </div>
-    <p class="mensaje-error" id="error-llegada" hidden>Elegí dónde terminás, o activá el trayecto circular.</p>
 
     <div class="grupo">
-      <div class="grupo__titulo"><svg class="icono icono--chico"><use href="#i-corredor"/></svg><span>Distancia</span></div>
-      <div data-rueda="distancia"></div>
+      <label class="rotulo" for="distancia">Distancia</label>
+      <div class="campo" id="campo-distancia">
+        <input id="distancia" type="text" inputmode="decimal" placeholder="Ej: 5" autocomplete="off" aria-describedby="ayuda-distancia">
+        <span class="campo__sufijo">km</span>
+      </div>
+      <p class="nota" id="ayuda-distancia">Entre 1 y 42 km. Si vas de un punto a otro, es opcional: si es más largo que el camino directo, el recorrido da una vuelta.</p>
+      <p class="mensaje-error" id="error-distancia" hidden></p>
     </div>
 
     <label class="casilla"><input type="checkbox" id="programar"> Programar para más tarde</label>
     <div class="fila" id="cuando">
-      <label class="campo"><svg class="icono icono--chico"><use href="#i-calendario"/></svg><input id="fecha" type="date" disabled></label>
-      <label class="campo" style="flex: 0 0 150px"><svg class="icono icono--chico"><use href="#i-reloj"/></svg><input id="hora" type="time" disabled></label>
+      <label class="campo"><span class="sr">Día</span><input id="fecha" type="date" disabled></label>
+      <label class="campo" style="flex: 0 0 140px"><span class="sr">Hora</span><input id="hora" type="time" disabled></label>
     </div>
   </div>
   <div class="pie">
-    <button class="boton" id="continuar-definir" data-enter>Continuar <svg class="icono"><use href="#i-flecha-derecha"/></svg></button>
+    <button class="boton" id="continuar-definir" data-enter>Continuar</button>
   </div>
 </section>
 
 <!-- 05 · Personalizá tus condiciones -->
 <section class="pantalla" id="condiciones" hidden>
-  <div class="ondas"></div>
-  <div class="contenido" style="gap: 14px;">
-    <div class="stepper" aria-label="Paso 2 de 3"><span class="stepper__punto stepper__punto--hecho"></span><span class="stepper__linea stepper__linea--hecha"></span><span class="stepper__punto stepper__punto--hecho"></span><span class="stepper__linea"></span><span class="stepper__punto"></span></div>
-    <h1 class="titulo-h1">Personalizá tus condiciones</h1>
-    <p class="cuerpo-chico" style="margin-top:-6px">Ajustá el recorrido según lo que más valorás al correr.</p>
+  <div class="contenido">
+    <div class="encabezado">
+      <div class="pasos"><span class="etiqueta">Paso 2 de 3</span><span class="pasos__barras"><span class="hecho"></span><span class="hecho"></span><span></span></span></div>
+      <h1 class="titulo-h1">Personalizá tus condiciones</h1>
+      <p class="cuerpo-chico">Cada condición se calcula calle por calle con un dataset de la Ciudad.</p>
+    </div>
     <div class="condiciones" id="condiciones-principales"></div>
-    <div class="subtitulo-linea">Otras condiciones</div>
-    <div class="condiciones-chicas" id="condiciones-otras"></div>
+    <div class="subtitulo-linea etiqueta">Otras condiciones</div>
+    <div class="condiciones" id="condiciones-otras"></div>
   </div>
   <div class="pie">
-    <button class="boton" id="buscar-recorridos" data-enter>Encontrar mi recorrido <svg class="icono"><use href="#i-flecha-derecha"/></svg></button>
+    <button class="boton" id="buscar-recorridos" data-enter>Encontrar mi recorrido</button>
   </div>
 </section>
 
-<!-- 06 · Tus recorridos ideales -->
+<!-- 06 · Tus recorridos ideales: mapa interactivo + 3 opciones -->
 <section class="pantalla" id="recorridos" hidden>
-  <div class="contenido" style="gap: 14px;">
-    <div class="stepper" aria-label="Paso 3 de 3"><span class="stepper__punto stepper__punto--hecho"></span><span class="stepper__linea stepper__linea--hecha"></span><span class="stepper__punto stepper__punto--hecho"></span><span class="stepper__linea stepper__linea--hecha"></span><span class="stepper__punto stepper__punto--hecho"></span></div>
-    <h1 class="titulo-h1">Tus recorridos ideales</h1>
-    <div class="mapa" id="mapa-todos"></div>
-    <div class="lista" id="lista-recorridos"></div>
-    <p class="nota">Recorridos de ejemplo. El índice real, calculado calle por calle con los datasets, se conecta en el próximo paso.</p>
-  </div>
-</section>
-
-<!-- 07 · Detalle de un recorrido (una sola pantalla que se llena con los datos del recorrido elegido) -->
-<section class="pantalla" id="detalle" hidden>
   <div class="contenido" style="gap: 12px;">
-    <div class="titulo-recorrido">
-      <div><h1 class="titulo-h1" id="detalle-titulo"></h1><p class="cuerpo" id="detalle-subtitulo"></p></div>
-      <div class="insignia"><svg class="icono"><use id="detalle-insignia" href="#i-hoja"/></svg></div>
+    <div class="encabezado">
+      <div class="pasos"><span class="etiqueta">Paso 3 de 3</span><span class="pasos__barras"><span class="hecho"></span><span class="hecho"></span><span class="hecho"></span></span></div>
+      <h1 class="titulo-h1">Tus recorridos ideales</h1>
     </div>
-    <div class="mapa" id="detalle-mapa"></div>
-    <div class="indice">
-      <div class="indice__fila"><svg class="icono icono--grande"><use href="#i-hoja"/></svg>
-        <div class="indice__texto"><div class="indice__etiqueta">Índice de respirabilidad</div><div class="indice__valor" id="detalle-indice"></div></div></div>
-      <div class="segmentos" id="detalle-segmentos"></div>
-    </div>
-    <div class="tarjeta"><div class="componentes" id="detalle-componentes"></div></div>
-    <div class="inferencia"><svg class="icono"><use href="#i-chispa"/></svg><span id="detalle-ia"></span></div>
-    <div class="metricas"><div><svg class="icono"><use href="#i-corredor"/></svg><span id="detalle-km"></span></div><i></i><div><svg class="icono"><use href="#i-reloj"/></svg><span id="detalle-min"></span></div></div>
-  </div>
-  <div class="pie">
-    <button class="boton" id="elegir-recorrido" data-enter>Elegir este recorrido <svg class="icono"><use href="#i-flecha-derecha"/></svg></button>
+    <div class="mapa mapa--grande" id="mapa-recorridos"><div class="mapa__estado" id="mapa-estado">Cargando el mapa…</div></div>
+    <div class="leyenda-indice"><span>Índice por tramo: bajo</span><i></i><span>alto</span></div>
+    <div class="opciones" id="opciones-recorridos" role="radiogroup" aria-label="Opciones de recorrido"></div>
+    <p class="nota" id="nota-recorridos"></p>
   </div>
 </section>
 
-<!-- 08 · Tu recorrido completado -->
+<!-- 07 · Tu recorrido completado -->
 <section class="pantalla" id="completado" hidden>
-  <div class="ondas"></div>
-  <div class="contenido" style="gap: 12px;">
-    <h1 class="titulo-h1">Tu recorrido completado</h1>
-    <div class="mapa" id="completado-mapa"></div>
-    <div class="metricas"><div><svg class="icono"><use href="#i-corredor"/></svg><span id="completado-km"></span></div><i></i><div><svg class="icono"><use href="#i-reloj"/></svg><span id="completado-min"></span></div></div>
-    <div class="respirabilidad"><svg class="icono icono--grande"><use href="#i-hoja"/></svg>
-      <div class="respirabilidad__textos"><span class="respirabilidad__etiqueta">Respirabilidad del recorrido</span><span class="respirabilidad__valor" id="completado-indice"></span><div class="barra"><i id="completado-barra"></i></div></div></div>
+  <div class="contenido">
+    <div class="encabezado"><h1 class="titulo-h1">Tu recorrido completado</h1></div>
+    <div class="mapa mapa--chico" id="mapa-completado"></div>
+    <div class="metricas">
+      <div><span class="etiqueta">Distancia</span><span class="numero" id="completado-km"></span></div>
+      <div><span class="etiqueta">Tiempo</span><span class="numero" id="completado-min"></span></div>
+      <div><span class="etiqueta">Ritmo</span><span class="numero" id="completado-ritmo"></span></div>
+    </div>
+    <div class="respirabilidad">
+      <span class="numero respirabilidad__valor" id="completado-indice"></span>
+      <div class="respirabilidad__textos"><span class="etiqueta">Índice de respirabilidad</span><div class="barra"><i id="completado-barra"></i></div></div>
+    </div>
     <hr class="divisor">
-    <h2 class="titulo-h3">¿Cómo te sentiste?</h2>
+    <h2 class="titulo-h2">¿Cómo te sentiste?</h2>
     <div class="sensaciones" data-grupo="sensacion" data-tipo="uno">
       <button class="sensacion chip" data-valor="comoda" aria-pressed="false"><svg class="icono"><use href="#i-cara-bien"/></svg>Cómoda</button>
       <button class="sensacion chip" data-valor="regular" aria-pressed="false"><svg class="icono"><use href="#i-cara-regular"/></svg>Regular</button>
       <button class="sensacion chip" data-valor="incomoda" aria-pressed="false"><svg class="icono"><use href="#i-cara-mal"/></svg>Incómoda</button>
     </div>
   </div>
-  <div class="pie"><button class="boton" data-ir="experiencia" data-enter>Siguiente <svg class="icono"><use href="#i-flecha-derecha"/></svg></button></div>
+  <div class="pie"><button class="boton" data-ir="experiencia" data-enter>Siguiente</button></div>
 </section>
 
-<!-- 09 · Tu experiencia -->
+<!-- 08 · Tu experiencia -->
 <section class="pantalla" id="experiencia" hidden>
-  <div class="ondas"></div>
-  <div class="contenido" style="gap: 14px;">
-    <div class="stepper" aria-label="Paso 2 de 3"><span class="stepper__punto stepper__punto--hecho"></span><span class="stepper__linea stepper__linea--hecha"></span><span class="stepper__punto stepper__punto--hecho"></span><span class="stepper__linea"></span><span class="stepper__punto"></span></div>
-    <h1 class="titulo-h1">Contanos un poco más de tu experiencia</h1>
-    <p class="cuerpo">Esto nos ayuda a personalizar mejor tus próximos recorridos.</p>
-    <hr class="divisor">
+  <div class="contenido">
+    <div class="encabezado">
+      <div class="pasos"><span class="etiqueta">Paso 1 de 2</span><span class="pasos__barras" style="grid-template-columns: repeat(2, 1fr)"><span class="hecho"></span><span></span></span></div>
+      <h1 class="titulo-h1">Contanos un poco más de tu experiencia</h1>
+      <p class="cuerpo-chico">Esto nos ayuda a personalizar mejor tus próximos recorridos.</p>
+    </div>
     <h2 class="titulo-h3">¿El recorrido cumplió con lo que buscabas?</h2>
     <div class="chips chips--parejos" data-grupo="cumplio" data-tipo="uno">
-      <button class="chip" data-valor="si" aria-pressed="false"><svg class="icono"><use href="#i-check"/></svg>Sí</button>
-      <button class="chip" data-valor="no" aria-pressed="false"><svg class="icono"><use href="#i-check"/></svg>No</button>
+      <button class="chip" data-valor="si" aria-pressed="false">Sí</button>
+      <button class="chip" data-valor="no" aria-pressed="false">No</button>
     </div>
     <hr class="divisor">
     <h2 class="titulo-h3">¿Cómo describirías el ambiente del recorrido?</h2>
     <div class="chips" data-grupo="ambiente" data-tipo="varios">
-      <button class="chip" data-valor="tranquilo" aria-pressed="false"><svg class="icono"><use href="#i-check"/></svg>Tranquilo</button>
-      <button class="chip" data-valor="verde" aria-pressed="false"><svg class="icono"><use href="#i-check"/></svg>Verde</button>
-      <button class="chip" data-valor="ruidoso" aria-pressed="false"><svg class="icono"><use href="#i-check"/></svg>Ruidoso</button>
-      <button class="chip" data-valor="transito" aria-pressed="false"><svg class="icono"><use href="#i-check"/></svg>Con tránsito</button>
-      <button class="chip" data-valor="otro" aria-pressed="false"><svg class="icono"><use href="#i-check"/></svg>Otro</button>
+      <button class="chip" data-valor="tranquilo" aria-pressed="false">Tranquilo</button>
+      <button class="chip" data-valor="verde" aria-pressed="false">Verde</button>
+      <button class="chip" data-valor="ruidoso" aria-pressed="false">Ruidoso</button>
+      <button class="chip" data-valor="transito" aria-pressed="false">Con tránsito</button>
+      <button class="chip" data-valor="otro" aria-pressed="false">Otro</button>
     </div>
   </div>
-  <div class="pie"><button class="boton" data-ir="comentario" data-enter>Siguiente <svg class="icono"><use href="#i-flecha-derecha"/></svg></button></div>
+  <div class="pie"><button class="boton" data-ir="comentario" data-enter>Siguiente</button></div>
 </section>
 
-<!-- 10 · ¿Querés dejarnos un comentario? -->
+<!-- 09 · ¿Querés dejarnos un comentario? -->
 <section class="pantalla" id="comentario" hidden>
-  <div class="ondas"></div>
-  <div class="contenido" style="gap: 16px;">
-    <div class="stepper" aria-label="Paso 3 de 3"><span class="stepper__punto stepper__punto--hecho"></span><span class="stepper__linea stepper__linea--hecha"></span><span class="stepper__punto stepper__punto--hecho"></span><span class="stepper__linea stepper__linea--hecha"></span><span class="stepper__punto stepper__punto--hecho"></span></div>
-    <h1 class="titulo-h1">¿Querés dejarnos un comentario?</h1>
+  <div class="contenido">
+    <div class="encabezado">
+      <div class="pasos"><span class="etiqueta">Paso 2 de 2</span><span class="pasos__barras" style="grid-template-columns: repeat(2, 1fr)"><span class="hecho"></span><span class="hecho"></span></span></div>
+      <h1 class="titulo-h1">¿Querés dejarnos un comentario?</h1>
+    </div>
     <div class="comentario">
-      <label for="texto-comentario" class="sr" hidden>Comentario</label>
+      <label for="texto-comentario" class="sr">Comentario</label>
       <textarea id="texto-comentario" placeholder="Escribí tu experiencia… o tocá el micrófono para dictarla"></textarea>
       <button class="microfono" id="microfono" aria-pressed="false" aria-label="Dictar el comentario"><svg class="icono"><use href="#i-microfono"/></svg></button>
     </div>
     <p class="nota" id="aviso-microfono" hidden></p>
-    <div class="ia-tarjeta">
-      <div class="ia-tarjeta__titulo"><svg class="icono"><use href="#i-chispa"/></svg>La inteligencia artificial procesará tus respuestas</div>
-      <p class="cuerpo-chico">para conocer mejor tus preferencias y que tu próxima corrida sea aún mejor.</p>
-    </div>
+    <div class="inferencia"><svg class="icono"><use href="#i-ia"/></svg>
+      <span>La inteligencia artificial va a procesar tus respuestas para conocer mejor tus preferencias y que tu próxima corrida sea aún mejor.</span></div>
   </div>
-  <div class="pie"><button class="boton" id="guardar-corrida" data-enter>Guardar recorrido <svg class="icono"><use href="#i-check"/></svg></button></div>
+  <div class="pie"><button class="boton" id="guardar-corrida" data-enter>Guardar recorrido</button></div>
 </section>
 
-<!-- 11 · ¡Recorrido guardado! -->
+<!-- 10 · ¡Recorrido guardado! -->
 <section class="pantalla" id="guardado" hidden>
   <div class="ondas"></div>
   <div class="contenido contenido--centrado" style="gap: 14px;">
@@ -320,15 +305,19 @@
     <h1 class="titulo-h1">¡Recorrido guardado!</h1>
     <p class="cuerpo">Gracias por contarnos tu experiencia.</p>
   </div>
-  <div class="pie"><button class="boton" id="volver-inicio" data-enter>Volver al inicio <svg class="icono"><use href="#i-flecha-derecha"/></svg></button></div>
+  <div class="pie"><button class="boton" id="volver-inicio" data-enter>Volver al inicio</button></div>
 </section>
 
 </div><!-- /app -->
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="clima.js"></script>
 <script src="ia.js"></script>
 <script src="selectores.js"></script>
 <script src="datos.js"></script>
+<script src="red.js"></script>
+<script src="buscador.js"></script>
+<script src="mapa.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

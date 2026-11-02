@@ -9,6 +9,25 @@ Qué probamos, qué descartamos y por qué. La entrada más nueva va arriba.
 - **Alternativa descartada:** …
 -->
 
+## 2026-11-02 — Sistema gráfico v5, preferencias vinculadas a los datasets y mapa interactivo
+- **Qué (diseño):**
+  - Tipografía: Josefin Sans para lo protagonista (títulos, marca, números grandes) e Inter para el resto. Reemplaza a Figtree.
+  - Radios menos pronunciados: 4, 6, 10 y 14 px (antes hasta 20 px y botones en pastilla).
+  - Áreas táctiles de 44 px como mínimo y botones principales de 52 px. Arriba siempre queda libre el espacio del sistema (en la compu se simula la isla dinámica).
+  - Íconos: Material Symbols (outlined, peso 300, licencia Apache 2.0), menos circulares que los anteriores. Se usan solo donde reemplazan un texto por convención (volver, perfil, buscar, ubicación, partida/llegada, borrar, info, micrófono, IA, caras de sensación). Se sacaron los íconos que acompañaban títulos, tarjetas y métricas.
+  - Pasos con barras y la etiqueta "Paso 1 de 3", en mayúsculas chicas.
+- **Qué (pantallas):**
+  - Peso con metáfora de balanza (visor grande + regla con rayitas cada 0,1 kg). Edad y altura siguen con la rueda.
+  - Partida y llegada aceptan cualquier lugar de CABA: espacios verdes y calles de los datasets (al instante), esquinas buscadas en la red ("Corrientes y Callao") y direcciones con altura vía OpenStreetMap (Photon, con Nominatim de respaldo). También "Usar mi ubicación".
+  - Distancia: campo escrito en km (acepta coma). Obligatorio en el trayecto circular; en un trayecto de A a B, si es más largo que el camino directo, el recorrido da una vuelta.
+  - Cada condición está vinculada a su dataset: vegetación → arbolado lineal + espacios verdes; ruido → mapa de ruido 2018 (diurno o nocturno según la hora); aire → NO2 satelital en grilla; tránsito → vías principales + pasadas de colectivos; sombra → altura del arbolado; terreno e iluminación → atributos OSM. "Más seguridad", "Menos gente" y "Cerca del agua" quedan desactivadas hasta tener dataset ("Entorno urbano" se sacó).
+  - Recorridos: mapa real (Leaflet + teselas de CARTO con datos de OpenStreetMap) con las tres opciones. Tocar una línea o su número en el mapa elige esa opción en la lista de abajo, y al revés. Solo "Elegir este recorrido" pasa de pantalla. La pantalla de detalle se integró a la tarjeta de la opción elegida.
+- **Qué (cálculo):** `codigo/construir_red_respirabilidad.py` corta la red peatonal OSM en 67.962 tramos de esquina a esquina y le pone a cada uno un puntaje 0–100 por condición; genera `app/datos/red.js` y `app/datos/lugares.js`. La app busca el camino de menor costo (Dijkstra) donde un tramo con mal puntaje en lo elegido "cuesta" más metros, y arma tres opciones distintas. El índice de respirabilidad del tramo es el promedio de vegetación, aire, ruido de día y tránsito, y no cambia con las preferencias. El mapa pinta la opción elegida tramo por tramo según ese índice.
+- **Qué (IA):** nueva tarea `recorridos` en `app/api/ia.js`: Groq recibe los números de las tres opciones (dato duro), las preferencias, el horario y el clima, y devuelve un título, una explicación corta y cuál recomienda. Se muestra como inferencia. Si la IA no responde (por ejemplo, abriendo el archivo sin servidor), queda un resumen automático armado con los mismos datos.
+- **Por qué:** devolución del 02/11 y pedido del profesor de calcular el índice por tramo y usar el mapa real.
+- **Limitaciones:** el mapa de ruido no cubre el 28 % de los tramos (se completan con la mediana de su tipo de vía). El NO2 es un píxel de ~1 km, así que varía poco entre calles vecinas. El puntaje de aire es relativo a CABA (el NO2 más bajo de la ciudad = 100).
+- **Alternativa descartada:** API de ruteo externa (OSRM/GraphHopper): no conoce los datasets, así que no podría elegir calles por respirabilidad.
+
 ## 2026-11-02 — App armada con los frames de "Prototipo funcional" (Figma, Page 1)
 - **Qué:** la app tiene las 11 pantallas del flujo según los frames de Figma: splash, perfil corredor, inicio, definí tu recorrido, condiciones, recorridos ideales, detalle del recorrido (una plantilla para los tres), recorrido completado, tu experiencia, comentario y recorrido guardado.
 - **Edad, altura y peso** con la misma rueda horizontal de los frames: el número del medio queda resaltado y los demás sombreados. Es la "herramienta unificada" de la devolución (d) y reemplaza a la rueda en hoja inferior y a la balanza de la versión anterior. La distancia usa la misma rueda.

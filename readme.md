@@ -106,10 +106,14 @@ Las descargas de OpenStreetMap devuelven el estado actual de la base, que cambia
 ## Tecnologías
 | Parte | Qué se usa | Para qué |
 |---|---|---|
-| Interfaz | HTML, CSS y JavaScript sin frameworks (`app/index.html`, `app/estilos.css`, `app/app.js`, `app/selectores.js`, `app/datos.js`) | Pantallas, estilos copiados de las variables de Figma y comportamiento. App mobile: ocupa toda la pantalla del celular y en la compu se ve dentro de un marco de teléfono |
-| Tipografía | Figtree (Google Fonts) | La misma que en Figma |
+| Interfaz | HTML, CSS y JavaScript sin frameworks (`app/index.html`, `app/estilos.css`, `app/app.js`, `app/selectores.js`, `app/datos.js`, `app/buscador.js`) | Pantallas, estilos copiados de las variables de Figma y comportamiento. App mobile: ocupa toda la pantalla del celular y en la compu se ve dentro de un marco de teléfono |
+| Tipografía | Josefin Sans (títulos y números) + Inter (textos), de Google Fonts | Las mismas que en Figma |
+| Íconos | Material Symbols, outlined peso 300 (Apache 2.0), dentro de `app/index.html` | Solo donde reemplazan un texto por convención |
+| Mapa | Leaflet 1.9.4 + teselas de CARTO con datos de OpenStreetMap (`app/mapa.js`) | Mapa interactivo con las tres opciones de recorrido |
+| Recorridos | Red peatonal con índice por tramo (`app/datos/red.js`, generado por `codigo/construir_red_respirabilidad.py`) + algoritmo de Dijkstra (`app/red.js`) | Armar tres recorridos según las condiciones elegidas |
+| Buscador | Datasets (`app/datos/lugares.js`), esquinas de la red y geocodificador de OpenStreetMap (Photon / Nominatim) | Partida y llegada en cualquier lugar de CABA |
 | Clima | API de pronóstico de Open-Meteo (`app/clima.js`) | Clima hora por hora y viento a favor o en contra por tramo |
-| IA | Groq (modelos Llama) a través de una función de Vercel (`app/api/ia.js` + `app/ia.js`) | Interpretar la búsqueda en texto libre y explicar los recorridos |
+| IA | Groq (modelos Llama) a través de una función de Vercel (`app/api/ia.js` + `app/ia.js`) | Interpretar la búsqueda en texto libre y explicar y recomendar los recorridos calculados |
 | Publicación | Vercel, con `app/` como carpeta raíz | Sitio público y función de la IA con la clave guardada en el servidor |
 | Datos | Python 3 con pandas, shapely y pyshp (`codigo/`) | Filtrar los datasets y calcular el índice por tramo |
 | Datos satelitales | Google Earth Engine (`codigo/gee_*.js`) | NO2 de Sentinel-5P y meteorología ERA5-Land |
@@ -143,4 +147,4 @@ La clave nunca va en el código ni en el repositorio. Los prompts están version
 | `prompts/` | Prompts del LLM, versionados (`prompts_v1.md`, `_v2`…) |
 | `diseno/` | Referencias (`referencias/`) y prototipos (`prototipos/`, una carpeta por versión) |
 | `entregas/` | Estado del proyecto en cada entrega (`entrega_N/`: capturas de la app y link al sitio) |
-| `app/` | Solo lo que se publica en Vercel: la página (`index.html`), los estilos (`estilos.css`), el comportamiento (`app.js`), la rueda horizontal de números (`selectores.js`), los datos de ejemplo y el mapa ilustrado (`datos.js`), `clima.js` (pronóstico), `ia.js` (cliente de la IA) y `api/ia.js` (función que llama a Groq) |
+| `app/` | Solo lo que se publica en Vercel: la página (`index.html`), los estilos (`estilos.css`), el comportamiento (`app.js`), la rueda y la balanza (`selectores.js`), las condiciones y su dataset (`datos.js`), el armado de recorridos (`red.js`), el buscador de lugares (`buscador.js`), el mapa (`mapa.js`), `clima.js` (pronóstico), `ia.js` (cliente de la IA), `api/ia.js` (función que llama a Groq) y `datos/` (red de calles con índice por tramo y lugares, generados por `codigo/construir_red_respirabilidad.py`) |
