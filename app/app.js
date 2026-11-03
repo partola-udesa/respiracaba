@@ -622,9 +622,13 @@ function dibujarOpciones() {
   $('#opciones-recorridos').innerHTML = estado.recorridos.map((r, i) => `
     <button class="opcion-ruta" role="radio" aria-checked="${i === estado.elegido}" data-elegir="${i}">
       <span class="opcion-ruta__numero">${r.numero}</span>
-      <span><span class="opcion-ruta__titulo">${escapar(r.titulo)}</span>
+      <span><span class="opcion-ruta__titulo">${escapar(r.titulo)}${r.recomendado ? '<span class="insignia insignia--chica">Recomendado</span>' : ''}</span>
         <span class="opcion-ruta__sub">${conComa(r.km)} km · ≈ ${r.minutos} min${etiquetaPolen(r)}</span></span>
-      <span class="opcion-ruta__indice"><span class="numero">${r.indice}<small>%</small></span><span>${r.recomendado ? 'recomendado' : 'índice'}</span></span>
+      <span class="opcion-ruta__indice" aria-label="Respirabilidad ${r.indice}%">
+        <span class="numero">${r.indice}<small>%</small></span>
+        <span class="opcion-ruta__barra"><i style="width:${r.indice}%"></i></span>
+        <span class="opcion-ruta__leyenda">respirabilidad</span>
+      </span>
     </button>`).join('');
   $('#ver-recorrido').innerHTML = `Ver recorrido ${estado.recorridos[estado.elegido]?.numero || ''} ${icono('derecha')}`;
 }
@@ -870,8 +874,9 @@ alMostrar.corriendo = () => {
     if (f >= 1) { clearInterval(reloj); $('#terminar').classList.add('resaltar'); }
   }, 250);
 };
-$('#terminar').addEventListener('click', () => {
+$('#terminar').addEventListener('click', async e => {
   clearInterval(reloj);
+  e.currentTarget.classList.remove('resaltar');
   if (mapaCorriendo) mapaCorriendo.quitarCorredor();
   const r = estado.recorridos[estado.elegido], f = Math.max(0.05, estado.corrida.fraccion || 1);
   $('#completado-km').textContent = conComa(r.km * f);
@@ -880,6 +885,7 @@ $('#terminar').addEventListener('click', () => {
   $('#completado-indice').innerHTML = `${r.indice}<small>%</small>`;
   $('#completado-barra').style.width = '0';
   estado.corrida.km = Math.round(r.km * f * 10) / 10; estado.corrida.min = Math.round(r.minutos * f);
+  await RespiraCelebracion.logro(e.currentTarget);   // sonido + luz: el logro (celebracion.js)
   irA('completado', { reemplazar: true });
 });
 
@@ -888,8 +894,18 @@ let mapaCompletado = null;
 alMostrar.completado = () => {
   const r = estado.recorridos[estado.elegido];
   if (!mapaCompletado) mapaCompletado = RespiraMapa.crear($('#mapa-completado'), { interactivo: false });
-  setTimeout(() => { mapaCompletado.mostrarUno(r, { circular: estado.busqueda.circular }); $('#completado-barra').style.width = r.indice + '%'; }, 60);
+  setTimeout(() => { mapaCompletado.mostrarUno(r, { circular: estado.busqueda.circular }); $('#completado-barra').style.width = r.indice + '%'; contarHasta($('#completado-indice'), r.indice); }, 60);
 };
+// El número sube junto con la barra (de 0 al índice del recorrido)
+function contarHasta(el, final, ms = 1400) {
+  const t0 = performance.now();
+  const paso = t => {
+    const f = Math.min(1, (t - t0) / ms), suave = 1 - Math.pow(1 - f, 3);
+    el.innerHTML = `${Math.round(final * suave)}<small>%</small>`;
+    if (f < 1) requestAnimationFrame(paso);
+  };
+  requestAnimationFrame(paso);
+}
 
 /* ---------- 14b. TU EXPERIENCIA: lo que la app aprende de cada corrida ----------
    "¿El recorrido cumplió con lo que esperabas?"
@@ -998,7 +1014,7 @@ $('#microfono').addEventListener('click', () => {
   dictado.start();
 });
 
-$('#guardar-corrida').addEventListener('click', () => {
+$('#guardar-corrida').addEventListener('click', async e => {
   estado.corrida.comentario = $('#texto-comentario').value.trim();
   const r = estado.recorridos[estado.elegido], b = estado.busqueda;
   const registro = { fecha: new Date().toISOString(), busqueda: { partida: b.partida, llegada: b.circular ? null : b.llegada, circular: b.circular, km: b.km },
@@ -1011,6 +1027,7 @@ $('#guardar-corrida').addEventListener('click', () => {
     localStorage.setItem('respira-corridas', JSON.stringify(corridas.slice(-30)));
   } catch (e) { /* modo privado */ }
   aprender(registro.evaluacion);
+  await RespiraCelebracion.guardado(e.currentTarget);   // satisfacción instantánea (celebracion.js)
   // [API IA] FUERA DE ALCANCE (decisiones.md, 3/11/2026) — Leer el comentario con una tarea "experiencia" que detecte
   // quejas que no son de las preferencias elegidas (por ejemplo "había mucha gente"). El aprendizaje usa las respuestas de arriba.
   irA('guardado');

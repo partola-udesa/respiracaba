@@ -409,10 +409,14 @@ input, textarea, select { font: inherit; font-size: 16px; color: var(--texto-1);
 .opcion-ruta__numero { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--pista); font-weight: 600; font-size: 14px; }
 .opcion-ruta__titulo { display: block; font-size: 16px; font-weight: 600; }
 .opcion-ruta__sub { display: block; font-size: 13px; color: var(--texto-2); margin-top: 2px; }
-.opcion-ruta__indice { text-align: right; }
+/* Respirabilidad de cada opción: número + barrita + leyenda, siempre juntos */
+.opcion-ruta__indice { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; min-width: 76px; }
 .opcion-ruta__indice .numero { font-size: 26px; }
 .opcion-ruta__indice .numero small { font-size: 12px; }
-.opcion-ruta__indice span { display: block; font-size: 11px; color: var(--texto-3); margin-top: 2px; }
+.opcion-ruta__barra { display: block; width: 100%; height: 4px; border-radius: 2px; background: var(--pista); overflow: hidden; }
+.opcion-ruta__barra i { display: block; height: 100%; border-radius: 2px; background: var(--acento); }
+.opcion-ruta__leyenda { font-size: 11px; font-weight: 500; color: var(--texto-2); letter-spacing: .02em; }
+.opcion-ruta__titulo .insignia--chica { display: inline-block; margin-left: 6px; padding: 2px 8px; font-size: 10px; vertical-align: 2px; }
 .opcion-ruta[aria-checked="true"] { background: var(--acento-suave); border-color: var(--acento); }
 .opcion-ruta[aria-checked="true"] .opcion-ruta__numero { background: var(--acento); color: var(--acento-texto); }
 .etiqueta-polen { display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; font-size: 12px; font-weight: 600; }
@@ -506,3 +510,41 @@ input, textarea, select { font: inherit; font-size: 16px; color: var(--texto-1);
 .marca { font-size: 34px; font-weight: 600; letter-spacing: .22em; margin-right: -.22em; animation: aparecer .8s .7s both; }
 .lema { font-size: 12px; font-weight: 500; letter-spacing: .24em; color: var(--texto-2); animation: aparecer .8s 1s both; }
 .pantalla--marca .contenido { z-index: 1; }
+
+/* ---------- 20. CELEBRACIONES (celebracion.js) ----------
+   Terminar recorrido = un logro: luz que florece desde el botón, anillos como respiraciones, aire que sube.
+   Guardar recorrido = satisfacción instantánea: rebote, un anillo y una chispa corta. */
+.celebracion { position: absolute; inset: 0; z-index: 50; pointer-events: none; overflow: hidden; }
+.celebracion__destello { position: absolute; left: var(--x); top: var(--y); width: 960px; height: 960px; margin: -480px 0 0 -480px; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255,255,255,.95), rgba(222,242,200,.8) 32%, rgba(150,196,128,.4) 58%, rgba(111,163,90,0) 76%);
+  transform: scale(0); opacity: 0; animation: florecer 3.2s var(--curva) forwards; }
+@keyframes florecer { 0% { transform: scale(0); opacity: 0; } 16% { opacity: 1; } 42% { transform: scale(1.05); opacity: .92; } 100% { transform: scale(1.6); opacity: 0; } }
+.celebracion__anillo { position: absolute; left: var(--x); top: var(--y); width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%;
+  border: 2px solid var(--acento-vivo); opacity: 0; animation: anillo 1.9s cubic-bezier(.2,.7,.3,1) forwards; }
+.celebracion__anillo:nth-child(3) { animation-delay: .28s; }
+.celebracion__anillo:nth-child(4) { animation-delay: .56s; }
+@keyframes anillo { 0% { transform: scale(.3); opacity: .9; } 100% { transform: scale(6); opacity: 0; } }
+.chispa { position: absolute; left: var(--x); top: var(--y); width: var(--s); height: var(--s); margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2); border-radius: 50%;
+  opacity: 0; animation: chispa var(--t) var(--d) cubic-bezier(.15,.6,.3,1) forwards; }
+.chispa--0 { background: #fff; box-shadow: 0 0 10px rgba(255,255,255,.9); }
+.chispa--1 { background: var(--acento-vivo); box-shadow: 0 0 10px var(--brillo); }
+.chispa--2 { background: #C8F169; box-shadow: 0 0 12px rgba(200,241,105,.8); }
+@keyframes chispa { 0% { transform: translate(0, 0) scale(.4); opacity: 0; } 12% { opacity: 1; } 70% { opacity: .9; } 100% { transform: translate(var(--dx), var(--dy)) scale(1); opacity: 0; } }
+
+/* Guardado: más chico y más corto */
+.celebracion--guardado .celebracion__anillo { width: 72px; height: 72px; margin: -36px 0 0 -36px; border-color: var(--acento); animation: anillo-chico .7s cubic-bezier(.2,.7,.3,1) forwards; }
+@keyframes anillo-chico { 0% { transform: scale(.6); opacity: .8; } 100% { transform: scale(3.2); opacity: 0; } }
+.celebracion--simple .celebracion__anillo { display: none; }
+
+/* Los botones mientras celebran (deshabilitados, pero sin perder el color) */
+.boton--logro:disabled, .boton--guardado:disabled { background: var(--acento); color: var(--acento-texto); }
+.boton--logro { position: relative; z-index: 51; animation: logro-boton 1.3s var(--curva); }
+@keyframes logro-boton {
+  0% { transform: scale(1); }
+  12% { transform: scale(.94); }
+  40% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(111,163,90,.3), 0 0 44px 12px rgba(200,241,105,.55); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(111,163,90,0); } }
+.boton--logro .icono, .boton--guardado .icono { animation: icono-pop .5s .12s var(--curva) both; }
+@keyframes icono-pop { from { transform: scale(0) rotate(-35deg); } to { transform: none; } }
+.boton--guardado { animation: guardado-boton .45s var(--curva); }
+@keyframes guardado-boton { 0% { transform: scale(1); } 30% { transform: scale(.93); } 65% { transform: scale(1.04); } 100% { transform: scale(1); } }
