@@ -445,6 +445,30 @@ input, textarea, select { font: inherit; font-size: 16px; color: var(--texto-1);
 .ia p { color: var(--texto-1); font-size: 15px; line-height: 1.5; margin: 0; }
 .ia p.nota { margin-top: var(--e8); font-size: 12px; color: var(--texto-3); }
 
+/* Campo para escribirle a la IA (búsqueda en texto libre y chat) */
+.pedido { display: flex; align-items: flex-end; gap: var(--e8); }
+.pedido textarea { flex: 1; min-width: 0; min-height: 44px; max-height: 120px; padding: 10px 0; border: 0; background: none; outline: none; resize: none; line-height: 1.4; field-sizing: content; }
+.pedido__boton { flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--acento); color: var(--acento-texto); transition: opacity .2s, transform .15s; }
+.pedido__boton:active { transform: scale(.94); }
+.pedido__boton:disabled { opacity: .4; }
+.pedido-ia { display: flex; flex-direction: column; gap: var(--e4); }
+.pedido-ia .ia__etiqueta { margin-bottom: 0; }
+.pedido-ia .nota { margin-top: var(--e4); color: var(--texto-2); }
+.pedido--chat { padding: 4px 4px 4px var(--e16); border-radius: var(--radio-m); background: var(--fondo-elevado); border: 1px solid var(--vidrio-borde); }
+.pedido--chat:focus-within { border-color: var(--acento-borde); }
+
+/* Chat "Preguntale a RESPIRA" */
+.chat .chips .chip { min-height: 36px; font-size: 13px; }
+.chat__mensajes { display: flex; flex-direction: column; gap: var(--e8); }
+.chat__mensajes:empty { display: none; }
+.chat__mensaje { max-width: 88%; padding: var(--e12) var(--e16); border-radius: 18px; font-size: 15px; line-height: 1.45; animation: aparecer .25s var(--curva); }
+.chat__mensaje p { margin: 0; }
+.chat__mensaje--yo { align-self: flex-end; background: var(--acento); color: var(--acento-texto); border-bottom-right-radius: 6px; }
+.chat__mensaje--ia { align-self: flex-start; background: var(--acento-suave); border: 1px solid var(--acento-borde); border-bottom-left-radius: 6px; }
+.chat__mensaje--ia .ia__etiqueta { margin-bottom: var(--e4); }
+.chat__mensaje--cargando p { color: var(--texto-3); }
+.chat__mensaje--error { background: rgba(225,120,100,.13); border-color: rgba(185,67,47,.3); }
+
 /* ---------- 18. COMPLETADO, EXPERIENCIA, COMENTARIO, GUARDADO ---------- */
 .respirabilidad { display: flex; align-items: center; gap: var(--e16); padding: var(--e16) var(--e20); border-radius: var(--radio-tarjeta); }
 .respirabilidad > div { flex: 1; display: flex; flex-direction: column; gap: var(--e8); }

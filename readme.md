@@ -118,7 +118,7 @@ Las descargas de OpenStreetMap devuelven el estado actual de la base, que cambia
 | Recorridos | Red peatonal con índice por tramo (`app/datos/red.js`) + capas de polen y agua (`app/datos/capas.js`) + algoritmo de Dijkstra (`app/red.js`) | Armar tres recorridos según las condiciones elegidas, evitando el polen de las especies a las que el runner es alérgico según el viento y la época |
 | Buscador | Datasets (`app/datos/lugares.js`), esquinas de la red y geocodificador de OpenStreetMap (Photon / Nominatim) | Partida y llegada en cualquier lugar de CABA |
 | Clima | API de pronóstico de Open-Meteo (`app/clima.js`) | Clima hora por hora y viento a favor o en contra por tramo |
-| IA | Groq (modelos gpt-oss) a través de una función de Vercel (`app/api/ia.js` + `app/ia.js`) | Interpretar la búsqueda en texto libre y explicar y recomendar los recorridos calculados |
+| IA | Groq (modelos gpt-oss) a través de una función de Vercel (`app/api/ia.js` + `app/ia.js`) | Completar la búsqueda desde texto libre, explicar y recomendar los recorridos calculados y responder preguntas sobre el recorrido |
 | Publicación | Vercel, con `app/` como carpeta raíz | Sitio público y función de la IA con la clave guardada en el servidor |
 | Datos | Python 3 con pandas, shapely y pyshp (`codigo/`) | Filtrar los datasets y calcular el índice por tramo |
 | Datos satelitales | Google Earth Engine (`codigo/gee_*.js`) | NO2 de Sentinel-5P y meteorología ERA5-Land |
@@ -151,17 +151,19 @@ Todo está anotado en `app/config.js`. Plantilla de variables: `.env.example` (e
 | Groq | IA (modelos gpt-oss) | **Sí:** `GROQ_API_KEY` | Vercel → Settings → Environment Variables (nunca en `app/`, salvo `app/api/`) |
 
 ### Dónde entra la IA en el código
-Buscar `[API IA]` en `app/`. Las marcadas como **PENDIENTE** necesitan una tarea nueva en `app/api/ia.js` (o una pantalla que use una que ya existe).
+Buscar `[API IA]` en `app/`. Los prompts están en `app/api/ia.js` y documentados en `prompts/prompts_v4.md`. La IA siempre interpreta datos que ya calculó la app (dato duro) y se muestra con el estilo de "inferencia".
 
 | Dónde | Qué hace | Estado |
 |---|---|---|
-| `app/app.js` → `calcularRecorridos` | Título, explicación y recomendado de los 3 recorridos (tarea `recorridos`) | Funciona (si está la clave en Vercel) |
-| `app/app.js` → `dibujarDetalle` | Chat "Preguntale a RESPIRA" sobre el recorrido (tarea `chat`, ya existe en el servidor) | PENDIENTE: falta el campo en la pantalla |
-| `app/app.js` → arranque | Búsqueda en texto libre → partida, km, horario y condiciones (tarea `busqueda`, ya existe) | PENDIENTE: falta el campo en "¿Qué querés hacer hoy?" |
-| `app/app.js` → micrófono | Dictado con Whisper para navegadores sin dictado | PENDIENTE: tarea nueva `transcribir` |
-| `app/app.js` → `guardar-corrida` | Aprender de la experiencia (sensación, ambiente, comentario) y sugerir condiciones | PENDIENTE: tarea nueva `experiencia` |
-| `app/ia.js` | Cliente: todas las llamadas pasan por acá hacia `/api/ia` | Funciona |
-| `app/api/ia.js` | Función del servidor que agrega la clave y los prompts | Funciona |
+| "Definí tu recorrido" → "Contalo con tus palabras" | Texto libre → partida, llegada, km, horario y condiciones (tarea `busqueda`). La app busca los lugares y completa el formulario; el runner revisa. | Funciona |
+| "Tus recorridos ideales" y detalle | Título, explicación y recomendado de los 3 recorridos (tarea `recorridos`). Si una preferencia falló antes, el recomendado lo fija el algoritmo. | Funciona |
+| Detalle → "Preguntale a RESPIRA" | Chat sobre el recorrido elegido, comparando con los otros dos (tarea `chat`) | Funciona |
+| "Tu experiencia" | Lo que el runner responde ajusta los pesos del algoritmo y se manda a la IA como `aprendizaje` (sin llamada propia) | Funciona |
+| Comentario → tarea `experiencia` | Detectar quejas fuera de las preferencias ("había mucha gente") | Fuera de alcance (ver `decisiones.md`) |
+| Micrófono → tarea `transcribir` | Dictado con Whisper para navegadores sin dictado | Fuera de alcance: se usa el dictado del navegador |
+| `app/ia.js` / `app/api/ia.js` | Cliente y función del servidor (clave, prompts, límites y revisión de lo que devuelve la IA) | Funciona |
+
+Si la IA no responde (sin clave, sin conexión o demasiadas consultas), la app sigue andando: los recorridos muestran el resumen automático, la búsqueda avisa que se complete a mano y el chat muestra el error.
 
 ## Estructura del repositorio
 | Carpeta / archivo | Contenido |

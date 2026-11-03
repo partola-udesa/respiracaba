@@ -9,6 +9,16 @@ Qué probamos, qué descartamos y por qué. La entrada más nueva va arriba.
 - **Alternativa descartada:** …
 -->
 
+## 2026-11-03 — Cierre de la IA: búsqueda en texto libre, chat y aprendizaje
+- **Qué:** la IA queda en cuatro lugares: completar el formulario desde texto libre (`busqueda`), interpretar los 3 recorridos (`recorridos`), el chat "Preguntale a RESPIRA" en el detalle (`chat`) y el aprendizaje de "Tu experiencia", que no llama a la IA pero le pasa el historial. Prompts en `prompts/prompts_v4.md`.
+- **Qué (modelos):** Groq dio de baja Llama 3.x el 16/8/2026; se pasa a `openai/gpt-oss-120b` (recorridos y chat, razonamiento medio) y `openai/gpt-oss-20b` (búsqueda, razonamiento bajo).
+- **Qué (números):** la IA leía "ruido 78" como mucho ruido y "silencio 43" como 43 dB. Los puntajes ahora viajan como `silencio`, `poco_transito` y `aire_limpio`, y los prompts aclaran la dirección, que un puntaje no lleva unidad y que no se califican con adjetivos absolutos.
+- **Qué (experiencia):** sale "¿Cómo describirías el ambiente?". Con "Sí", las preferencias quedan confirmadas; con "No", el runner marca cuáles no se cumplieron. Eso cambia el peso de cada preferencia en `red.js` (promedio ponderado) y se le pasa a la IA.
+- **Por qué el recomendado lo fija el algoritmo cuando algo falló:** en las pruebas la IA seguía recomendando el recorrido más verde aunque el runner había dicho dos veces que el ruido no se cumplió. El algoritmo ya ordena con los pesos aprendidos; la IA solo escribe los textos.
+- **Por qué la búsqueda no avanza sola:** la IA puede entender mal un lugar. La app busca cada lugar en los datasets y OpenStreetMap, completa el formulario y el runner revisa antes de tocar "Continuar". Si un lugar no es claro, abre las sugerencias para elegir.
+- **Fuera de alcance:** (1) leer el comentario con una tarea `experiencia` para detectar quejas nuevas: el aprendizaje ya sale de respuestas cerradas, más confiables que interpretar texto; (2) dictado con Whisper: el dictado del navegador ya funciona en Chrome y Safari.
+- **Mapa:** CARTO empezó a pedir clave ("API KEY REQUIRED"); el mapa base pasa a Esri Light Gray Canvas, sin clave y con atribución.
+
 ## 2026-11-02 — Sistema gráfico v6 "Estilo oscuro", perfil completo, alergias con viento y época, cerca del agua
 - **Qué (diseño):** todas las pantallas de la página "prototipo funcional" pasan al sistema de "RESPIRA · Estilo oscuro": fondo verde casi negro, un solo acento (`#C8F169`) para la ruta y lo importante, superficies de vidrio, Figtree con números grandes en peso 300. Variables en la sección 1 de `app/estilos.css`. Animaciones: la ruta se "dibuja" al aparecer, brillo bajo la ruta elegida, punto de partida que late, hojas que suben, logo que se traza en el splash, check animado al guardar.
 - **Qué (perfil):** antes de los datos físicos hay una pantalla con **foto** (se achica a 256 px y queda en el teléfono) y **nombre y apellido**. En "Tu perfil corredor" la balanza del peso es más chica (una fila baja) y las alergias quedan siempre a la vista como chips (no en un desplegable). **"Guardar perfil" se habilita recién al llegar al final del scroll**; mientras tanto hay una pista "Deslizá para completar", una barrita de progreso arriba y, si se toca el botón antes, la pantalla baja hasta las alergias y las resalta.

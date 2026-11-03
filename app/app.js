@@ -4,7 +4,7 @@
    pero con memoria y lógica). Está ordenado como el recorrido del usuario.
 
    Dónde entra la IA: buscá "[API IA]" en este archivo. Las que dicen
-   PENDIENTE son lugares donde hace falta sumar una llamada nueva a app/api/ia.js.
+   FUERA DE ALCANCE son ideas que se decidió no hacer por ahora (ver decisiones.md).
    ===================================================================== */
 
 /* ---------- 1. ESTADO: la memoria de la app ----------
@@ -323,7 +323,11 @@ function autocompletar(nombre) {
   lista.addEventListener('mousedown', e => { const li = e.target.closest('li[data-i]'); if (li) { e.preventDefault(); elegir(opciones[+li.dataset.i]); } });
   input.addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== input) { lista.hidden = true; input.setAttribute('aria-expanded', 'false'); } }, 150));
   borrar.addEventListener('click', () => { input.value = ''; estado.busqueda[nombre] = null; borrar.hidden = true; input.focus(); buscar(); });
-  return { poner: lugar => { input.value = lugar ? lugar.nombre : ''; borrar.hidden = !lugar; } };
+  return {
+    poner(lugar) { input.value = lugar ? lugar.nombre : ''; estado.busqueda[nombre] = lugar || null; borrar.hidden = !lugar; lista.hidden = true; limpiarError(); },
+    // Escribe el texto y abre las sugerencias, para que el runner elija (cuando no hay un lugar claro)
+    sugerir(texto) { input.value = texto; estado.busqueda[nombre] = null; borrar.hidden = !texto; input.focus(); buscar(); }
+  };
 }
 const campoPartida = autocompletar('partida');
 const campoLlegada = autocompletar('llegada');
@@ -367,6 +371,70 @@ $('#continuar-definir').addEventListener('click', () => {
   b.fecha = $('#fecha').value; b.hora = $('#hora').value;
   irA('condiciones');
 });
+
+/* 9b. Búsqueda en texto libre: "8 km desde Plaza Italia mañana a las 7, con poco ruido".
+   [API IA] La IA (tarea "busqueda") devuelve partida, llegada, km, horario y prioridades; la app los busca en
+   los datasets / OpenStreetMap y completa el formulario. El runner revisa y toca "Continuar": la IA no decide sola. */
+const PRIORIDAD_A_CONDICION = { aire: 'aire', verde: 'vegetacion', arbolado: 'vegetacion', ruido: 'ruido', transito: 'transito', sombra: 'sombra', agua: 'agua' };
+
+// Del texto que entendió la IA a un lugar con coordenadas: esquina → datasets → dirección. Si no hay uno claro, null.
+async function lugarDesdeTexto(texto) {
+  const esq = await RespiraBuscador.esquina(texto).catch(() => null);
+  if (esq) return esq;
+  await RespiraBuscador.cargarLugares();
+  const local = RespiraBuscador.local(texto, 1)[0];
+  if (local) return local;
+  const dirs = await RespiraBuscador.direcciones(texto).catch(() => []);
+  return dirs[0] || null;
+}
+
+$('#pedido-ia').addEventListener('submit', async e => {
+  e.preventDefault();
+  const texto = $('#texto-pedido').value.trim(), aviso = $('#estado-pedido'), boton = $('#enviar-pedido');
+  if (!texto) { $('#texto-pedido').focus(); return; }
+  aviso.hidden = false; aviso.textContent = 'Leyendo tu pedido…'; boton.disabled = true;
+  try {
+    const f = await RespiraIA.interpretarBusqueda(texto);
+    const hecho = [], falta = [];
+    const circular = !!f.partida && (!f.llegada || f.llegada.toLowerCase() === f.partida.toLowerCase()) && !!f.km;
+    if (circular !== estado.busqueda.circular) $('#circular').click();
+    if (circular) hecho.push('vuelta circular');
+
+    if (f.partida) {
+      aviso.textContent = 'Buscando los lugares en el mapa…';
+      const lugar = await lugarDesdeTexto(f.partida);
+      if (lugar) { campoPartida.poner(lugar); hecho.push('salida: ' + lugar.nombre); }
+      else { campoPartida.sugerir(f.partida); falta.push('elegí la salida en la lista'); }
+    } else falta.push('contanos desde dónde salís');
+    if (!circular && f.llegada) {
+      const lugar = await lugarDesdeTexto(f.llegada);
+      if (lugar) { campoLlegada.poner(lugar); hecho.push('llegada: ' + lugar.nombre); }
+      else { campoLlegada.sugerir(f.llegada); falta.push('elegí la llegada en la lista'); }
+    } else if (!circular) falta.push('contanos dónde terminás');
+
+    if (f.km) { $('#distancia').value = conComa(f.km); $('#distancia').dispatchEvent(new Event('input')); hecho.push(conComa(f.km) + ' km'); }
+    if (f.horario) {
+      const [dia, hora] = f.horario.split('T');
+      if (!$('#programar').checked) { $('#programar').checked = true; $('#programar').dispatchEvent(new Event('change')); }
+      $('#fecha').value = dia; $('#hora').value = hora;
+      hecho.push(new Date(`${f.horario}:00-03:00`).toLocaleString('es-AR', { weekday: 'long', hour: '2-digit', minute: '2-digit' }));
+    }
+    const condiciones = [...new Set((f.prioridades || []).map(x => PRIORIDAD_A_CONDICION[x]).filter(Boolean))];
+    if (condiciones.length) {
+      estado.condiciones = new Set(condiciones); dibujarCondiciones();
+      hecho.push(CONDICIONES.filter(c => estado.condiciones.has(c.id)).map(c => c.titulo.toLowerCase()).join(', '));
+    }
+    aviso.textContent = hecho.length
+      ? `Completamos: ${hecho.join(' · ')}.${falta.length ? ' Falta: ' + falta.join(' y ') + '.' : ' Revisá y tocá Continuar.'}`
+      : 'No pudimos sacar datos de tu pedido. Probá con salida, distancia y horario, o completalo abajo.';
+  } catch (err) {
+    aviso.textContent = `${err.message} Podés completarlo abajo.`;
+  } finally {
+    boton.disabled = false;
+  }
+});
+// Enter envía; Shift + Enter hace un salto de línea
+$('#texto-pedido').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#pedido-ia').requestSubmit(); } });
 
 // Fecha y hora de la salida (para el clima y la época de polen)
 function fechaSalida() {
@@ -521,21 +589,25 @@ function explicacionLocal(r, i, opciones) {
   return partes.join(' ');
 }
 
-async function interpretarConIA(opciones, factores) {
+const recorridoParaIA = r => ({ numero: r.numero, titulo: r.titulo, km: r.km, minutos: r.minutos, indice_respirabilidad: r.indice,
+  cumplimiento_preferencias: r.preferencias, puntajes: nombresFavorables(r.factores),
+  datos: { arboles_cada_100m: r.datos.arboles_100m, ruido_dia_db: r.datos.db, no2_umol_m2: r.datos.no2, metros_al_agua: r.datos.agua_m },
+  polen: r.polen ? { riesgo: r.polen.riesgo, nivel: r.polen.nivel, especies: r.polen.especies.map(e => ({ especie: ALERGIAS[e.especie].nombre, epoca: e.estacion, arboles_al_lado: e.arboles_al_lado })) } : null,
+  calles: r.calles });
+function climaParaIA() {
   const h = estado.clima;
-  const clima = h ? { temperatura: h.temperature_2m, sensacion: h.apparent_temperature, viento_kmh: h.wind_speed_10m, viento_desde_grados: h.wind_direction_10m,
+  return h ? { temperatura: h.temperature_2m, sensacion: h.apparent_temperature, viento_kmh: h.wind_speed_10m, viento_desde_grados: h.wind_direction_10m,
     lluvia_prob: h.precipitation_probability, uv: h.uv_index, fuente: 'Open-Meteo' } : null;
+}
+async function interpretarConIA(opciones, factores) {
+  const clima = climaParaIA();
   const nombres = Object.fromEntries(CONDICIONES.map(c => [c.factor, c.titulo]));
   return RespiraIA.interpretarRecorridos({
     preferencias: factores.map(f => nombres[f]),
     horario: estado.busqueda.programar ? `${estado.busqueda.fecha} ${estado.busqueda.hora}` : 'ahora',
     alergias: alergiasActivas().map(a => ALERGIAS[a].nombre),
     nivel: estado.perfil.nivel, circular: estado.busqueda.circular, clima,
-    recorridos: opciones.map(r => ({ numero: r.numero, km: r.km, minutos: r.minutos, indice_respirabilidad: r.indice,
-      cumplimiento_preferencias: r.preferencias, puntajes: nombresFavorables(r.factores),
-      datos: { arboles_cada_100m: r.datos.arboles_100m, ruido_dia_db: r.datos.db, no2_umol_m2: r.datos.no2, metros_al_agua: r.datos.agua_m },
-      polen: r.polen ? { riesgo: r.polen.riesgo, nivel: r.polen.nivel, especies: r.polen.especies.map(e => ({ especie: ALERGIAS[e.especie].nombre, epoca: e.estacion, arboles_al_lado: e.arboles_al_lado })) } : null,
-      calles: r.calles })),
+    recorridos: opciones.map(recorridoParaIA),
     aprendizaje: resumenAprendizaje(factores, alergiasActivas().length > 0)
   });
 }
@@ -611,7 +683,7 @@ const hojaDetalle = (() => {
     alternar(abierta ? !(dy > 80 || (rapido && dy > 0)) : (dy < -80 || (rapido && dy < 0)));
   }
   agarre.addEventListener('pointerdown', empezar);
-  contenido.addEventListener('pointerdown', e => { if (!e.target.closest('button, a, input')) empezar(e); });
+  contenido.addEventListener('pointerdown', e => { if (!e.target.closest('button, a, input, textarea')) empezar(e); });
   window.addEventListener('pointermove', mover);
   window.addEventListener('pointerup', soltar);
   agarre.addEventListener('click', () => { if (Date.now() - ultimoArrastre > 350) alternar(); });   // un toque abre/cierra (no después de arrastrar)
@@ -703,9 +775,65 @@ function dibujarDetalle() {
 
   // IA (inferencia: siempre con su estilo propio)
   $('#detalle-ia').innerHTML = `<div class="ia__etiqueta">${icono('ia')}Interpretación</div><p>${escapar(r.explicacion)}</p><p class="nota">${r.fuenteTexto}</p>`;
-  // [API IA] PENDIENTE — Chat sobre el recorrido: acá iría un campo "Preguntale a RESPIRA" que use
-  // RespiraIA.nuevoChat().preguntar(texto, { recorrido: r, clima: h }) (tarea "chat" de app/api/ia.js, ya existe en el servidor).
+  prepararChat(r);
 }
+
+/* 12b. Preguntale a RESPIRA: chat sobre el recorrido elegido.
+   [API IA] Tarea "chat" de app/api/ia.js. Recibe como contexto los datos duros de este recorrido y de los otros dos,
+   el clima, las preferencias y lo aprendido de corridas anteriores. Cada recorrido tiene su propia conversación. */
+const PREGUNTAS_SUGERIDAS = ['¿Por qué me conviene este recorrido?', '¿En qué es mejor que los otros?', '¿Es buena hora para salir?'];
+let chat = null, chatDe = null, chatEsperando = false;
+function prepararChat(r) {
+  if (chatDe === r) return;               // mismo recorrido: se mantiene la conversación
+  chat = RespiraIA.nuevoChat(); chatDe = r;
+  $('#chat-mensajes').innerHTML = '';
+  $('#chat-sugerencias').hidden = false;
+  $('#chat-sugerencias').innerHTML = PREGUNTAS_SUGERIDAS.map(p => `<button class="chip" type="button" data-pregunta="${escapar(p)}">${escapar(p)}</button>`).join('');
+}
+function contextoChat() {
+  const r = estado.recorridos[estado.elegido], factores = factoresElegidos(), b = estado.busqueda;
+  return {
+    recorrido_elegido: recorridoParaIA(r),
+    otros_recorridos: estado.recorridos.filter(o => o !== r).map(recorridoParaIA),
+    preferencias: CONDICIONES.filter(c => estado.condiciones.has(c.id)).map(c => c.titulo),
+    salida: b.circular ? `vuelta desde ${b.partida.nombre}` : `${b.partida.nombre} → ${b.llegada.nombre}`,
+    horario: fechaSalida().toLocaleString('es-AR', { weekday: 'long', hour: '2-digit', minute: '2-digit' }),
+    clima: climaParaIA(), alergias: alergiasActivas().map(a => ALERGIAS[a].nombre), nivel: estado.perfil.nivel,
+    aprendizaje: resumenAprendizaje(factores, alergiasActivas().length > 0)
+  };
+}
+function burbuja(quien, texto) {
+  const el = document.createElement('div');
+  el.className = `chat__mensaje chat__mensaje--${quien}`;
+  el.innerHTML = quien === 'ia' ? `<div class="ia__etiqueta">${icono('ia')}RESPIRA</div><p>${escapar(texto)}</p>` : `<p>${escapar(texto)}</p>`;
+  $('#chat-mensajes').appendChild(el);
+  // Solo se desplaza el contenido de la hoja (scrollIntoView también movía la pantalla entera)
+  const contenido = $('#contenido-detalle');
+  contenido.scrollTo({ top: contenido.scrollHeight, behavior: 'smooth' });
+  return el;
+}
+async function preguntarAlChat(texto) {
+  texto = texto.trim();
+  if (!texto || chatEsperando) return;
+  chatEsperando = true; $('#chat-enviar').disabled = true; $('#chat-sugerencias').hidden = true;
+  if (!hojaDetalle.abierta) hojaDetalle.alternar(true);
+  burbuja('yo', texto);
+  const pensando = burbuja('ia', 'Pensando…'); pensando.classList.add('chat__mensaje--cargando');
+  const yo = chat;
+  try {
+    const respuesta = await chat.preguntar(texto, contextoChat());
+    if (yo !== chat) return pensando.remove();          // cambió de recorrido mientras esperaba
+    pensando.classList.remove('chat__mensaje--cargando'); pensando.querySelector('p').textContent = respuesta;
+  } catch (err) {
+    pensando.classList.remove('chat__mensaje--cargando'); pensando.classList.add('chat__mensaje--error');
+    pensando.querySelector('p').textContent = err.message;
+  } finally {
+    chatEsperando = false; $('#chat-enviar').disabled = false;
+  }
+}
+$('#chat-form').addEventListener('submit', e => { e.preventDefault(); const t = $('#chat-texto'); preguntarAlChat(t.value); t.value = ''; });
+$('#chat-texto').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#chat-form').requestSubmit(); } });
+$('#chat-sugerencias').addEventListener('click', e => { const b = e.target.closest('[data-pregunta]'); if (b) preguntarAlChat(b.dataset.pregunta); });
 
 $('#empezar').addEventListener('click', () => empezarCorrida(estado.recorridos[estado.elegido]));
 
@@ -852,8 +980,8 @@ $('#evaluacion-lista').addEventListener('click', e => {
 
 /* ---------- 15. COMENTARIO con dictado por voz ----------
    Usa el reconocimiento de voz del navegador (Chrome y Safari).
-   [API IA] PENDIENTE — Dictado con Whisper: grabar el audio (MediaRecorder) y mandarlo a una tarea nueva
-   "transcribir" en app/api/ia.js (Groq tiene whisper-large-v3). Sirve para los navegadores sin dictado. */
+   [API IA] FUERA DE ALCANCE (decisiones.md, 3/11/2026) — Dictado con Whisper para navegadores sin dictado:
+   grabar el audio (MediaRecorder) y mandarlo a una tarea "transcribir" (Groq tiene whisper-large-v3). */
 const Reconocimiento = window.SpeechRecognition || window.webkitSpeechRecognition;
 let dictado = null;
 $('#microfono').addEventListener('click', () => {
@@ -883,8 +1011,8 @@ $('#guardar-corrida').addEventListener('click', () => {
     localStorage.setItem('respira-corridas', JSON.stringify(corridas.slice(-30)));
   } catch (e) { /* modo privado */ }
   aprender(registro.evaluacion);
-  // [API IA] PENDIENTE — Leer el comentario: mandarlo a una tarea nueva "experiencia" en app/api/ia.js que detecte
-  // quejas que no son de las preferencias elegidas (por ejemplo "había mucha gente") y sugiera condiciones nuevas.
+  // [API IA] FUERA DE ALCANCE (decisiones.md, 3/11/2026) — Leer el comentario con una tarea "experiencia" que detecte
+  // quejas que no son de las preferencias elegidas (por ejemplo "había mucha gente"). El aprendizaje usa las respuestas de arriba.
   irA('guardado');
 });
 $('#volver-inicio').addEventListener('click', irAlInicio);
@@ -896,9 +1024,6 @@ if (estado.perfil.objetivo) $('#objetivo').value = estado.perfil.objetivo;
 $('#nombre').value = estado.perfil.nombre; $('#apellido').value = estado.perfil.apellido;
 dibujarFoto(); dibujarAvatares(); dibujarSaludo(); dibujarCondiciones();
 RespiraRed.cargar().catch(() => {});   // la red se empieza a bajar mientras el runner completa los datos
-// [API IA] PENDIENTE — Búsqueda en texto libre ("8 km desde Plaza Italia mañana a las 7, con poco ruido"):
-// RespiraIA.interpretarBusqueda(texto) ya existe (tarea "busqueda" en app/api/ia.js); falta el campo en "¿Qué querés hacer hoy?"
-// que complete partida, llegada, km, horario y condiciones con lo que devuelve.
 
 let splashTerminado = false;
 function salirDelSplash() {

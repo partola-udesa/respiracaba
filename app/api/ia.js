@@ -1,7 +1,7 @@
 /* RESPIRA — Función de Vercel que habla con el LLM (Groq).
  *
  * La clave de Groq nunca llega al navegador: la página llama a /api/ia y esta función le agrega la clave
- * y el prompt del sistema. Los prompts están acá y versionados en prompts/prompts_v3.md.
+ * y el prompt del sistema. Los prompts están acá y versionados en prompts/prompts_v4.md.
  * [API IA] Este es el único lugar que conoce la clave. Para sumar una función de IA nueva (ver "Dónde entra la IA" en el readme),
  * se agrega una "tarea" acá y una función en app/ia.js.
  *
@@ -22,7 +22,7 @@ const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const MODELO_CHAT = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
 const MODELO_RAPIDO = process.env.GROQ_MODEL_RAPIDO || 'openai/gpt-oss-20b';
 // Los modelos gpt-oss razonan antes de responder y ese razonamiento cuenta dentro de max_tokens:
-// por eso los límites son más altos y se pide razonamiento corto (más rápido y más barato).
+// por eso los límites son más altos. Razonamiento medio para recorridos y chat (leen bien los números), bajo para la búsqueda.
 // Los Llama 3.x que se usaban antes los dio de baja Groq el 16/8/2026.
 const RAZONA = m => m.startsWith('openai/gpt-oss');
 
@@ -34,6 +34,7 @@ const PRIORIDADES = ['aire', 'verde', 'arbolado', 'ruido', 'transito', 'sombra',
 
 const REGLAS_CHAT = `Sos el asistente de RESPIRA, una app para runners de la Ciudad de Buenos Aires que propone recorridos según un índice de respirabilidad calculado calle por calle (arbolado, espacios verdes, NO2 satelital, ruido y presión vial) y el pronóstico del clima.
 Escribí en español rioplatense, tuteando, en frases cortas y claras para alguien sin conocimientos técnicos. No uses markdown, ni listas, ni títulos. Respondé en 120 palabras como máximo.
+El CONTEXTO trae el recorrido que el runner está mirando ("recorrido_elegido"), los otros dos para comparar, el horario, el clima de la hora de salida (Open-Meteo), sus preferencias y, si hay, lo que respondió después de corridas anteriores ("aprendizaje"). Los puntajes de 0 a 100 siempre son "qué tan bien está": "silencio" alto es poco ruido, "poco_transito" alto es poco tránsito, "aire_limpio" alto es mejor aire. Los datos duros van al revés: más dB es más ruido y más NO2 es peor aire. Preferí citar el dato duro y describí los puntajes comparando entre recorridos, sin adjetivos absolutos. Un puntaje nunca lleva unidad: "silencio 43" es un puntaje, no 43 dB; los dB salen solo de "ruido_dia_db". No escribas los nombres internos de los datos (como "poco_transito" o "aire_limpio"): usá palabras comunes ("menos tránsito", "aire más limpio"). Si te preguntan algo que no tiene que ver con correr en la Ciudad o con estos recorridos, decí amablemente que solo podés ayudar con eso.
 Usá solo los datos del CONTEXTO. Si mencionás un número, tiene que ser uno de esos datos, y decí de qué fuente viene (por ejemplo "según el Mapa de Ruido 2018"). Si la pregunta no se puede responder con esos datos, decilo.
 Lo que escribís es una inferencia, no un dato duro: no lo presentes como medición. No des consejos médicos ni afirmes que la contaminación causa un efecto en la salud: hablá de coincidencias. La recomendación es una alternativa más; quien decide es el runner.`;
 
@@ -86,13 +87,13 @@ async function chat(res, { mensajes, contexto }) {
     model: MODELO_CHAT,
     messages: [{ role: 'system', content: `${REGLAS_CHAT}\n\nCONTEXTO: ${textoContexto}` }, ...turnos],
     temperature: 0.4,
-    max_tokens: 1200
+    max_tokens: 2500
   });
   return responder(res, 200, { texto: texto.trim() });
 }
 
 const REGLAS_RECORRIDOS = `Sos el asistente de RESPIRA, una app para runners de la Ciudad de Buenos Aires. La app ya calculó tres recorridos sobre la red de calles; cada tramo tiene un puntaje de 0 a 100 por condición (más alto = mejor para correr) que sale de datasets de la Ciudad: vegetación (arbolado lineal y espacios verdes), aire (NO2 satelital Sentinel-5P), ruido (Mapa de ruido 2018), tránsito (vías principales y colectivos), sombra (altura del arbolado), terreno e iluminación (OpenStreetMap), cercanía al agua (río, Riachuelo y lagos de OpenStreetMap).
-Ojo con la dirección de los números: los puntajes por condición siempre son "qué tan bien está", nunca "cuánto hay" (por eso vienen como "silencio", "poco_transito" y "aire_limpio"). Un puntaje de silencio de 78 quiere decir que el recorrido es SILENCIOSO, no ruidoso; un puntaje de tránsito alto quiere decir POCO tránsito; un puntaje de aire alto quiere decir aire más limpio. Nunca escribas "ruido alto (78)" ni "mucho tránsito (70)" a partir de un puntaje: decí "más silencioso", "menos tránsito". En cambio, los datos duros sí miden cantidad: más decibeles (dB) es más ruido y más NO2 es peor aire. Si citás un número, preferí el dato duro (por ejemplo "62 dB según el Mapa de Ruido 2018") antes que el puntaje.
+Ojo con la dirección de los números: los puntajes por condición siempre son "qué tan bien está", nunca "cuánto hay" (por eso vienen como "silencio", "poco_transito" y "aire_limpio"). Un puntaje de silencio de 78 quiere decir que el recorrido es SILENCIOSO, no ruidoso; un puntaje de tránsito alto quiere decir POCO tránsito; un puntaje de aire alto quiere decir aire más limpio. Nunca escribas "ruido alto (78)" ni "mucho tránsito (70)" a partir de un puntaje: decí "más silencioso", "menos tránsito". En cambio, los datos duros sí miden cantidad: más decibeles (dB) es más ruido y más NO2 es peor aire. Si citás un número, preferí el dato duro (por ejemplo "62 dB según el Mapa de Ruido 2018") antes que el puntaje. Un puntaje nunca lleva unidad: "silencio 43" es un puntaje, no 43 dB; los dB salen solo de "ruido_dia_db". No escribas los nombres internos de los datos (como "poco_transito" o "aire_limpio"): usá palabras comunes ("menos tránsito", "aire más limpio").
 Si el runner tiene alergia a plátano, fresno o ligustro, cada recorrido trae "polen": un riesgo de 0 a 100 armado con los árboles de esa especie del arbolado público lineal que hay al lado de la ruta, los que quedan del lado de donde viene el viento según el pronóstico de Open-Meteo y la época del año. No es una medición de polen: decilo así si lo mencionás, y no des consejos médicos.
 Te paso esos números en el CONTEXTO. Tu tarea es interpretarlos para el runner, teniendo en cuenta sus preferencias, el horario y el clima si está.
 Si el CONTEXTO trae "aprendizaje", es lo que el runner respondió después de corridas anteriores: para cada preferencia, cuántas veces dijo que se cumplió, que se cumplió a medias o que no se cumplió. En ese caso la app ya ordenó los recorridos para cuidar lo que falló: el recorrido 1 es el que mejor lo cuida, así que "recomendado" es 1. En cada explicación, para la preferencia que falló, decí cómo le va a ese recorrido comparado con los otros, con el dato duro (por ejemplo "como la última vez te pareció ruidoso, este es el más silencioso de los tres: 57 dB según el Mapa de Ruido 2018"). No uses frases que generen duda como "no garantiza" o "puede ser un punto débil". Nunca califiques un puntaje con adjetivos absolutos ("buen nivel", "alto", "bajo"): describilo solo en comparación con los otros recorridos ("el más silencioso de los tres", "menos verde que el 1").
@@ -107,7 +108,7 @@ async function recorridos(res, { contexto }) {
     model: MODELO_CHAT,
     messages: [{ role: 'system', content: REGLAS_RECORRIDOS }, { role: 'user', content: 'CONTEXTO: ' + texto }],
     temperature: 0.3,
-    max_tokens: 1800,
+    max_tokens: 3000,
     response_format: { type: 'json_object' }
   });
   let j;
@@ -160,7 +161,7 @@ async function groq(cuerpo) {
   const r = await fetch(GROQ_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.GROQ_API_KEY}` },
-    body: JSON.stringify(RAZONA(cuerpo.model) ? { ...cuerpo, reasoning_effort: 'low' } : cuerpo)
+    body: JSON.stringify(RAZONA(cuerpo.model) ? { reasoning_effort: cuerpo.model === MODELO_RAPIDO ? 'low' : 'medium', ...cuerpo } : cuerpo)
   });
   if (!r.ok) {
     const e = new Error(r.status === 429 ? 'Hubo demasiadas consultas seguidas. Probá de nuevo en un rato.'

@@ -233,6 +233,17 @@
       <p class="cuerpo">Elegí las condiciones de tu salida y encontrá la mejor opción para correr en Buenos Aires.</p>
     </div>
 
+    <!-- Búsqueda en texto libre: la IA completa el formulario (tarea "busqueda") -->
+    <form class="ia pedido-ia" id="pedido-ia">
+      <label class="ia__etiqueta" for="texto-pedido"><svg class="icono"><use href="#i-ia"/></svg>Contalo con tus palabras</label>
+      <div class="pedido">
+        <textarea id="texto-pedido" rows="2" placeholder="Ej: 8 km desde Plaza Italia mañana a las 7, con poco ruido"></textarea>
+        <button class="pedido__boton" type="submit" id="enviar-pedido" aria-label="Completar el formulario con IA"><svg class="icono"><use href="#i-derecha"/></svg></button>
+      </div>
+      <p class="nota" id="estado-pedido" aria-live="polite" hidden></p>
+    </form>
+    <div class="subtitulo-linea">O completalo vos</div>
+
     <div class="grupo">
       <label class="sr" for="partida">Partida</label>
       <div class="autocompletar">
@@ -355,6 +366,18 @@
         <div class="seccion" id="seccion-clima" hidden></div>
         <div class="seccion">
           <div class="ia" id="detalle-ia"></div>
+        </div>
+        <!-- Chat sobre el recorrido (tarea "chat") -->
+        <div class="seccion chat">
+          <span class="seccion__titulo">Preguntale a RESPIRA</span>
+          <div class="chips" id="chat-sugerencias"></div>
+          <div class="chat__mensajes" id="chat-mensajes" aria-live="polite"></div>
+          <form class="pedido pedido--chat" id="chat-form">
+            <label class="sr" for="chat-texto">Tu pregunta</label>
+            <textarea id="chat-texto" rows="1" placeholder="Escribí tu pregunta sobre este recorrido"></textarea>
+            <button class="pedido__boton" type="submit" id="chat-enviar" aria-label="Enviar pregunta"><svg class="icono"><use href="#i-derecha"/></svg></button>
+          </form>
+          <p class="nota">Las respuestas son una interpretación de la IA con los datos de este recorrido, no una medición.</p>
         </div>
       </div>
     </div>
