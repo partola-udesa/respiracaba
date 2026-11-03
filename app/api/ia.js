@@ -22,7 +22,8 @@ const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const MODELO_CHAT = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
 const MODELO_RAPIDO = process.env.GROQ_MODEL_RAPIDO || 'openai/gpt-oss-20b';
 // Los modelos gpt-oss razonan antes de responder y ese razonamiento cuenta dentro de max_tokens:
-// por eso los límites son más altos. Razonamiento medio para recorridos y chat (leen bien los números), bajo para la búsqueda.
+// por eso los límites son más altos que con Llama, y se pide razonamiento bajo. No más: Groq reserva max_tokens dentro del límite
+// de tokens por minuto, y con límites más altos dos consultas seguidas (recorridos + chat) ya daban 429.
 // Los Llama 3.x que se usaban antes los dio de baja Groq el 16/8/2026.
 const RAZONA = m => m.startsWith('openai/gpt-oss');
 
@@ -87,7 +88,7 @@ async function chat(res, { mensajes, contexto }) {
     model: MODELO_CHAT,
     messages: [{ role: 'system', content: `${REGLAS_CHAT}\n\nCONTEXTO: ${textoContexto}` }, ...turnos],
     temperature: 0.4,
-    max_tokens: 2500
+    max_tokens: 1200
   });
   return responder(res, 200, { texto: texto.trim() });
 }
@@ -108,7 +109,7 @@ async function recorridos(res, { contexto }) {
     model: MODELO_CHAT,
     messages: [{ role: 'system', content: REGLAS_RECORRIDOS }, { role: 'user', content: 'CONTEXTO: ' + texto }],
     temperature: 0.3,
-    max_tokens: 3000,
+    max_tokens: 1800,
     response_format: { type: 'json_object' }
   });
   let j;
@@ -157,12 +158,18 @@ function limpiarFiltros(f) {
   };
 }
 
-async function groq(cuerpo) {
+async function groq(cuerpo, reintento = true) {
   const r = await fetch(GROQ_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.GROQ_API_KEY}` },
-    body: JSON.stringify(RAZONA(cuerpo.model) ? { reasoning_effort: cuerpo.model === MODELO_RAPIDO ? 'low' : 'medium', ...cuerpo } : cuerpo)
+    body: JSON.stringify(RAZONA(cuerpo.model) ? { reasoning_effort: 'low', ...cuerpo } : cuerpo)
   });
+  // Límite por minuto de Groq (plan gratis: ~8.000 tokens/min por modelo). Si pide esperar poco, se espera y se reintenta una vez.
+  const espera = Number(r.headers.get('retry-after'));
+  if (r.status === 429 && reintento && espera > 0 && espera <= 8) {
+    await new Promise(ok => setTimeout(ok, espera * 1000));
+    return groq(cuerpo, false);
+  }
   if (!r.ok) {
     const e = new Error(r.status === 429 ? 'Hubo demasiadas consultas seguidas. Probá de nuevo en un rato.'
                                          : 'Groq respondió ' + r.status);

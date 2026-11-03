@@ -11,7 +11,7 @@ Qué probamos, qué descartamos y por qué. La entrada más nueva va arriba.
 
 ## 2026-11-03 — Cierre de la IA: búsqueda en texto libre, chat y aprendizaje
 - **Qué:** la IA queda en cuatro lugares: completar el formulario desde texto libre (`busqueda`), interpretar los 3 recorridos (`recorridos`), el chat "Preguntale a RESPIRA" en el detalle (`chat`) y el aprendizaje de "Tu experiencia", que no llama a la IA pero le pasa el historial. Prompts en `prompts/prompts_v4.md`.
-- **Qué (modelos):** Groq dio de baja Llama 3.x el 16/8/2026; se pasa a `openai/gpt-oss-120b` (recorridos y chat, razonamiento medio) y `openai/gpt-oss-20b` (búsqueda, razonamiento bajo).
+- **Qué (modelos):** Groq dio de baja Llama 3.x el 16/8/2026; se pasa a `openai/gpt-oss-120b` (recorridos y chat) y `openai/gpt-oss-20b` (búsqueda), con razonamiento bajo: con más razonamiento y límites de tokens más altos, dos consultas seguidas superaban el límite por minuto de Groq (error 429).
 - **Qué (números):** la IA leía "ruido 78" como mucho ruido y "silencio 43" como 43 dB. Los puntajes ahora viajan como `silencio`, `poco_transito` y `aire_limpio`, y los prompts aclaran la dirección, que un puntaje no lleva unidad y que no se califican con adjetivos absolutos.
 - **Qué (experiencia):** sale "¿Cómo describirías el ambiente?". Con "Sí", las preferencias quedan confirmadas; con "No", el runner marca cuáles no se cumplieron. Eso cambia el peso de cada preferencia en `red.js` (promedio ponderado) y se le pasa a la IA.
 - **Por qué el recomendado lo fija el algoritmo cuando algo falló:** en las pruebas la IA seguía recomendando el recorrido más verde aunque el runner había dicho dos veces que el ruido no se cumplió. El algoritmo ya ordena con los pesos aprendidos; la IA solo escribe los textos.

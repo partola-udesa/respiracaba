@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-11-03
 **Dónde se usan:** `app/api/ia.js` (función de Vercel). La página los usa a través de `app/ia.js`.
-**Modelos:** Groq, API compatible con OpenAI. Recorridos y chat: `openai/gpt-oss-120b` con razonamiento medio; búsqueda: `openai/gpt-oss-20b` con razonamiento bajo. Se pueden cambiar con `GROQ_MODEL` y `GROQ_MODEL_RAPIDO`. Los Llama 3.x de v3 los dio de baja Groq el 16/8/2026.
+**Modelos:** Groq, API compatible con OpenAI. Recorridos y chat: `openai/gpt-oss-120b`; búsqueda: `openai/gpt-oss-20b`; los dos con razonamiento bajo (Groq reserva `max_tokens` dentro de su límite de ~8.000 tokens por minuto, y con límites más altos dos consultas seguidas daban error 429). Se pueden cambiar con `GROQ_MODEL` y `GROQ_MODEL_RAPIDO`. Los Llama 3.x de v3 los dio de baja Groq el 16/8/2026.
 **Cambios respecto de v3:**
 - Los puntajes se mandan con nombres favorables (`silencio`, `poco_transito`, `aire_limpio`) y los prompts aclaran que un puntaje alto es bueno, que nunca lleva unidad y que dB y NO2 van al revés.
 - `recorridos` recibe `aprendizaje` (lo que el runner respondió después de corridas anteriores). Si una preferencia falló, el recomendado lo fija la app (recorrido 1 del algoritmo) y la IA solo escribe los textos.
@@ -17,8 +17,8 @@ Todas las respuestas de la IA se muestran en bloques de **inferencia**, separada
 ## 1. Chat "Preguntale a RESPIRA" (`tarea: "chat"`)
 
 - **Pantalla:** detalle del recorrido, debajo de la interpretación. Preguntas sugeridas + campo libre. Una conversación por recorrido. Se llama desde `preguntarAlChat` en `app/app.js`.
-- **Contexto:** `recorrido_elegido`, `otros_recorridos`, `preferencias`, `salida`, `horario`, `clima`, `alergias`, `nivel`, `aprendizaje`.
-- **Parámetros:** `temperature` 0,4 · `max_tokens` 2500 (incluye el razonamiento) · hasta 10 turnos de historial.
+- **Contexto:** `recorrido_elegido`, `otros_recorridos` (sin calles), `preferencias`, `salida`, `horario`, `clima`, `alergias`, `nivel`, `aprendizaje`.
+- **Parámetros:** `temperature` 0,4 · `max_tokens` 1200 (incluye el razonamiento) · hasta 10 turnos de historial.
 
 ```
 Sos el asistente de RESPIRA, una app para runners de la Ciudad de Buenos Aires que propone recorridos según un índice de respirabilidad calculado calle por calle (arbolado, espacios verdes, NO2 satelital, ruido y presión vial) y el pronóstico del clima.
@@ -45,7 +45,7 @@ Reglas: "partida" y "llegada" son lugares tal como los dice el pedido (direcció
 
 - **Pantalla:** "Tus recorridos ideales" y el bloque "Interpretación" del detalle. Se llama desde `calcularRecorridos` en `app/app.js`.
 - **Contexto:** preferencias, horario, alergias, nivel, circular, clima, aprendizaje y, por recorrido: km, minutos, índice, cumplimiento de preferencias, puntajes, datos duros, polen y calles.
-- **Parámetros:** `temperature` 0,3 · `max_tokens` 3000 (incluye el razonamiento) · respuesta en JSON. El servidor revisa el JSON antes de mandarlo a la página.
+- **Parámetros:** `temperature` 0,3 · `max_tokens` 1800 (incluye el razonamiento) · respuesta en JSON. El servidor revisa el JSON antes de mandarlo a la página.
 
 ```
 Sos el asistente de RESPIRA, una app para runners de la Ciudad de Buenos Aires. La app ya calculó tres recorridos sobre la red de calles; cada tramo tiene un puntaje de 0 a 100 por condición (más alto = mejor para correr) que sale de datasets de la Ciudad: vegetación (arbolado lineal y espacios verdes), aire (NO2 satelital Sentinel-5P), ruido (Mapa de ruido 2018), tránsito (vías principales y colectivos), sombra (altura del arbolado), terreno e iluminación (OpenStreetMap), cercanía al agua (río, Riachuelo y lagos de OpenStreetMap).

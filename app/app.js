@@ -794,7 +794,7 @@ function contextoChat() {
   const r = estado.recorridos[estado.elegido], factores = factoresElegidos(), b = estado.busqueda;
   return {
     recorrido_elegido: recorridoParaIA(r),
-    otros_recorridos: estado.recorridos.filter(o => o !== r).map(recorridoParaIA),
+    otros_recorridos: estado.recorridos.filter(o => o !== r).map(o => ({ ...recorridoParaIA(o), calles: undefined })),   // sin calles: menos tokens
     preferencias: CONDICIONES.filter(c => estado.condiciones.has(c.id)).map(c => c.titulo),
     salida: b.circular ? `vuelta desde ${b.partida.nombre}` : `${b.partida.nombre} → ${b.llegada.nombre}`,
     horario: fechaSalida().toLocaleString('es-AR', { weekday: 'long', hour: '2-digit', minute: '2-digit' }),
