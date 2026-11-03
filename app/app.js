@@ -527,12 +527,17 @@ async function interpretarConIA(opciones, factores) {
     alergias: alergiasActivas().map(a => ALERGIAS[a].nombre),
     nivel: estado.perfil.nivel, circular: estado.busqueda.circular, clima,
     recorridos: opciones.map(r => ({ numero: r.numero, km: r.km, minutos: r.minutos, indice_respirabilidad: r.indice,
-      cumplimiento_preferencias: r.preferencias, puntajes: r.factores,
+      cumplimiento_preferencias: r.preferencias, puntajes: nombresFavorables(r.factores),
       datos: { arboles_cada_100m: r.datos.arboles_100m, ruido_dia_db: r.datos.db, no2_umol_m2: r.datos.no2, metros_al_agua: r.datos.agua_m },
       polen: r.polen ? { riesgo: r.polen.riesgo, nivel: r.polen.nivel, especies: r.polen.especies.map(e => ({ especie: ALERGIAS[e.especie].nombre, epoca: e.estacion, arboles_al_lado: e.arboles_al_lado })) } : null,
       calles: r.calles }))
   });
 }
+
+// Los puntajes son "qué tan bien está" (más alto = mejor). Con la clave "ruido" la IA leía 78 como mucho ruido:
+// se mandan con un nombre que dice lo que mide el número.
+const FAVORABLES = { ruido: 'silencio', transito: 'poco_transito', aire: 'aire_limpio' };
+const nombresFavorables = f => Object.fromEntries(Object.entries(f || {}).map(([k, v]) => [FAVORABLES[k] || k, v]));
 
 const etiquetaPolen = r => r.polen ? `<span class="etiqueta-polen etiqueta-polen--${r.polen.nivel}">${icono('polen')}polen ${r.polen.nivel}</span>` : '';
 function dibujarOpciones() {
