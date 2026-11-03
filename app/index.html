@@ -413,23 +413,24 @@
       <h1 class="titulo">Contanos un poco más de tu experiencia</h1>
       <p class="cuerpo">Esto nos ayuda a personalizar mejor tus próximos recorridos.</p>
     </div>
-    <h2 class="subtitulo subtitulo--chico">¿El recorrido cumplió con lo que buscabas?</h2>
+    <h2 class="subtitulo subtitulo--chico">¿El recorrido cumplió con lo que esperabas?</h2>
     <div class="chips chips--parejos" data-grupo="cumplio" data-tipo="uno">
       <button class="chip" data-valor="si" aria-pressed="false">Sí</button>
       <button class="chip" data-valor="no" aria-pressed="false">No</button>
     </div>
-    <hr class="divisor">
-    <h2 class="subtitulo subtitulo--chico">¿Cómo describirías el ambiente del recorrido?</h2>
-    <div class="chips" data-grupo="ambiente" data-tipo="varios">
-      <button class="chip" data-valor="tranquilo" aria-pressed="false">Tranquilo</button>
-      <button class="chip" data-valor="verde" aria-pressed="false">Verde</button>
-      <button class="chip" data-valor="ruidoso" aria-pressed="false">Ruidoso</button>
-      <button class="chip" data-valor="transito" aria-pressed="false">Con tránsito</button>
-      <button class="chip" data-valor="polen" aria-pressed="false">Con polen</button>
-      <button class="chip" data-valor="otro" aria-pressed="false">Otro</button>
+    <!-- Sí: no hay más preguntas; las preferencias elegidas quedan confirmadas -->
+    <div class="tarjeta-dato" id="preferencias-confirmadas" hidden></div>
+    <!-- No: una pregunta por cada preferencia elegida (la arma app.js) -->
+    <div class="evaluacion" id="evaluacion" hidden>
+      <hr class="divisor">
+      <div class="encabezado">
+        <h2 class="subtitulo subtitulo--chico">¿Qué no se cumplió?</h2>
+        <p class="chico">Contanos cómo estuvo cada preferencia que elegiste. Así ajustamos tus próximos recorridos.</p>
+      </div>
+      <div class="evaluacion__lista" id="evaluacion-lista"></div>
     </div>
   </div>
-  <div class="pie"><button class="boton" data-ir="comentario" data-enter>Siguiente <svg class="icono"><use href="#i-derecha"/></svg></button></div>
+  <div class="pie"><button class="boton" id="experiencia-siguiente" data-ir="comentario" data-enter disabled>Siguiente <svg class="icono"><use href="#i-derecha"/></svg></button></div>
 </section>
 
 <!-- 13 · ¿Querés dejarnos un comentario? -->

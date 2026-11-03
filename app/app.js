@@ -18,7 +18,7 @@ const estado = {
   clima: null,             // la hora del pronóstico que corresponde a la salida (Open-Meteo)
   recorridos: [],          // las tres opciones calculadas
   elegido: 0,              // índice de la opción elegida en el mapa / la lista
-  corrida:  { sensacion: null, cumplio: null, ambiente: [], comentario: '' }
+  corrida:  { sensacion: null, cumplio: null, evaluacion: {}, comentario: '' }
 };
 window.estado = estado;
 
@@ -109,7 +109,7 @@ document.addEventListener('keydown', e => {
 /* ---------- 5. PIEZAS QUE SE REPITEN ---------- */
 
 // 5a. Chips: data-tipo="uno" (una opción) o "varios" (varias). Guardan en el estado según data-grupo.
-const DESTINO_CHIPS = { nivel: () => estado.perfil, alergias: () => estado.perfil, sensacion: () => estado.corrida, cumplio: () => estado.corrida, ambiente: () => estado.corrida };
+const DESTINO_CHIPS = { nivel: () => estado.perfil, alergias: () => estado.perfil, sensacion: () => estado.corrida, cumplio: () => estado.corrida };
 $$('[data-grupo]').forEach(grupo => grupo.addEventListener('click', e => {
   const chip = e.target.closest('[data-valor]');
   if (!chip) return;
@@ -446,7 +446,7 @@ async function calcularRecorridos() {
   let opciones;
   try {
     opciones = await RespiraRed.armarRecorridos({ desde: b.partida, hasta: b.llegada, circular: b.circular, km: b.km, factores,
-      nocturno: esDeNoche(), alergias: alergiasActivas(), fecha: fechaSalida(), viento });
+      pesos: leerAprendizaje().pesos, nocturno: esDeNoche(), alergias: alergiasActivas(), fecha: fechaSalida(), viento });
   } catch (err) {
     if (yo !== calculo) return;
     aviso.className = 'mapa__estado'; aviso.textContent = err.message;
@@ -458,7 +458,9 @@ async function calcularRecorridos() {
 
   // Orden: cuánto cumplen las preferencias, menos el riesgo de polen si el runner es alérgico.
   // El índice que se muestra es siempre el mismo (dato duro): las preferencias solo cambian el orden.
-  const puntaje = r => r.preferencias - (r.polen ? 0.6 * r.polen.riesgo : 0);
+  // Si el runner avisó que un recorrido tuvo más polen del esperado, el polen pesa más (aprendizaje, sección 14b).
+  const pesoPolen = 0.6 * (leerAprendizaje().pesos.polen ?? 1);
+  const puntaje = r => r.preferencias - (r.polen ? pesoPolen * r.polen.riesgo : 0);
   opciones.sort((x, y) => puntaje(y) - puntaje(x));
   ponerTitulos(opciones, factores);
   opciones.forEach((r, i) => { r.numero = i + 1; r.minutos = minutos(r); r.explicacion = explicacionLocal(r, i, opciones); r.fuenteTexto = 'Resumen automático a partir de los datasets'; });
@@ -530,7 +532,8 @@ async function interpretarConIA(opciones, factores) {
       cumplimiento_preferencias: r.preferencias, puntajes: nombresFavorables(r.factores),
       datos: { arboles_cada_100m: r.datos.arboles_100m, ruido_dia_db: r.datos.db, no2_umol_m2: r.datos.no2, metros_al_agua: r.datos.agua_m },
       polen: r.polen ? { riesgo: r.polen.riesgo, nivel: r.polen.nivel, especies: r.polen.especies.map(e => ({ especie: ALERGIAS[e.especie].nombre, epoca: e.estacion, arboles_al_lado: e.arboles_al_lado })) } : null,
-      calles: r.calles }))
+      calles: r.calles })),
+    aprendizaje: resumenAprendizaje(factores, alergiasActivas().length > 0)
   });
 }
 
@@ -707,7 +710,7 @@ $('#empezar').addEventListener('click', () => empezarCorrida(estado.recorridos[e
    Todavía no hay seguimiento con GPS: un punto avanza sobre la ruta, 1 minuto real = 1 segundo. */
 let mapaCorriendo = null, reloj = null;
 function empezarCorrida(r) {
-  estado.corrida = { sensacion: null, cumplio: null, ambiente: [], comentario: '', inicio: Date.now(), fraccion: 0 };
+  estado.corrida = { sensacion: null, cumplio: null, evaluacion: {}, comentario: '', inicio: Date.now(), fraccion: 0 };
   $$('#completado [data-valor], #experiencia [data-valor]').forEach(c => c.setAttribute('aria-pressed', 'false'));
   $('#texto-comentario').value = '';
   irA('corriendo');
@@ -757,6 +760,89 @@ alMostrar.completado = () => {
   setTimeout(() => { mapaCompletado.mostrarUno(r, { circular: estado.busqueda.circular }); $('#completado-barra').style.width = r.indice + '%'; }, 60);
 };
 
+/* ---------- 14b. TU EXPERIENCIA: lo que la app aprende de cada corrida ----------
+   "¿El recorrido cumplió con lo que esperabas?"
+   - Sí: no hay más preguntas. Todas las preferencias elegidas quedan confirmadas.
+   - No: aparece una pregunta por cada preferencia elegida (y por el polen, si es alérgico):
+     se cumplió / a medias / no se cumplió.
+   Cada preferencia tiene un peso (1 = normal) guardado en el teléfono ("respira-aprendizaje"):
+   lo que falla pesa más la próxima vez y lo confirmado se refuerza un poco. Los pesos cambian
+   el armado de recorridos (red.js) y la IA recibe el historial para no prometer de más. */
+const AJUSTE_PESO = { si: 0.05, medias: 0.15, no: 0.3 };
+const PESO_MIN = 0.5, PESO_MAX = 2.5;
+const RESPUESTAS = [['si', 'Se cumplió'], ['medias', 'A medias'], ['no', 'No se cumplió']];
+
+function leerAprendizaje() {
+  try {
+    const a = JSON.parse(localStorage.getItem('respira-aprendizaje'));
+    if (a && a.pesos && a.historial) return a;
+  } catch (e) { /* modo privado */ }
+  return { pesos: {}, historial: {} };
+}
+function aprender(evaluacion) {
+  const a = leerAprendizaje();
+  for (const [f, v] of Object.entries(evaluacion || {})) {
+    if (!AJUSTE_PESO[v]) continue;
+    a.pesos[f] = Math.round(Math.min(PESO_MAX, Math.max(PESO_MIN, (a.pesos[f] ?? 1) + AJUSTE_PESO[v])) * 100) / 100;
+    const h = a.historial[f] || (a.historial[f] = { si: 0, medias: 0, no: 0 });
+    h[v]++;
+  }
+  try { localStorage.setItem('respira-aprendizaje', JSON.stringify(a)); } catch (e) { /* modo privado */ }
+}
+// Para la IA: cómo le fue a cada preferencia de esta búsqueda en corridas anteriores.
+function resumenAprendizaje(factores, conPolen) {
+  const { historial } = leerAprendizaje(), nombres = Object.fromEntries(CONDICIONES.map(c => [c.factor, c.titulo]));
+  const lista = conPolen ? [...factores, 'polen'] : factores;
+  const resumen = Object.fromEntries(lista.filter(f => historial[f])
+    .map(f => [nombres[f] || 'Menos polen', { se_cumplio: historial[f].si, a_medias: historial[f].medias, no_se_cumplio: historial[f].no }]));
+  return Object.keys(resumen).length ? resumen : null;
+}
+
+// Las preferencias de la corrida que se acaba de hacer: las condiciones de la búsqueda y el polen si había riesgo.
+function preferenciasDeLaCorrida() {
+  const r = estado.recorridos[estado.elegido];
+  const lista = CONDICIONES.filter(c => estado.condiciones.has(c.id)).map(c => ({ factor: c.factor, titulo: c.titulo, icono: c.icono }));
+  if (r && r.polen) lista.push({ factor: 'polen', titulo: 'Menos polen', icono: 'polen' });
+  return lista;
+}
+// Lo que se guarda y se aprende: con "Sí", todo confirmado; con "No", lo que respondió en cada fila.
+function evaluacionFinal() {
+  if (estado.corrida.cumplio === 'si') return Object.fromEntries(preferenciasDeLaCorrida().map(p => [p.factor, 'si']));
+  if (estado.corrida.cumplio === 'no') return { ...estado.corrida.evaluacion };
+  return {};
+}
+
+function dibujarExperiencia() {
+  const prefs = preferenciasDeLaCorrida(), cumplio = estado.corrida.cumplio;
+  const confirmadas = $('#preferencias-confirmadas');
+  confirmadas.hidden = cumplio !== 'si';
+  confirmadas.innerHTML = prefs.length
+    ? `${icono('check')}<span>¡Genial! Vamos a seguir priorizando <b>${prefs.map(p => escapar(p.titulo.toLowerCase())).join(', ')}</b> en tus próximos recorridos.</span>`
+    : `${icono('check')}<span>¡Genial! Lo tenemos en cuenta para tus próximos recorridos.</span>`;
+  $('#evaluacion').hidden = cumplio !== 'no';
+  $('#evaluacion-lista').innerHTML = prefs.length ? prefs.map(p => `
+    <div class="evaluacion__fila">
+      <span class="evaluacion__titulo">${icono(p.icono)}${escapar(p.titulo)}</span>
+      <div class="chips chips--parejos" role="group" aria-label="${escapar(p.titulo)}" data-evaluar="${p.factor}">
+        ${RESPUESTAS.map(([v, t]) => `<button class="chip" data-valor="${v}" aria-pressed="${estado.corrida.evaluacion[p.factor] === v}">${t}</button>`).join('')}
+      </div>
+    </div>`).join('')
+    : '<p class="chico">No elegiste preferencias para este recorrido. Contanos qué pasó en el próximo paso.</p>';
+  // Con "No" hace falta al menos una respuesta (si no hay preferencias, alcanza con el comentario).
+  const respondio = Object.keys(estado.corrida.evaluacion).length > 0;
+  $('#experiencia-siguiente').disabled = !cumplio || (cumplio === 'no' && prefs.length > 0 && !respondio);
+}
+alMostrar.experiencia = dibujarExperiencia;
+$('[data-grupo="cumplio"]').addEventListener('click', dibujarExperiencia);   // corre después del manejo general de chips
+$('#evaluacion-lista').addEventListener('click', e => {
+  const chip = e.target.closest('[data-valor]'), fila = chip && chip.closest('[data-evaluar]');
+  if (!fila) return;
+  const f = fila.dataset.evaluar;
+  if (estado.corrida.evaluacion[f] === chip.dataset.valor) delete estado.corrida.evaluacion[f];
+  else estado.corrida.evaluacion[f] = chip.dataset.valor;
+  dibujarExperiencia();
+});
+
 /* ---------- 15. COMENTARIO con dictado por voz ----------
    Usa el reconocimiento de voz del navegador (Chrome y Safari).
    [API IA] PENDIENTE — Dictado con Whisper: grabar el audio (MediaRecorder) y mandarlo a una tarea nueva
@@ -783,15 +869,15 @@ $('#guardar-corrida').addEventListener('click', () => {
   const registro = { fecha: new Date().toISOString(), busqueda: { partida: b.partida, llegada: b.circular ? null : b.llegada, circular: b.circular, km: b.km },
     recorrido: r.titulo, km: estado.corrida.km ?? r.km, min: estado.corrida.min ?? r.minutos, indice: r.indice,
     polen: r.polen ? r.polen.nivel : null, condiciones: [...estado.condiciones],
-    sensacion: estado.corrida.sensacion, cumplio: estado.corrida.cumplio, ambiente: estado.corrida.ambiente, comentario: estado.corrida.comentario };
+    sensacion: estado.corrida.sensacion, cumplio: estado.corrida.cumplio, evaluacion: evaluacionFinal(), comentario: estado.corrida.comentario };
   try {
     const corridas = leerCorridas();
     corridas.push(registro);
     localStorage.setItem('respira-corridas', JSON.stringify(corridas.slice(-30)));
   } catch (e) { /* modo privado */ }
-  // [API IA] PENDIENTE — Aprender de la experiencia: mandar registro (sensación, ambiente y comentario) a una
-  // tarea nueva "experiencia" en app/api/ia.js que devuelva qué condiciones conviene marcar la próxima vez
-  // (por ejemplo: dijo "ruidoso" → sugerir "Menos ruido"). Se mostraría en "Personalizá tus condiciones".
+  aprender(registro.evaluacion);
+  // [API IA] PENDIENTE — Leer el comentario: mandarlo a una tarea nueva "experiencia" en app/api/ia.js que detecte
+  // quejas que no son de las preferencias elegidas (por ejemplo "había mucha gente") y sugiera condiciones nuevas.
   irA('guardado');
 });
 $('#volver-inicio').addEventListener('click', irAlInicio);

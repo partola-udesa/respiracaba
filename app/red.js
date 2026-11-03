@@ -10,7 +10,7 @@
       "riesgo de polen" según los árboles de esa especie que tiene al lado, los que
       quedan del lado de donde viene el viento (pronóstico por hora) y la época del
       año (ESTACION_POLEN en datos.js). Un tramo con mucho riesgo cuesta más.
-   Uso: const opciones = await RespiraRed.armarRecorridos({ desde, hasta, circular, km, factores, nocturno, alergias, fecha, viento });
+   Uso: const opciones = await RespiraRed.armarRecorridos({ desde, hasta, circular, km, factores, pesos, nocturno, alergias, fecha, viento });
    ===================================================================== */
 (function () {
   const URL_RED = 'datos/red.js';     // define window.RESPIRA_RED (se carga con <script> para que funcione también sin servidor)
@@ -99,14 +99,17 @@
   }
 
   /* ---------- 2. Puntaje según las preferencias y costo de cada tramo ---------- */
-  function puntajePreferencias(factores, nocturno) {
+  // Promedio de los factores elegidos, ponderado por lo que la app aprendió del runner (pesos: 1 = normal;
+  // más alto = una preferencia que en corridas anteriores no se cumplió y ahora hay que cuidar más).
+  function puntajePreferencias(factores, nocturno, pesos = {}) {
     const p = new Float32Array(red.nT);
-    const arrays = factores.map(f => f === 'ruido' ? red[nocturno ? 'ruido_noche' : 'ruido_dia'] : red[f]).filter(Boolean);
-    if (!arrays.length) { p.set(red.indice); return p; }
+    const usados = factores.map(f => ({ arr: f === 'ruido' ? red[nocturno ? 'ruido_noche' : 'ruido_dia'] : red[f], w: pesos[f] ?? 1 })).filter(u => u.arr);
+    if (!usados.length) { p.set(red.indice); return p; }
+    const total = usados.reduce((t, u) => t + u.w, 0);
     for (let i = 0; i < red.nT; i++) {
       let s = 0;
-      for (const arr of arrays) s += arr[i];
-      p[i] = s / arrays.length;
+      for (const u of usados) s += u.arr[i] * u.w;
+      p[i] = s / total;
     }
     return p;
   }
@@ -231,14 +234,14 @@
   }
 
   /* ---------- 4. Las tres opciones ---------- */
-  async function armarRecorridos({ desde, hasta, circular, km, factores, nocturno = false, alergias = [], fecha = new Date(), viento = null }) {
+  async function armarRecorridos({ desde, hasta, circular, km, factores, pesos = {}, nocturno = false, alergias = [], fecha = new Date(), viento = null }) {
     await cargar();
     polenActual = riesgoPolen(alergias, fecha, viento);
     const A = esquinaCercana(desde.lon, desde.lat);
     if (A.distancia > 500) throw new Error('El punto de partida está lejos de las calles de la Ciudad.');
     const B = circular ? A : esquinaCercana(hasta.lon, hasta.lat);
     if (B.distancia > 500) throw new Error('El punto de llegada está lejos de las calles de la Ciudad.');
-    const pref = puntajePreferencias(factores, nocturno);
+    const pref = puntajePreferencias(factores, nocturno, pesos);
     const objetivo = km ? km * 1000 : null;
     const listas = [];
 

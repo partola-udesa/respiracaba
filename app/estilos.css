@@ -454,6 +454,14 @@ input, textarea, select { font: inherit; font-size: 16px; color: var(--texto-1);
 .sensacion .icono { width: 28px; height: 28px; }
 .sensacion:active { transform: scale(.97); }
 .sensacion[aria-pressed="true"] { background: var(--acento); color: var(--acento-texto); border-color: var(--acento); }
+/* Tu experiencia: una fila por preferencia cuando el recorrido no cumplió */
+.evaluacion { display: flex; flex-direction: column; gap: var(--e20); }
+.evaluacion__lista { display: flex; flex-direction: column; gap: var(--e16); }
+.evaluacion__fila { display: flex; flex-direction: column; gap: var(--e8); animation: aparecer .25s var(--curva); }
+.evaluacion__titulo { display: flex; align-items: center; gap: var(--e8); font-size: 15px; font-weight: 600; }
+.evaluacion__titulo .icono { width: 20px; height: 20px; color: var(--acento); }
+.evaluacion .chip { min-height: 40px; padding: 0 var(--e8); font-size: 13px; }
+#preferencias-confirmadas { animation: aparecer .25s var(--curva); }
 .divisor { border: 0; height: 1px; background: var(--linea); margin: 0; }
 .comentario { position: relative; }
 .comentario textarea { width: 100%; min-height: 180px; resize: none; padding: var(--e16) var(--e16) 64px; border-radius: var(--radio-tarjeta);
