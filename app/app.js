@@ -482,7 +482,10 @@ async function calcularRecorridos() {
       if (l.titulo) r.titulo = l.titulo;
       if (l.explicacion) { r.explicacion = l.explicacion; r.fuenteTexto = 'Interpretación de la IA (Groq) a partir de los datasets'; }
     }
-    if (lectura.recomendado) opciones.forEach(r => { r.recomendado = r.numero === lectura.recomendado; });
+    // Si alguna preferencia de esta búsqueda ya falló en corridas anteriores, recomienda el algoritmo y no la IA:
+    // el recorrido 1 es el que mejor cuida lo que falló (pesos de la sección 14b). La IA solo escribe los textos.
+    const recomendado = huboFallas(factores, alergiasActivas().length > 0) ? 1 : lectura.recomendado;
+    if (recomendado) opciones.forEach(r => { r.recomendado = r.numero === recomendado; });
     dibujarOpciones();
     if (estado.pantalla === 'detalle') dibujarDetalle();
   }).catch(() => {});
@@ -790,6 +793,10 @@ function aprender(evaluacion) {
   try { localStorage.setItem('respira-aprendizaje', JSON.stringify(a)); } catch (e) { /* modo privado */ }
 }
 // Para la IA: cómo le fue a cada preferencia de esta búsqueda en corridas anteriores.
+function huboFallas(factores, conPolen) {
+  const { historial } = leerAprendizaje();
+  return (conPolen ? [...factores, 'polen'] : factores).some(f => historial[f] && (historial[f].no || historial[f].medias));
+}
 function resumenAprendizaje(factores, conPolen) {
   const { historial } = leerAprendizaje(), nombres = Object.fromEntries(CONDICIONES.map(c => [c.factor, c.titulo]));
   const lista = conPolen ? [...factores, 'polen'] : factores;
