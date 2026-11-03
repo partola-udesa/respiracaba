@@ -12,4 +12,4 @@ Qué tiene:
 
 Para verla: abrir `index.html` en Chrome. La interpretación de la IA solo funciona publicada en Vercel (con `GROQ_API_KEY`); sin eso aparece el resumen automático.
 
-> Orden de versiones: prototipo_funcional_v1 → v2 → v3 → prototipo_funcional_v4 (esta). La versión en desarrollo vive en `app/`.
+> Orden de versiones: prototipo_funcional_v1 → v2 → v3 → prototipo_funcional_v4 (esta) → v5. La versión en desarrollo vive en `app/`.
