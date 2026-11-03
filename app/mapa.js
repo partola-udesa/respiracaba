@@ -1,5 +1,5 @@
 /* =====================================================================
-   RESPIRA — Mapa interactivo (Leaflet + mapa base oscuro de CARTO / OpenStreetMap)
+   RESPIRA — Mapa interactivo (Leaflet + mapa base gris claro de Esri)
    - mostrarRecorridos: las tres opciones. Tocar una línea o su etiqueta la elige
      (y avisa a la lista con alElegir). La elegida va en el color de acento, con
      brillo y animación de dibujo; las otras quedan grises.
@@ -19,7 +19,7 @@
       zoomControl: false, attributionControl: true, dragging: interactivo, scrollWheelZoom: interactivo,
       doubleClickZoom: interactivo, touchZoom: interactivo, boxZoom: false, keyboard: interactivo, zoomSnap: 0.25
     }).setView([-34.61, -58.44], 12);
-    L.tileLayer(CONFIG.teselas, { attribution: CONFIG.atribucion, subdomains: 'abcd', maxZoom: 19 }).addTo(mapa);
+    L.tileLayer(CONFIG.teselas, { attribution: CONFIG.atribucion, maxNativeZoom: CONFIG.teselasZoomMax, maxZoom: 19 }).addTo(mapa);
     mapa.attributionControl.setPrefix(false);
     let capas = [], extras = L.layerGroup().addTo(mapa), rutas = [], elegida = -1, alElegir = () => {}, corredor = null;
     let margenes = { abajo: margenAbajo, arriba: margenArriba };

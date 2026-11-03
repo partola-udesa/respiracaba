@@ -6,7 +6,7 @@
    | Servicio                         | Para qué                          | ¿Clave?                                   |
    |----------------------------------|-----------------------------------|-------------------------------------------|
    | Open-Meteo (pronóstico por hora) | viento, temperatura, lluvia, UV   | NO. Gratis para uso no comercial.         |
-   | CARTO (mapa base claro)          | el mapa de fondo                  | NO. Gratis con atribución.                |
+   | Esri (Light Gray Canvas)         | el mapa de fondo                  | NO. Gratis con atribución.                |
    | Photon / Nominatim (OSM)         | buscar direcciones                | NO. Uso moderado, con atribución.         |
    | Groq (IA, modelos gpt-oss)       | interpretar recorridos, chat      | SÍ: GROQ_API_KEY, SOLO en el servidor.    |
 
@@ -24,8 +24,10 @@ const CONFIG = {
   climaURL: 'https://api.open-meteo.com/v1/forecast',
 
   // --- Mapa base (app/mapa.js) ---
-  teselas: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-  atribucion: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · © <a href="https://carto.com/attributions">CARTO</a> · Clima <a href="https://open-meteo.com">Open-Meteo</a>',
+  // CARTO empezó a pedir clave (las teselas salían con "API KEY REQUIRED"): se usa el gris claro de Esri, sin clave.
+  teselas: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+  teselasZoomMax: 16,   // más cerca, Leaflet agranda las de nivel 16
+  atribucion: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · Mapa base <a href="https://www.esri.com">Esri</a> · Clima <a href="https://open-meteo.com">Open-Meteo</a>',
 
   // --- IA (app/ia.js → app/api/ia.js → Groq) ---
   // [API IA] La página nunca habla con Groq directo: llama a esta función del servidor,
