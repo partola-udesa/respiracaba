@@ -6,7 +6,7 @@
    | Servicio                         | Para qué                          | ¿Clave?                                   |
    |----------------------------------|-----------------------------------|-------------------------------------------|
    | Open-Meteo (pronóstico por hora) | viento, temperatura, lluvia, UV   | NO. Gratis para uso no comercial.         |
-   | CARTO (mapa base oscuro)         | el mapa de fondo                  | NO. Gratis con atribución.                |
+   | CARTO (mapa base claro)          | el mapa de fondo                  | NO. Gratis con atribución.                |
    | Photon / Nominatim (OSM)         | buscar direcciones                | NO. Uso moderado, con atribución.         |
    | Groq (IA, modelos Llama)         | interpretar recorridos, chat      | SÍ: GROQ_API_KEY, SOLO en el servidor.    |
 
@@ -24,7 +24,7 @@ const CONFIG = {
   climaURL: 'https://api.open-meteo.com/v1/forecast',
 
   // --- Mapa base (app/mapa.js) ---
-  teselas: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  teselas: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
   atribucion: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · © <a href="https://carto.com/attributions">CARTO</a> · Clima <a href="https://open-meteo.com">Open-Meteo</a>',
 
   // --- IA (app/ia.js → app/api/ia.js → Groq) ---
