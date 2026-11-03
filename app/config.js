@@ -8,7 +8,7 @@
    | Open-Meteo (pronóstico por hora) | viento, temperatura, lluvia, UV   | NO. Gratis para uso no comercial.         |
    | CARTO (mapa base claro)          | el mapa de fondo                  | NO. Gratis con atribución.                |
    | Photon / Nominatim (OSM)         | buscar direcciones                | NO. Uso moderado, con atribución.         |
-   | Groq (IA, modelos Llama)         | interpretar recorridos, chat      | SÍ: GROQ_API_KEY, SOLO en el servidor.    |
+   | Groq (IA, modelos gpt-oss)       | interpretar recorridos, chat      | SÍ: GROQ_API_KEY, SOLO en el servidor.    |
 
    ⚠️ Ninguna clave va en este archivo ni en ningún archivo de app/ que no sea app/api/:
    todo lo que está en app/ lo puede leer cualquiera que abra la página.

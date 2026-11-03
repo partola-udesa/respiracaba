@@ -118,7 +118,7 @@ Las descargas de OpenStreetMap devuelven el estado actual de la base, que cambia
 | Recorridos | Red peatonal con índice por tramo (`app/datos/red.js`) + capas de polen y agua (`app/datos/capas.js`) + algoritmo de Dijkstra (`app/red.js`) | Armar tres recorridos según las condiciones elegidas, evitando el polen de las especies a las que el runner es alérgico según el viento y la época |
 | Buscador | Datasets (`app/datos/lugares.js`), esquinas de la red y geocodificador de OpenStreetMap (Photon / Nominatim) | Partida y llegada en cualquier lugar de CABA |
 | Clima | API de pronóstico de Open-Meteo (`app/clima.js`) | Clima hora por hora y viento a favor o en contra por tramo |
-| IA | Groq (modelos Llama) a través de una función de Vercel (`app/api/ia.js` + `app/ia.js`) | Interpretar la búsqueda en texto libre y explicar y recomendar los recorridos calculados |
+| IA | Groq (modelos gpt-oss) a través de una función de Vercel (`app/api/ia.js` + `app/ia.js`) | Interpretar la búsqueda en texto libre y explicar y recomendar los recorridos calculados |
 | Publicación | Vercel, con `app/` como carpeta raíz | Sitio público y función de la IA con la clave guardada en el servidor |
 | Datos | Python 3 con pandas, shapely y pyshp (`codigo/`) | Filtrar los datasets y calcular el índice por tramo |
 | Datos satelitales | Google Earth Engine (`codigo/gee_*.js`) | NO2 de Sentinel-5P y meteorología ERA5-Land |
@@ -148,7 +148,7 @@ Todo está anotado en `app/config.js`. Plantilla de variables: `.env.example` (e
 | Open-Meteo | Pronóstico por hora: viento (dirección y velocidad), temperatura, lluvia, UV | **No.** Gratis para uso no comercial (CC BY 4.0, se cita en la app) | `CONFIG.climaURL` en `app/config.js` |
 | CARTO | Mapa base oscuro | No (con atribución) | `CONFIG.teselas` |
 | Photon / Nominatim (OSM) | Buscar direcciones | No (uso moderado) | `app/buscador.js` |
-| Groq | IA (modelos Llama) | **Sí:** `GROQ_API_KEY` | Vercel → Settings → Environment Variables (nunca en `app/`, salvo `app/api/`) |
+| Groq | IA (modelos gpt-oss) | **Sí:** `GROQ_API_KEY` | Vercel → Settings → Environment Variables (nunca en `app/`, salvo `app/api/`) |
 
 ### Dónde entra la IA en el código
 Buscar `[API IA]` en `app/`. Las marcadas como **PENDIENTE** necesitan una tarea nueva en `app/api/ia.js` (o una pantalla que use una que ya existe).

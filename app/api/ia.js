@@ -19,8 +19,12 @@
  *     → { "datos": { "recomendado": 1, "recorridos": [{ "numero", "titulo", "explicacion" }] } }
  */
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const MODELO_CHAT = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
-const MODELO_RAPIDO = process.env.GROQ_MODEL_RAPIDO || 'llama-3.1-8b-instant';
+const MODELO_CHAT = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
+const MODELO_RAPIDO = process.env.GROQ_MODEL_RAPIDO || 'openai/gpt-oss-20b';
+// Los modelos gpt-oss razonan antes de responder y ese razonamiento cuenta dentro de max_tokens:
+// por eso los límites son más altos y se pide razonamiento corto (más rápido y más barato).
+// Los Llama 3.x que se usaban antes los dio de baja Groq el 16/8/2026.
+const RAZONA = m => m.startsWith('openai/gpt-oss');
 
 // Límites para que la función no se use como proxy gratis de Groq ni se manden contextos gigantes.
 const MAX_MENSAJES = 10;
@@ -82,7 +86,7 @@ async function chat(res, { mensajes, contexto }) {
     model: MODELO_CHAT,
     messages: [{ role: 'system', content: `${REGLAS_CHAT}\n\nCONTEXTO: ${textoContexto}` }, ...turnos],
     temperature: 0.4,
-    max_tokens: 400
+    max_tokens: 1200
   });
   return responder(res, 200, { texto: texto.trim() });
 }
@@ -101,7 +105,7 @@ async function recorridos(res, { contexto }) {
     model: MODELO_CHAT,
     messages: [{ role: 'system', content: REGLAS_RECORRIDOS }, { role: 'user', content: 'CONTEXTO: ' + texto }],
     temperature: 0.3,
-    max_tokens: 600,
+    max_tokens: 1800,
     response_format: { type: 'json_object' }
   });
   let j;
@@ -129,7 +133,7 @@ async function busqueda(res, { texto }) {
       { role: 'user', content: texto.slice(0, 1500) }
     ],
     temperature: 0,
-    max_tokens: 300,
+    max_tokens: 1000,
     response_format: { type: 'json_object' }
   });
   let f;
@@ -154,7 +158,7 @@ async function groq(cuerpo) {
   const r = await fetch(GROQ_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.GROQ_API_KEY}` },
-    body: JSON.stringify(cuerpo)
+    body: JSON.stringify(RAZONA(cuerpo.model) ? { ...cuerpo, reasoning_effort: 'low' } : cuerpo)
   });
   if (!r.ok) {
     const e = new Error(r.status === 429 ? 'Hubo demasiadas consultas seguidas. Probá de nuevo en un rato.'
