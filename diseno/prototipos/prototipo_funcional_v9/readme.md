@@ -10,4 +10,4 @@ Qué cambia respecto de v8 (IA, mapa y "Tu experiencia" iguales):
 
 Para verla: abrir `index.html` en Chrome. La IA solo funciona publicada en Vercel con `GROQ_API_KEY`.
 
-> Orden de versiones: prototipo_funcional_v1 → … → v8 → prototipo_funcional_v9 (esta, la última). La versión en desarrollo vive en `app/`.
+> Orden de versiones: prototipo_funcional_v1 → … → v8 → prototipo_funcional_v9 (esta) → v10 (la última). La versión en desarrollo vive en `app/`.
