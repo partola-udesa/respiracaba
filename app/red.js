@@ -14,8 +14,8 @@
    ===================================================================== */
 (function () {
   const URL_RED = 'datos/red.js';     // define window.RESPIRA_RED (se carga con <script> para que funcione también sin servidor)
-  const URL_CAPAS = 'datos/capas.js'; // define window.RESPIRA_CAPAS: agua y polen por tramo
-  const FACTORES = ['vegetacion', 'aire', 'ruido', 'transito', 'sombra', 'agua', 'terreno', 'luz'];
+  const URL_CAPAS = 'datos/capas.js'; // define window.RESPIRA_CAPAS: polen por tramo (también trae agua, que ya no se usa)
+  const FACTORES = ['vegetacion', 'aire', 'ruido', 'transito', 'sombra', 'terreno', 'luz'];
   const SECTORES = ['norte', 'noreste', 'este', 'sureste', 'sur', 'suroeste', 'oeste', 'noroeste'];
   let red = null, cargando = null;
 
@@ -49,7 +49,6 @@
         arboles_100m: Float32Array.from(t.arboles_100m), db_dia: Uint8Array.from(t.db_dia), no2: Uint16Array.from(t.no2),
         fuentes: { ...j.fuentes, ...capas.fuentes }, nN, nT,
         // capas.js: un carácter en base 36 por número (0-9, a-z)
-        agua: Uint8Array.from(capas.agua), agua_m: Uint16Array.from(capas.agua_m),
         polen: Object.fromEntries(Object.entries(capas.polen).map(([k, v]) => [k, { cerca: base36(v.cerca), sectores: base36(v.sectores), tope: v.tope_100m || 10 }]))
       };
       if (capas.tramos !== nT) console.warn('capas.js no coincide con red.js: volvé a correr codigo/construir_capas_alergias_agua.py');
@@ -293,10 +292,91 @@
     return listas.filter(Boolean).map(p => describir(p, pref, nocturno, polenActual));
   }
 
+  /* Km del camino más corto por las calles entre dos puntos (v11: distancia automática en "Definí tu recorrido") */
+  async function distanciaDirecta(desde, hasta) {
+    await cargar();
+    const A = esquinaCercana(desde.lon, desde.lat), B = esquinaCercana(hasta.lon, hasta.lat);
+    if (A.distancia > 500 || B.distancia > 500) throw new Error('Uno de los puntos está lejos de las calles de la Ciudad.');
+    const pol = polenActual; polenActual = null;   // el más corto de verdad, sin el desvío por polen
+    const c = camino(A.nodo, B.nodo, costos(new Float32Array(red.nT), 0));
+    polenActual = pol;
+    if (!c) throw new Error('No encontramos un camino entre esos dos puntos.');
+    return c.reduce((s, p) => s + red.largo[p.tramo], 0);
+  }
+
+  /* ---------- v11 · RESPIRA CHALLENGE: una letra dibujada con calles ----------
+     trazos: lista de trazos; cada trazo es una lista de puntos [x, y] entre 0 y 1 (0,0 = abajo a la izquierda).
+     La letra se gira para quedar alineada con la grilla de calles del lugar, cada vértice se lleva a la esquina
+     más cercana y entre vértices se busca el camino de menor costo con las condiciones elegidas (λ bajo para
+     no deformar la letra). Entre un trazo y el siguiente también se corre: queda marcado como "enlace". */
+  function rumboDeLaGrilla(nodo, radio = 450) {
+    const cajas = new Float32Array(18);   // ángulos de 0 a 90°, de a 5°
+    for (let e = 0; e < red.nT; e++) {
+      const a = red.a[e];
+      if (Math.abs(red.lat[a] - red.lat[nodo]) > 0.006 || metros(red.lon[nodo], red.lat[nodo], red.lon[a], red.lat[a]) > radio) continue;
+      const g = ((rumbo(a, red.b[e]) % 90) + 90) % 90;
+      cajas[Math.floor(g / 5) % 18] += red.largo[e];
+    }
+    let mejor = 0; cajas.forEach((v, i) => { if (v > cajas[mejor]) mejor = i; });
+    const g = mejor * 5 + 2.5;
+    return g > 45 ? g - 90 : g;
+  }
+  async function armarLetra({ centro, trazos, alto = 650, factores = [], nocturno = false, pesos = {} }) {
+    await cargar();
+    const pol = polenActual; polenActual = null;
+    try {
+      const C = esquinaCercana(centro.lon, centro.lat);
+      if (C.distancia > 500) throw new Error('Ese punto está lejos de las calles de la Ciudad.');
+      const giro = rumboDeLaGrilla(C.nodo) * Math.PI / 180, ancho = alto * 0.7;
+      const cLon = red.lon[C.nodo], cLat = red.lat[C.nodo];
+      const aNodo = ([x, y]) => {
+        const dx = (x - 0.5) * ancho, dy = (y - 0.5) * alto;
+        const este = dx * Math.cos(giro) + dy * Math.sin(giro), norte = -dx * Math.sin(giro) + dy * Math.cos(giro);
+        return esquinaCercana(cLon + este / (111320 * Math.cos(cLat * Math.PI / 180)), cLat + norte / 110540).nodo;
+      };
+      const pref = puntajePreferencias(factores, nocturno, pesos), costo = costos(pref, 0.25);
+      let pasos = [], actual = null, enlaces = 0;
+      const ir = (a, b) => { if (a === b) return 0; const t = camino(a, b, costo); if (!t) throw new Error('No pudimos dibujar esa letra con las calles de acá. Probá otro punto.'); pasos = pasos.concat(t); return t.reduce((s, p) => s + red.largo[p.tramo], 0); };
+      for (const trazo of trazos) {
+        const nodos = trazo.map(aNodo);
+        if (actual !== null) enlaces += ir(actual, nodos[0]);
+        for (let i = 0; i < nodos.length - 1; i++) ir(nodos[i], nodos[i + 1]);
+        actual = nodos[nodos.length - 1];
+      }
+      if (!pasos.length) throw new Error('No pudimos dibujar esa letra.');
+      const r = describir(pasos, pref, nocturno, null);
+      r.enlaceKm = Math.round(enlaces / 100) / 10;
+      r.giro = giro;   // para dibujar la letra derecha en la tarjeta
+      return r;
+    } finally { polenActual = pol; }
+  }
+
+  /* ---------- v12 · TU ARCHIVO: índice de una zona y promedio de la Ciudad ----------
+     Respirabilidad promedio (pesada por largo) de las calles a menos de `radio` metros de un punto,
+     y de todas las calles de CABA. Sirve para comparar los recorridos del runner con el resto de la Ciudad
+     (la hipótesis: donde ya corren los runners se respira mejor). */
+  let promedio = null;
+  async function promedioCiudad() {
+    await cargar();
+    if (promedio == null) { let s = 0, l = 0; for (let e = 0; e < red.nT; e++) { s += red.indice[e] * red.largo[e]; l += red.largo[e]; } promedio = Math.round(s / l); }
+    return promedio;
+  }
+  async function indiceZona(lon, lat, radio = 400) {
+    await cargar();
+    const dLat = radio / 110540, dLon = radio / (111320 * Math.cos(lat * Math.PI / 180));
+    let s = 0, l = 0;
+    for (let e = 0; e < red.nT; e++) {
+      const a = red.a[e];
+      if (Math.abs(red.lat[a] - lat) > dLat || Math.abs(red.lon[a] - lon) > dLon) continue;
+      s += red.indice[e] * red.largo[e]; l += red.largo[e];
+    }
+    return l ? Math.round(s / l) : null;
+  }
+
   /* ---------- 5. Describir un recorrido: geometría, índice y datos duros ---------- */
   function describir(pasos, pref, nocturno, polen) {
     const E = 1e5;
-    let largo = 0, sIndice = 0, sPref = 0, sArb = 0, sDb = 0, sNo2 = 0, sPolen = 0, aguaMin = Infinity;
+    let largo = 0, sIndice = 0, sPref = 0, sArb = 0, sDb = 0, sNo2 = 0, sPolen = 0;
     const arbolesAlLado = {};
     const sF = Object.fromEntries(FACTORES.map(f => [f, 0]));
     const porCalle = new Map(), tramos = [], coords = [];
@@ -304,7 +384,6 @@
       const L = red.largo[e];
       largo += L; sIndice += red.indice[e] * L; sPref += pref[e] * L;
       sArb += red.arboles_100m[e] * L; sDb += red.db_dia[e] * L; sNo2 += red.no2[e] * L;
-      aguaMin = Math.min(aguaMin, red.agua_m[e]);
       if (polen) { sPolen += polen.r[e] * L; for (const { a } of polen.activas) arbolesAlLado[a] = (arbolesAlLado[a] || 0) + red.polen[a].cerca[e]; }
       for (const f of FACTORES) sF[f] += (f === 'ruido' ? red[nocturno ? 'ruido_noche' : 'ruido_dia'][e] : red[f][e]) * L;
       if (red.nombre[e] >= 0) { const n = red.nombres[red.nombre[e]]; porCalle.set(n, (porCalle.get(n) || 0) + L); }
@@ -322,7 +401,7 @@
       largo: Math.round(largo), km: Math.round(largo / 100) / 10,
       indice: prom(sIndice), preferencias: prom(sPref),
       factores: Object.fromEntries(FACTORES.map(f => [f, prom(sF[f])])),
-      datos: { arboles_100m: Math.round(sArb / Math.max(largo, 1) * 10) / 10, db: prom(sDb), no2: prom(sNo2), agua_m: Math.round(aguaMin) },
+      datos: { arboles_100m: Math.round(sArb / Math.max(largo, 1) * 10) / 10, db: prom(sDb), no2: prom(sNo2) },
       polen: polen ? {
         riesgo: prom(sPolen),                                  // 0–100, promedio pesado por largo
         nivel: prom(sPolen) >= 45 ? 'alto' : prom(sPolen) >= 18 ? 'medio' : 'bajo',
@@ -364,5 +443,5 @@
     return null;
   }
 
-  globalThis.RespiraRed = { cargar, cargarScript, armarRecorridos, buscarEsquina, metros, get fuentes() { return red && red.fuentes; } };
+  globalThis.RespiraRed = { cargar, cargarScript, armarRecorridos, distanciaDirecta, armarLetra, promedioCiudad, indiceZona, buscarEsquina, metros, get fuentes() { return red && red.fuentes; } };
 })();

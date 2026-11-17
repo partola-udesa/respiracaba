@@ -43,7 +43,7 @@
 
     function dibujar({ animar = true, polen = false } = {}) {
       capas.forEach(c => c.remove());
-      const acento = css('--acento'), gris = css('--ruta-inactiva'), peligro = css('--peligro');
+      const acento = css('--acento'), tinta = css('--acento-tinta'), gris = css('--ruta-inactiva'), peligro = css('--peligro');
       // Primero las no elegidas (quedan abajo), después la elegida.
       const orden = rutas.map((_, i) => i).sort((a, b) => (a === elegida) - (b === elegida));
       capas = [];
@@ -51,7 +51,7 @@
         const r = rutas[i], g = L.featureGroup(), activa = i === elegida;
         if (activa) {
           L.polyline(r.coords, { color: acento, weight: 14, opacity: 0.3, className: 'ruta-brillo', interactive: false }).addTo(g);
-          const linea = L.polyline(r.coords, { color: acento, weight: 4.5, opacity: 1, lineJoin: 'round', lineCap: 'round', interactive: false }).addTo(g);
+          const linea = L.polyline(r.coords, { color: tinta, weight: 4.5, opacity: 1, lineJoin: 'round', lineCap: 'round', interactive: false }).addTo(g);
           if (polen) (r.tramosPolen || []).forEach(c => L.polyline(c, { color: peligro, weight: 5, opacity: 0.95, dashArray: '2 7', lineCap: 'round', interactive: false }).addTo(g));
           g.addTo(mapa);
           if (animar) animarDibujo(linea);

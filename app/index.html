@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#E7ECE6">
+  <meta name="theme-color" content="#F7F5EE">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>RESPIRA · Corré a tu ritmo</title>
@@ -56,6 +56,7 @@
   <symbol id="i-reloj" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></g></symbol>
   <symbol id="i-corredor" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="14" cy="4.5" r="1.8"/><path d="M8 21l3-6 3 2v5M6 11l3-3 4 1 2 3 3 1M11 15l1-5"/></g></symbol>
   <symbol id="i-repetir" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5M20 4v4.5h-4.5M20 12a8 8 0 0 1-13.7 5.7L4 15.5M4 20v-4.5h4.5"/></symbol>
+  <symbol id="i-letra" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M5 19 10 5h1l5 14M7 14h7M18 8v6M15 11h6"/></symbol>
   <symbol id="i-ruta" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h7a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h7"/></g></symbol>
 </svg>
 
@@ -191,13 +192,13 @@
   </div>
 </section>
 
-<!-- 05 · ¿Qué querés hacer hoy? -->
+<!-- 05 · ¿Qué recorrido querés hacer hoy en CABA? -->
 <section class="pantalla" id="inicio" data-encabezado data-sin-volver hidden>
   <div class="aurora aurora--suave"></div>
   <div class="contenido">
     <div class="encabezado">
       <p class="saludo" id="saludo">Hola</p>
-      <h1 class="titulo-display">¿Qué querés hacer hoy?</h1>
+      <h1 class="titulo-display">¿Qué recorrido querés hacer hoy en CABA?</h1>
       <p class="cuerpo">Elegí una opción para salir a correr según tu objetivo.</p>
     </div>
     <button class="tarjeta-accion tarjeta-accion--destacada" data-ir="definir" data-enter>
@@ -205,9 +206,22 @@
       <span class="tarjeta-accion__textos"><span class="tarjeta-accion__titulo">Armá tu recorrido</span><span class="tarjeta-accion__descripcion">Personalizá tu salida según tus tiempos, distancia y entorno.</span></span>
       <svg class="icono"><use href="#i-derecha"/></svg>
     </button>
-    <button class="tarjeta-accion" data-ir="repetir">
+    <button class="tarjeta-accion tarjeta-accion--segunda" data-ir="repetir">
       <span class="tarjeta-accion__icono"><svg class="icono"><use href="#i-repetir"/></svg></span>
       <span class="tarjeta-accion__textos"><span class="tarjeta-accion__titulo">Repetí un trayecto</span><span class="tarjeta-accion__descripcion">Volvé a correr un recorrido que ya hiciste.</span></span>
+      <svg class="icono"><use href="#i-derecha"/></svg>
+    </button>
+    <button class="tarjeta-accion tarjeta-accion--archivo" data-ir="archivo">
+      <span class="tarjeta-accion__fila">
+        <span class="tarjeta-accion__icono"><svg class="icono"><use href="#i-camara"/></svg></span>
+        <span class="tarjeta-accion__textos"><span class="tarjeta-accion__titulo">Tu archivo</span><span class="tarjeta-accion__descripcion">Tus recorridos terminados, con foto y datos.</span></span>
+        <svg class="icono"><use href="#i-derecha"/></svg>
+      </span>
+      <span class="abanico abanico--inicio" id="abanico-inicio" aria-hidden="true"></span>
+    </button>
+    <button class="tarjeta-accion" data-ir="challenge">
+      <span class="tarjeta-accion__icono"><svg class="icono"><use href="#i-letra"/></svg></span>
+      <span class="tarjeta-accion__textos"><span class="tarjeta-accion__titulo">Respira challenge</span><span class="tarjeta-accion__descripcion">Escribí una palabra corriendo: una letra por día.</span></span>
       <svg class="icono"><use href="#i-derecha"/></svg>
     </button>
   </div>
@@ -224,28 +238,88 @@
   </div>
 </section>
 
+<!-- 05d · Tu archivo (pirueta v12): la onda de fotos de tus recorridos -->
+<section class="pantalla pantalla--archivo" id="archivo" data-encabezado hidden>
+  <div class="contenido contenido--archivo">
+    <div class="encabezado">
+      <h1 class="titulo">Tu archivo</h1>
+      <p class="cuerpo">Cada recorrido que terminás suma una foto a tu onda. Arrastrala para recorrer tu historial y tocá la foto del centro para ver ese lugar.</p>
+    </div>
+    <div class="datos-fila datos-fila--archivo" id="archivo-resumen"></div>
+    <div class="segmentos" id="archivo-modos" role="group" aria-label="Cómo ver tu archivo">
+      <button class="segmento" data-modo="0" aria-pressed="true">Tu onda</button>
+      <button class="segmento" data-modo="1" aria-pressed="false">Tu respiración</button>
+    </div>
+    <div class="onda" id="onda" tabindex="0" aria-label="Fotos de tus recorridos. Flechas para moverte, Enter para abrir.">
+      <div class="onda__ciudad" id="onda-ciudad" aria-hidden="true"><span>Promedio de las calles de CABA</span></div>
+      <div class="onda__eje" aria-hidden="true"><span>más respirable</span><span>menos respirable</span></div>
+      <div class="onda__escena" id="onda-escena"></div>
+    </div>
+    <div class="archivo-foco" id="archivo-foco" aria-live="polite"></div>
+    <p class="nota archivo-nota" id="archivo-nota"></p>
+  </div>
+  <div class="ficha-fondo" id="ficha-fondo" hidden><div class="ficha" id="ficha" role="dialog" aria-modal="true" aria-label="Ficha del lugar"></div></div>
+</section>
+
+<!-- 05c · Respira challenge (pirueta): escribí una palabra corriendo, una letra por día -->
+<section class="pantalla" id="challenge" data-encabezado hidden>
+  <div class="contenido">
+    <div class="encabezado">
+      <span class="etiqueta-challenge">RESPIRA CHALLENGE</span>
+      <h1 class="titulo">Escribí una palabra corriendo</h1>
+      <p class="cuerpo">Elegí una palabra y armamos un recorrido por cada letra. Una letra por día, a tu ritmo.</p>
+    </div>
+    <label class="campo-palabra">
+      <span class="sr">Tu palabra</span>
+      <input id="palabra" type="text" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="TU PALABRA">
+      <span class="campo-palabra__cuenta" id="cuenta-letras"></span>
+    </label>
+    <div class="sugerencias-palabra">
+      <span class="chico">Probá:</span>
+      <button class="chip chip--palabra" data-palabra="RUN">RUN</button>
+      <button class="chip chip--palabra" data-palabra="BA">BA</button>
+      <button class="chip chip--palabra" data-palabra="HOLA">HOLA</button>
+      <button class="chip chip--palabra" data-palabra="MAMÁ">MAMÁ</button>
+    </div>
+    <p class="nota centro-challenge"><span id="centro-challenge">Alrededor de Primera Junta</span> · <button class="enlace" id="challenge-ubicacion" type="button">Usar mi ubicación</button></p>
+    <div class="letras" id="letras" aria-live="polite"></div>
+    <p class="nota" id="nota-challenge">Cada letra se dibuja con calles reales y elige los tramos con mejor respirabilidad (cálculo de la app sobre los datasets, no de la IA). Los km incluyen lo que corrés entre un trazo y otro.</p>
+  </div>
+  <div class="pie pie--claro">
+    <button class="boton" id="empezar-letra" data-enter disabled>Calculando…</button>
+  </div>
+</section>
+
 <!-- 06 · Definí tu recorrido -->
 <section class="pantalla" id="definir" data-encabezado hidden>
   <div class="contenido">
     <div class="encabezado">
       <div class="pasos" aria-label="Paso 1 de 3"><i class="hecho"></i><i></i><i></i></div>
-      <h1 class="titulo">Definí tu recorrido</h1>
-      <p class="cuerpo">Elegí las condiciones de tu salida y encontrá la mejor opción para correr en Buenos Aires.</p>
+      <h1 class="titulo">¿Por dónde recorremos hoy?</h1>
+      <p class="cuerpo">Contanos tu salida y armamos la mejor opción para correr en Buenos Aires.</p>
     </div>
 
-    <!-- Búsqueda en texto libre: la IA completa el formulario (tarea "busqueda") -->
-    <form class="ia pedido-ia" id="pedido-ia">
-      <label class="ia__etiqueta" for="texto-pedido"><svg class="icono"><use href="#i-ia"/></svg>Contalo con tus palabras</label>
-      <div class="pedido">
-        <textarea id="texto-pedido" rows="2" placeholder="Ej: 8 km desde Plaza Italia mañana a las 7, con poco ruido"></textarea>
+    <!-- v11 (devolución): "Contanos" va primero y con más jerarquía, con micrófono.
+         La IA (tarea "busqueda") completa el formulario de abajo; el runner lo revisa antes de seguir. -->
+    <form class="contanos" id="pedido-ia">
+      <label class="contanos__etiqueta" for="texto-pedido"><svg class="icono"><use href="#i-ia"/></svg>Contanos tu salida</label>
+      <textarea id="texto-pedido" rows="3" placeholder="Ej: 8 km desde Plaza Italia mañana a las 7, con poco ruido"></textarea>
+      <div class="contanos__acciones">
+        <button class="contanos__microfono" type="button" id="microfono-pedido" aria-pressed="false" aria-label="Dictar tu salida"><svg class="icono"><use href="#i-microfono"/></svg></button>
+        <span class="nota contanos__ayuda">Escribilo o dictalo. La IA completa el formulario y vos lo revisás.</span>
         <button class="pedido__boton" type="submit" id="enviar-pedido" aria-label="Completar el formulario con IA"><svg class="icono"><use href="#i-derecha"/></svg></button>
       </div>
-      <p class="nota" id="estado-pedido" aria-live="polite" hidden></p>
+      <p class="nota contanos__estado" id="estado-pedido" aria-live="polite" hidden></p>
     </form>
-    <div class="subtitulo-linea">O completalo vos</div>
+
+    <!-- "Completalo vos": cerrado hasta que el runner lo abre o la IA lo completa -->
+    <button class="desplegar" id="desplegar-form" type="button" aria-expanded="false" aria-controls="form-manual">
+      <span>Prefiero completarlo yo</span><svg class="icono"><use href="#i-abajo"/></svg>
+    </button>
+    <div class="form-manual" id="form-manual" hidden>
 
     <div class="grupo">
-      <label class="sr" for="partida">Partida</label>
+      <label class="rotulo" for="partida">Partida</label>
       <div class="autocompletar">
         <div class="campo" id="campo-partida"><svg class="icono"><use href="#i-partida"/></svg>
           <input id="partida" type="text" placeholder="Buscá un punto de partida" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugerencias-partida">
@@ -261,7 +335,7 @@
     </div>
 
     <div class="grupo" id="bloque-llegada">
-      <label class="sr" for="llegada">Llegada</label>
+      <label class="rotulo" for="llegada">Llegada</label>
       <div class="autocompletar">
         <div class="campo" id="campo-llegada"><svg class="icono"><use href="#i-llegada"/></svg>
           <input id="llegada" type="text" placeholder="Buscá un punto de llegada" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugerencias-llegada">
@@ -271,13 +345,24 @@
       <p class="mensaje-error" id="error-llegada" hidden>Elegí dónde terminás, o activá el trayecto circular.</p>
     </div>
 
-    <div class="grupo">
-      <label class="rotulo" for="distancia">Distancia</label>
+    <!-- v11 (devolución): de un punto a otro, los km se calculan solos y se pueden sumar más.
+         En un trayecto circular se escriben (con una sugerencia según el nivel del perfil). -->
+    <div class="grupo" id="bloque-distancia">
+      <span class="rotulo" id="rotulo-distancia">Distancia</span>
+      <div class="distancia-auto" id="distancia-auto" hidden>
+        <div class="distancia-auto__total"><b id="km-total">–</b><span>km en total</span></div>
+        <div class="contador" role="group" aria-label="Sumar kilómetros">
+          <button class="contador__boton" type="button" id="km-menos" aria-label="Restar 1 km"><svg class="icono"><use href="#i-menos"/></svg></button>
+          <span class="contador__valor" id="km-extra">+0 km</span>
+          <button class="contador__boton" type="button" id="km-mas" aria-label="Sumar 1 km"><svg class="icono"><use href="#i-mas"/></svg></button>
+        </div>
+      </div>
+      <p class="nota" id="ayuda-km-auto" hidden></p>
       <div class="campo" id="campo-distancia"><svg class="icono"><use href="#i-corredor"/></svg>
-        <input id="distancia" type="text" inputmode="decimal" placeholder="Ej: 5" autocomplete="off" aria-describedby="ayuda-distancia">
+        <input id="distancia" type="text" inputmode="decimal" placeholder="Ej: 5" autocomplete="off" aria-labelledby="rotulo-distancia" aria-describedby="ayuda-distancia">
         <span class="campo__sufijo">km</span>
       </div>
-      <p class="nota" id="ayuda-distancia">Entre 1 y 42 km. Si vas de un punto a otro es opcional.</p>
+      <p class="nota" id="ayuda-distancia">Elegí la partida y la llegada: calculamos los km del camino más corto.</p>
       <p class="mensaje-error" id="error-distancia" hidden></p>
     </div>
 
@@ -286,6 +371,7 @@
       <label class="campo"><span class="sr">Día</span><input id="fecha" type="date" disabled></label>
       <label class="campo" style="flex: 0 0 132px"><span class="sr">Hora</span><input id="hora" type="time" disabled></label>
     </div>
+    </div><!-- /form-manual -->
   </div>
   <div class="pie">
     <button class="boton" id="continuar-definir" data-enter>Continuar <svg class="icono"><use href="#i-derecha"/></svg></button>
@@ -300,6 +386,7 @@
       <h1 class="titulo">Personalizá tus condiciones</h1>
       <p class="cuerpo">Ajustá el recorrido según lo que más valorás al correr. Cada condición se calcula calle por calle con datos de la Ciudad.</p>
     </div>
+    <div class="aviso-perfil" id="aviso-perfil" hidden></div>
     <div class="condiciones" id="condiciones-principales"></div>
     <div class="subtitulo-linea">Otras condiciones</div>
     <div class="condiciones condiciones--chicas" id="condiciones-otras"></div>
@@ -335,7 +422,7 @@
   <div class="mapa__degradado"></div>
   <div class="chips-flotantes" id="chips-detalle"></div>
   <div class="tarjeta-indice vidrio" id="tarjeta-indice">
-    <div><div class="chico"><span class="punto"></span>Respirabilidad</div><div class="nota">de la ruta</div></div>
+    <div><div class="chico"><span class="punto"></span>Respirabilidad <button class="ayuda" type="button" data-ayuda="Promedio de vegetación, aire, ruido y tránsito en cada tramo de la ruta, de 0 a 100. Lo calcula la app con datasets de la Ciudad, no la IA." aria-label="Qué es la respirabilidad" aria-expanded="false"><svg class="icono"><use href="#i-info"/></svg></button></div><div class="nota">de la ruta</div></div>
     <div class="numero" id="detalle-indice">–<small>%</small></div>
   </div>
 
@@ -359,7 +446,7 @@
       <div id="hoja-detalle-extra" class="hoja__extra">
         <div class="seccion" id="seccion-polen" hidden></div>
         <div class="seccion">
-          <span class="seccion__titulo">Qué compone el índice</span>
+          <span class="seccion__titulo">Qué compone el índice <span class="etiqueta-calculado">Dato calculado</span></span>
           <div id="detalle-componentes"></div>
           <p class="nota" id="detalle-fuentes"></p>
         </div>
@@ -469,6 +556,14 @@
       <button class="microfono" id="microfono" aria-pressed="false" aria-label="Dictar el comentario"><svg class="icono"><use href="#i-microfono"/></svg></button>
     </div>
     <p class="nota" id="aviso-microfono" hidden></p>
+    <!-- v12: la foto del recorrido para Tu archivo (opcional; sin foto se guarda el dibujo del recorrido) -->
+    <div class="sumar-foto">
+      <h2 class="subtitulo subtitulo--chico">Sumá esta corrida a tu archivo</h2>
+      <p class="chico" id="estado-foto">Sacate una foto o elegí una del lugar. Si no, guardamos el dibujo de tu recorrido.</p>
+      <div class="abanico abanico--sumar" aria-hidden="true"><span id="abanico-sumar"></span><span class="mini-foto mini-foto--hoy" id="foto-hoy"><span class="mini-foto__hoy">Hoy</span></span></div>
+      <label class="boton boton--secundario" for="foto-corrida"><svg class="icono"><use href="#i-camara"/></svg><span id="texto-foto">Sacar una foto</span></label>
+      <input type="file" id="foto-corrida" accept="image/*" class="sr">
+    </div>
     <div class="ia"><div class="ia__etiqueta"><svg class="icono"><use href="#i-ia"/></svg>Inteligencia artificial</div>
       <p>Tus respuestas se van a usar para conocer mejor tus preferencias y que tu próxima corrida sea aún mejor.</p></div>
   </div>
@@ -482,8 +577,11 @@
     <div class="confirmacion"><svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24"/><path d="M15 27l7 7 15-16"/></svg></div>
     <h1 class="titulo">¡Recorrido guardado!</h1>
     <p class="cuerpo">Gracias por contarnos tu experiencia.</p>
+    <div class="guardado-foto" id="guardado-foto"></div>
+    <p class="nota" id="guardado-nota">Tu foto ya está en tu archivo.</p>
   </div>
-  <div class="pie"><button class="boton" id="volver-inicio" data-enter>Volver al inicio <svg class="icono"><use href="#i-derecha"/></svg></button></div>
+  <div class="pie"><button class="boton" id="ver-archivo" data-enter>Ver tu archivo <svg class="icono"><use href="#i-derecha"/></svg></button>
+    <button class="boton boton--enlace" id="volver-inicio">Volver al inicio</button></div>
 </section>
 
 </div><!-- /app -->
@@ -499,5 +597,6 @@
 <script src="mapa.js"></script>
 <script src="celebracion.js"></script>
 <script src="app.js"></script>
+<script src="archivo.js"></script>
 </body>
 </html>
