@@ -179,7 +179,6 @@ function cerrarFlotantes() {
   if (globalThis.cerrarMenu && cerrarMenu()) return true;   // v15: si el menú está abierto, Esc solo cierra el menú
   $$('.sugerencias:not([hidden]), .info__globo:not([hidden])').forEach(el => { el.hidden = true; cerro = true; });
   if (cerrarAyuda()) cerro = true;
-  if (globalThis.cerrarFichaArchivo && cerrarFichaArchivo()) cerro = true;
   if (globalThis.cerrarPin && cerrarPin()) cerro = true;
   $$('.info__boton').forEach(b => b.setAttribute('aria-expanded', 'false'));
   $$('[role="combobox"]').forEach(i => i.setAttribute('aria-expanded', 'false'));
@@ -417,6 +416,7 @@ function abrirPin(campo) {
     pin.mapa = L.map($('#mapa-pin'), { zoomControl: false, attributionControl: true, zoomSnap: 0.25, minZoom: 11 });
     RespiraMapa.capaBase(pin.mapa);
     pin.mapa.attributionControl.setPrefix(false);
+    RespiraMapa.botonesZoom(pin.mapa);
     // Afuera de la Ciudad queda velado (igual que en el challenge)
     const contorno = CABA_CONTORNO.map(([lon, lat]) => [lat, lon]);
     L.polygon([[[-35.2, -59.2], [-35.2, -57.6], [-34.0, -57.6], [-34.0, -59.2]], contorno], { stroke: false, fillColor: '#F7F5EE', fillOpacity: 0.62, interactive: false }).addTo(pin.mapa);
@@ -1256,6 +1256,7 @@ function dibujarPalabraEnLaCiudad(listas) {
     mapaPalabra = L.map($('#mapa-palabra'), { zoomControl: false, attributionControl: true, dragging: true, scrollWheelZoom: false, doubleClickZoom: true, touchZoom: true, zoomSnap: 0.25 });
     RespiraMapa.capaBase(mapaPalabra);
     mapaPalabra.attributionControl.setPrefix(false);
+    RespiraMapa.botonesZoom(mapaPalabra);
     // Afuera de la Ciudad queda velado: el challenge es solo en CABA
     const contorno = CABA_CONTORNO.map(([lon, lat]) => [lat, lon]);
     L.polygon([[[-35.2, -59.2], [-35.2, -57.6], [-34.0, -57.6], [-34.0, -59.2]], contorno], { stroke: false, fillColor: '#F7F5EE', fillOpacity: 0.62, interactive: false }).addTo(mapaPalabra);

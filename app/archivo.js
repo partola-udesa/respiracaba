@@ -1,13 +1,13 @@
 /* =====================================================================
-   RESPIRA · TU ARCHIVO (v12 · la pirueta)
-   Cada recorrido terminado deja una foto. El archivo las ordena en una onda 3D que respira:
-   - "Tu onda": las fotos viajan por una cinta ondulada (en orden de fecha). Se arrastra para recorrer el tiempo.
-   - "Tu respiración": la misma onda se acomoda como un gráfico. La altura de cada foto es la respirabilidad
-     de ese recorrido (dato calculado con la red de calles) y la línea punteada es el promedio de TODAS las
-     calles de CABA. Lo que queda arriba de la línea es donde respiraste mejor que la Ciudad: la hipótesis
-     del proyecto, contada con las fotos del runner.
+   RESPIRA · TUS RECORRIDAS (v12 · la pirueta; v15 · corridas y ranking)
+   Cada recorrida terminada deja una foto. Las fotos forman un gráfico: la altura de cada una es la
+   respirabilidad de ese recorrido (dato calculado con la red de calles) y la línea punteada es el promedio
+   de TODAS las calles de CABA. Lo que queda arriba de la línea es donde respiraste mejor que la Ciudad:
+   la hipótesis del proyecto, contada con las fotos del runner.
+   - "Tus corridas": en orden de fecha. - "Tu ranking": de la más respirable a la menos.
+   Se desliza para recorrerlas; tocar la foto del centro repite ese recorrido.
    Las fotos se guardan solo en este teléfono (localStorage, "respira-corridas").
-   Usa de app.js: $, $$, estado, irA, alMostrar, escapar, conComa, icono, leerCorridas, calcularRecorridos.
+   Usa de app.js: $, $$, estado, irA, alMostrar, escapar, conComa, leerCorridas, calcularRecorridos, aplicarPerfil.
    ===================================================================== */
 (function () {
   /* ---------- 1. Recorridos de ejemplo (fotos generadas en Figma, frame "Pirueta") ----------
@@ -27,7 +27,6 @@
     { id: 'planetario',        lugar: 'Planetario',           sub: 'Palermo, al atardecer',              desc: 'La cúpula reflejada en el lago. Buen cierre para una vuelta larga.', lat: -34.5697, lon: -58.4116, km: 5.0, min: 30, fecha: '2026-11-09T19:30', sensacion: 'comoda' },
     { id: 'rosedal',           lugar: 'El Rosedal',           sub: 'Plaza Holanda',                     desc: 'Rosas, el puente blanco y el lago. Uno de los tramos más verdes de la Ciudad.', lat: -34.5717, lon: -58.4170, km: 4.6, min: 28, fecha: '2026-11-14T07:20', sensacion: 'comoda' }
   ].map(e => ({ ...e, foto: `datos/archivo/${e.id}.jpg`, ejemplo: true, indice: null }));
-  const SENSACION = { comoda: 'Te sentiste cómoda', regular: 'Te sentiste regular', cansada: 'Terminaste cansada' };
   const MIS_RECORRIDOS_PARA_OCULTAR_EJEMPLOS = 8;
 
   /* ---------- 2. El archivo: ejemplos + recorridos del runner, en orden de fecha ---------- */
@@ -73,217 +72,158 @@
   const fechaCorta = f => new Date(f).toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' }).replace('.', '');
   const horaCorta = f => new Date(f).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
 
-  /* ---------- 4. LA ONDA: motor de la animación ----------
-     Cada foto tiene una posición en la onda (t = distancia al foco). Por cuadro se calcula x, y, z y el giro.
-     modo 0 = "Tu onda" (cinta que viaja y se tuerce), modo 1 = "Tu respiración" (gráfico). Se pasa de uno a
-     otro con una mezcla suave, así las fotos se reacomodan solas. */
+  /* ---------- 4. EL GRÁFICO: motor de la animación (v15) ----------
+     Cada foto es una cápsula. Su altura respecto de la línea punteada es la respirabilidad comparada con la
+     calle promedio de CABA (dato calculado). La foto del foco queda en el centro y las demás a los costados.
+     modo 0 = "Tus corridas": en orden de fecha, empieza en la más reciente.
+     modo 1 = "Tu ranking": de la más respirable a la menos, empieza en la #1.
+     Al cambiar de modo las fotos se deslizan a su nuevo lugar. */
   const escena = () => $('#onda-escena');
-  let lista = [], tarjetas = [], ciudad = null;
-  let foco = 0, focoVisual = 0, velocidad = 0, modo = 0, modoVisual = 0, fase = 0;
-  let animando = false, ultimo = 0, entrada = 0, quieto = 0, arrastre = null;
+  const PASO = 58, PUNTOS_A_PX = 5.4, TOPE = 92;   // px entre fotos, alto de la foto, px por punto de índice, máx. sobre/bajo la línea
+  let lista = [], capsulas = [], orden = [], ciudad = null;
+  let foco = 0, focoVisual = 0, velocidad = 0, modo = 0;
+  let animando = false, ultimo = 0, arrastre = null;
   const reducido = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fechaChica = f => new Date(f).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }).replace('.', '').replace(/ (\S)/, (_, l) => ' ' + l.toUpperCase());   // "14 Nov"
 
   function armar() {
     lista = todos();
-    const n = lista.length;
     escena().innerHTML = lista.map((r, i) => `
-      <button class="foto-onda${r.propio ? ' foto-onda--propia' : ''}${r.foto ? '' : ' foto-onda--postal'}" data-i="${i}" ${fondo(r)} aria-label="${escapar(r.lugar)}, ${fechaCorta(r.fecha)}">
-        ${contenidoTarjeta(r)}<span class="foto-onda__valor" data-valor="${i}"></span>
-      </button>`).join('');
-    tarjetas = [...escena().querySelectorAll('.foto-onda')];
-    foco = focoVisual = n - 1;      // empieza en el más reciente
-    entrada = 0; quieto = -3;   // al abrir, la onda se queda quieta en tu último recorrido unos segundos
+      <div class="capsula${r.propio ? ' capsula--propia' : ''}" data-i="${i}">
+        <span class="capsula__valor" data-valor="${i}"></span>
+        <button class="capsula__foto${r.foto ? '' : ' foto-onda--postal'}" ${fondo(r)} tabindex="-1" aria-label="${escapar(r.lugar)}, ${fechaCorta(r.fecha)}">${contenidoTarjeta(r)}</button>
+        <span class="capsula__pie" data-pie="${i}"></span>
+      </div>`).join('');
+    capsulas = [...escena().querySelectorAll('.capsula')].map(el => ({ el, x: 0, y: 0, entrada: 0 }));
     dibujarResumen();
-    dibujarPie();
-    completarIndices().then(c => { ciudad = c; dibujarValores(); dibujarPie(); dibujarLinea(); });
+    ordenar(true);
+    completarIndices().then(c => { ciudad = c; dibujarValores(); dibujarLinea(); ordenar(modo === 1); focoMostrado = -1; });
   }
 
-  function posiciones(i, n, ancho) {
-    // --- modo onda: cinta infinita que da la vuelta ---
-    let t = ((i - focoVisual) % n + n) % n; if (t > n / 2) t -= n;
-    const gap = Math.min(27, (ancho - 40) / Math.max(n, 6));
-    const ang = t * 0.62 + fase;
-    const onda = { x: t * gap, y: -Math.sin(ang) * 62, z: -Math.abs(t) * 6, ry: Math.cos(ang) * 38, rz: Math.cos(ang) * -8, h: 1 };
-    // --- modo respiración: gráfico fijo, de izquierda (más viejo) a derecha (más nuevo) ---
-    const paso = Math.min(28, (ancho - 104) / Math.max(n - 1, 1));
-    const v = lista[i].indice ?? ciudad ?? 50, base = ciudad ?? 50;
-    const resp = { x: (i - (n - 1) / 2) * paso + 10, y: -(v - base) * 7, z: 0, ry: 0, rz: 0, h: 0.45 + Math.min(lista[i].km || 4, 10) * 0.05, s: 0.55 };
-    const m = modoVisual, mix = (a, b) => a + (b - a) * m;
-    const p = { x: mix(onda.x, resp.x), y: mix(onda.y, resp.y), z: mix(onda.z, resp.z), ry: mix(onda.ry, resp.ry), rz: mix(onda.rz, resp.rz), h: mix(onda.h, resp.h), base: mix(0.82, resp.s) };
-    // foco: la foto del centro (o la elegida en el gráfico) crece y se adelanta
-    const dg = i - focoVisual, cerca = Math.exp(-(t * t) / 0.55) * (1 - m) + Math.exp(-(dg * dg) / 0.55) * m;
-    p.s = p.base * (1 + cerca * (0.32 - 0.05 * m));
-    p.z += cerca * 60;
-    p.ry *= 1 - cerca * 0.8;
-    return p;
+  // El orden de las fotos según el modo; "reiniciar" lleva el foco a la más reciente o a la #1
+  function ordenar(reiniciar) {
+    const idx = lista.map((_, i) => i);
+    orden = modo === 1 ? idx.sort((a, b) => (lista[b].indice ?? -1) - (lista[a].indice ?? -1)) : idx;
+    const lugar = []; orden.forEach((i, pos) => { lugar[i] = pos; });
+    capsulas.forEach((c, i) => { c.pos = lugar[i]; });
+    lista.forEach((r, i) => { const p = escena().querySelector(`[data-pie="${i}"]`); if (p) p.textContent = modo === 1 ? `#${lugar[i] + 1}` : fechaChica(r.fecha); });
+    if (reiniciar) { foco = modo === 1 ? 0 : lista.length - 1; velocidad = 0; }
+    if (reiniciar && reducido) focoVisual = foco;
+    focoMostrado = -1;
+  }
+
+  function altura(r) {
+    if (ciudad == null || r.indice == null) return 0;
+    return Math.max(-TOPE, Math.min(TOPE, -(r.indice - ciudad) * PUNTOS_A_PX));
   }
 
   function cuadro(ahora) {
     if (!animando) return;
     const dt = Math.min(0.05, (ahora - (ultimo || ahora)) / 1000); ultimo = ahora;
-    const n = lista.length, ancho = escena().clientWidth || 393;
-    // inercia del arrastre + imán al número entero más cercano
+    const n = lista.length, k = reducido ? 1 : Math.min(1, dt * 8);
+    // inercia del arrastre + imán a la foto más cercana
     if (!arrastre) {
       foco += velocidad * dt; velocidad *= Math.pow(0.04, dt);
       if (Math.abs(velocidad) < 0.4) foco += (Math.round(foco) - foco) * Math.min(1, dt * 8);
-      quieto += dt;
-      // si nadie la toca, la onda avanza sola una foto cada 3 s (solo en "Tu onda")
-      if (!reducido && modo === 0 && quieto > 3.2) { foco = Math.round(foco) + 1; quieto = 0.4; }
     }
-    if (modo === 1) foco = Math.max(0, Math.min(n - 1, foco));
-    focoVisual += (circular(foco) - focoVisual) * Math.min(1, dt * 7);
-    modoVisual += (modo - modoVisual) * Math.min(1, dt * 3.2);
-    if (!reducido) fase += dt * (0.55 - 0.35 * modoVisual);    // la onda respira
-    entrada = Math.min(1, entrada + dt * 0.9);
-    tarjetas.forEach((el, i) => {
-      const p = posiciones(i, n, ancho);
-      // entrada: las fotos salen de un mazo en el centro y se despliegan
-      const e = suave(Math.max(0, Math.min(1, entrada * 1.9 - i / Math.max(n, 1) * 0.9)));
-      const x = p.x * e, y = p.y * e + (1 - e) * 30, s = p.s * (0.6 + 0.4 * e);
-      el.style.transform = `translate3d(${x}px, ${y}px, ${p.z}px) rotateY(${p.ry * e}deg) rotateZ(${p.rz * e + (1 - e) * (i % 2 ? 6 : -6)}deg) scale(${s}) scaleY(${p.h})`;
-      el.style.opacity = e;
-      el.style.zIndex = Math.round(100 + p.z);
+    foco = Math.max(0, Math.min(n - 1, foco));
+    focoVisual += (foco - focoVisual) * (reducido ? 1 : Math.min(1, dt * 7));
+    const puntos = [];
+    capsulas.forEach((c, i) => {
+      const d = c.pos - focoVisual, cerca = Math.exp(-(d * d) / 0.5);
+      c.x += (d * PASO - c.x) * k;
+      c.y += (altura(lista[i]) - c.y) * k;
+      // entrada: las fotos suben desde la línea, de a una
+      c.entrada = Math.min(1, c.entrada + dt * 2.2 * (reducido ? 10 : 1));
+      const e = 1 - Math.pow(1 - Math.max(0, Math.min(1, c.entrada * 1.6 - c.pos / Math.max(n, 1) * 0.6)), 3);
+      c.el.style.transform = `translate(${c.x}px, ${c.y * e}px) scale(${1 + cerca * 0.08})`;
+      c.el.style.opacity = e;
+      c.el.style.zIndex = Math.round(100 + cerca * 50);
+      puntos[c.pos] = [c.x, c.y * e];
     });
+    dibujarCamino(puntos);
     actualizarFoco();
     requestAnimationFrame(cuadro);
   }
-  const suave = x => 1 - Math.pow(1 - x, 3);
-  // En "Tu onda" el foco da la vuelta; el valor visual sigue al más cercano sin saltar
-  function circular(f) {
-    if (modo === 1) return f;
-    const n = lista.length; let d = ((f - focoVisual) % n + n) % n; if (d > n / 2) d -= n;
-    return focoVisual + d;
+
+  // La línea fina que une las fotos, en el orden del modo
+  function dibujarCamino(puntos) {
+    const svg = $('#onda-camino'), w = svg.clientWidth / 2, h = svg.clientHeight / 2;
+    svg.querySelector('polyline').setAttribute('points', puntos.filter(Boolean).map(([x, y]) => `${(w + x).toFixed(1)},${(h + y).toFixed(1)}`).join(' '));
   }
-  const indiceFoco = () => ((Math.round(focoVisual) % lista.length) + lista.length) % lista.length;
+
+  const indiceFoco = () => orden[Math.max(0, Math.min(lista.length - 1, Math.round(focoVisual)))];
 
   let focoMostrado = -1;
   function actualizarFoco() {
     const i = indiceFoco();
     if (i === focoMostrado) return;
     focoMostrado = i;
-    tarjetas.forEach((el, j) => el.classList.toggle('foto-onda--foco', j === i));
-    const r = lista[i];
+    capsulas.forEach((c, j) => c.el.classList.toggle('capsula--foco', j === i));
+    const r = lista[i], dif = ciudad != null && r.indice != null ? r.indice - ciudad : null;
     $('#archivo-foco').innerHTML = `
-      <span class="archivo-foco__fecha">${r.ejemplo ? '<b class="etiqueta-ejemplo">Ejemplo</b>' : r.propio ? '<b class="etiqueta-propia">Tuyo</b>' : ''}${fechaCorta(r.fecha)} · ${horaCorta(r.fecha)}</span>
+      <span class="archivo-foco__fecha">${r.ejemplo ? '<b class="etiqueta-ejemplo">Ejemplo</b>' : r.propio ? '<b class="etiqueta-propia">Tuyo</b>' : ''}${modo === 1 ? `#${capsulas[i].pos + 1}/${lista.length} · ` : ''}${fechaCorta(r.fecha)} · ${horaCorta(r.fecha)}</span>
       <span class="archivo-foco__lugar">${escapar(r.lugar)}</span>
-      <span class="archivo-foco__datos">${conComa(r.km)} km · ${r.indice != null ? r.indice + '% respirable' : 'calculando…'}</span>`;
+      <span class="archivo-foco__datos">${conComa(r.km)} km · ${r.indice != null ? r.indice + '% respirable' : 'calculando…'}${dif != null ? ` · <b class="archivo-foco__vs${dif < 0 ? ' archivo-foco__vs--menos' : ''}">${dif > 0 ? '+' : dif < 0 ? '−' : ''}${Math.abs(dif)} vs. CABA</b>` : ''}</span>`;
   }
 
-  /* ---------- 5. Lo que acompaña a la onda ---------- */
+  /* ---------- 5. Lo que acompaña al gráfico ---------- */
   function dibujarResumen() {
     const lugares = new Set(lista.map(r => r.lugar)).size, km = lista.reduce((s, r) => s + (+r.km || 0), 0);
     $('#archivo-resumen').innerHTML = `
-      <div class="dato"><b>${lista.length}</b><span>recorridos</span></div>
-      <div class="dato"><b>${lugares}</b><span>lugares</span></div>
+      <div class="dato"><b>${lista.length}</b><span>${lista.length === 1 ? 'recorrida' : 'recorridas'}</span></div>
+      <div class="dato"><b>${lugares}</b><span>${lugares === 1 ? 'lugar' : 'lugares'}</span></div>
       <div class="dato"><b>${conComa(km)}</b><span>kilómetros</span></div>`;
   }
   function dibujarValores() {
-    lista.forEach((r, i) => { const v = escena().querySelector(`[data-valor="${i}"]`); if (v) v.textContent = r.indice != null ? r.indice : ''; });
+    lista.forEach((r, i) => { const v = escena().querySelector(`[data-valor="${i}"]`); if (v) v.textContent = r.indice != null ? r.indice + '%' : ''; });
   }
   function dibujarLinea() {
-    const l = $('#onda-ciudad');
-    l.querySelector('span').textContent = ciudad != null ? `Promedio de las calles de CABA · ${ciudad}%` : 'Promedio de las calles de CABA';
-  }
-  function dibujarPie() {
-    const mios = lista.filter(r => r.propio).length, ej = lista.filter(r => r.ejemplo).length;
-    const arriba = ciudad == null ? null : lista.filter(r => r.indice != null && r.indice > ciudad).length;
-    $('#archivo-nota').innerHTML = modo === 1
-      ? (arriba == null ? 'Calculando la respirabilidad de cada lugar con las calles de la Ciudad…'
-        : `<b>${arriba} de ${lista.length}</b> recorridos quedan arriba del promedio de la Ciudad: ahí respiraste mejor que en la calle típica de CABA. La altura de cada foto es la respirabilidad de las calles a 400 m (dato calculado) y su largo, los km.`)
-      : ej ? `Por ahora ves ${ej} recorridos de ejemplo${mios ? ` y ${mios} tuyo${mios > 1 ? 's' : ''}` : ''}. Cuando termines uno y te saques una foto, se suma a la onda.`
-        : 'Arrastrá la onda para recorrer tu historial. Tocá una foto para ver ese lugar y tus datos.';
+    $('#onda-ciudad span').textContent = ciudad != null ? `Calle promedio de CABA · ${ciudad}%` : 'Calle promedio de CABA';
   }
   function cambiarModo(m) {
-    modo = m; quieto = 0;
-    if (m === 1) { foco = indiceFoco(); focoVisual = foco + (focoVisual - Math.round(focoVisual)); }
+    if (m === modo && capsulas.length) return;
+    modo = m;
     $$('#archivo-modos [data-modo]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.modo === m)));
-    $('#onda').classList.toggle('onda--grafico', m === 1);
-    dibujarPie();
+    ordenar(true);
   }
   $('#archivo-modos').addEventListener('click', e => { const b = e.target.closest('[data-modo]'); if (b) cambiarModo(+b.dataset.modo); });
 
-  /* ---------- 6. Arrastrar, tocar y teclado ---------- */
+  /* ---------- 6. Deslizar, tocar y teclado ----------
+     Tocar una foto la trae al centro; tocar la del centro repite ese recorrido. */
   const onda = $('#onda');
   onda.addEventListener('pointerdown', e => {
-    arrastre = { x: e.clientX, x0: e.clientX, t: performance.now(), foco, movio: false, id: e.pointerId };
-    velocidad = 0; quieto = 0;
+    arrastre = { x: e.clientX, x0: e.clientX, t: performance.now(), movio: false, id: e.pointerId };
+    velocidad = 0;
   });
   onda.addEventListener('pointermove', e => {
     if (!arrastre || e.pointerId !== arrastre.id) return;
     const dx = e.clientX - arrastre.x, ahora = performance.now();
     if (Math.abs(e.clientX - arrastre.x0) > 6 && !arrastre.movio) { arrastre.movio = true; try { onda.setPointerCapture(e.pointerId); } catch (_) {} }
     if (!arrastre.movio) return;
-    const paso = modo === 1 ? 22 : 28;
-    foco -= dx / paso;
-    velocidad = -dx / paso / Math.max(0.008, (ahora - arrastre.t) / 1000);
+    foco -= dx / PASO;
+    velocidad = -dx / PASO / Math.max(0.008, (ahora - arrastre.t) / 1000);
     arrastre.x = e.clientX; arrastre.t = ahora;
   });
-  const soltar = e => {
+  onda.addEventListener('pointerup', e => {
     if (!arrastre) return;
-    const tocado = !arrastre.movio && e.target.closest && e.target.closest('.foto-onda');
-    arrastre = null; quieto = 0;
-    if (tocado) {
-      const i = +tocado.dataset.i;
-      if (i === indiceFoco()) abrirFicha(i);
-      else {
-        const n = lista.length; let d = ((i - focoVisual) % n + n) % n; if (d > n / 2) d -= n;
-        foco = modo === 1 ? i : focoVisual + d; velocidad = 0;
-      }
-    }
-  };
-  onda.addEventListener('pointerup', soltar);
+    const tocada = !arrastre.movio && e.target.closest && e.target.closest('.capsula');
+    arrastre = null;
+    if (!tocada) return;
+    const i = +tocada.dataset.i;
+    if (i === indiceFoco()) repetir(lista[i]);
+    else { foco = capsulas[i].pos; velocidad = 0; }
+  });
   onda.addEventListener('pointercancel', () => { arrastre = null; });
   onda.addEventListener('keydown', e => {
-    if (e.key === 'ArrowRight') { foco = Math.round(foco) + 1; quieto = 0; }
-    else if (e.key === 'ArrowLeft') { foco = Math.round(foco) - 1; quieto = 0; }
-    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrirFicha(indiceFoco()); }
+    if (e.key === 'ArrowRight') foco = Math.round(foco) + 1;
+    else if (e.key === 'ArrowLeft') foco = Math.round(foco) - 1;
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); repetir(lista[indiceFoco()]); }
   });
 
-  /* ---------- 7. Ficha del lugar ---------- */
-  let fichaAbierta = null;
-  function abrirFicha(i) {
-    const r = lista[i]; fichaAbierta = r;
-    const v = r.indice;
-    $('#ficha').innerHTML = `
-      <div class="ficha__foto${r.foto ? '' : ' ficha__foto--postal'}" ${fondo(r)}>${r.foto ? '' : dibujoTrazo(r.trazo, 'postal__dibujo--grande')}</div>
-      <span class="ficha__fecha">${fechaCorta(r.fecha)} · ${horaCorta(r.fecha)}</span>
-      <button class="ficha__cerrar" id="cerrar-ficha" aria-label="Cerrar">${icono('cerrar')}</button>
-      <div class="ficha__panel">
-        ${r.ejemplo ? '<span class="etiqueta-ejemplo">Recorrido de ejemplo</span>' : ''}
-        <h2 class="ficha__lugar">${escapar(r.lugar)}</h2>
-        <p class="ficha__sub">${escapar(r.sub || '')}</p>
-        ${r.desc ? `<p class="ficha__desc">${escapar(r.desc)}</p>` : ''}
-        <div class="ficha__datos">
-          <div><b>${conComa(r.km, 2)}<small>km</small></b><span>Distancia</span></div>
-          <div><b>${r.min ?? '–'}<small>min</small></b><span>Tiempo</span></div>
-          <div><b>${v ?? '–'}<small>%</small></b><span>Respirabilidad ${ayuda(r.ejemplo ? 'Promedio del índice de las calles a 400 m del lugar. Lo calcula la app con los datasets, no la IA.' : 'Índice del recorrido que corriste, calculado tramo por tramo con los datasets.')}</span>
-            <i class="ficha__barra"><i style="width:${v ?? 0}%"></i></i></div>
-        </div>
-        ${ciudad != null && v != null ? `<p class="ficha__comparacion">${v > ciudad ? `${v - ciudad} puntos <b>más respirable</b> que la calle promedio de CABA (${ciudad}%).` : v < ciudad ? `${ciudad - v} puntos por debajo de la calle promedio de CABA (${ciudad}%).` : `Igual que la calle promedio de CABA (${ciudad}%).`}</p>` : ''}
-        <div class="ficha__chips">
-          ${r.polen ? `<span class="chip-dato">Polen ${r.polen}</span>` : ''}
-          ${r.sensacion && SENSACION[r.sensacion] ? `<span class="chip-dato">${SENSACION[r.sensacion]}</span>` : ''}
-        </div>
-      </div>
-      <button class="boton ficha__repetir" id="repetir-ficha">Repetir este trayecto ${icono('repetir')}</button>`;
-    $('#ficha-fondo').hidden = false;
-    requestAnimationFrame(() => $('#ficha-fondo').classList.add('abierta'));
-    $('#cerrar-ficha').addEventListener('click', cerrarFicha);
-    $('#repetir-ficha').addEventListener('click', () => repetir(r));
-    $('#cerrar-ficha').focus();
-  }
-  function cerrarFicha() {
-    const f = $('#ficha-fondo'); if (f.hidden) return false;
-    f.classList.remove('abierta'); setTimeout(() => { f.hidden = true; }, 300); fichaAbierta = null;
-    return true;
-  }
-  $('#ficha-fondo').addEventListener('click', e => { if (e.target.id === 'ficha-fondo') cerrarFicha(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarFicha(); });
-  globalThis.cerrarFichaArchivo = cerrarFicha;
-
-  // Repetir: un recorrido propio vuelve con su búsqueda; un ejemplo, como vuelta desde ese lugar con los mismos km.
+  /* ---------- 7. Repetir: te llevamos directo ----------
+     Un recorrido propio vuelve con su búsqueda; un ejemplo, como vuelta desde ese lugar con los mismos km. */
   function repetir(r) {
-    cerrarFicha();
     const c = r.corrida;
     if (c) {
       Object.assign(estado.busqueda, c.busqueda, { programar: false });
@@ -297,13 +237,15 @@
 
   /* ---------- 8. Abrir y cerrar la pantalla ---------- */
   alMostrar.archivo = () => {
-    cambiarModo(0);
+    modo = 0;
+    $$('#archivo-modos [data-modo]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.modo === 0)));
     armar();
+    focoVisual = foco;
     if (!animando) { animando = true; ultimo = 0; requestAnimationFrame(cuadro); }
     $('#onda').focus({ preventScroll: true });
   };
   // La animación se apaga cuando se sale de la pantalla
-  new MutationObserver(() => { if ($('#archivo').hidden) { animando = false; cerrarFicha(); } }).observe($('#archivo'), { attributes: true, attributeFilter: ['hidden'] });
+  new MutationObserver(() => { if ($('#archivo').hidden) animando = false; }).observe($('#archivo'), { attributes: true, attributeFilter: ['hidden'] });
 
   /* ---------- 9. Las mismas fotos, en chico, en otras pantallas ---------- */
   // Abanico de fotos: inicio (tarjeta "Tu archivo"), comentario ("Sumá esta corrida") y guardado.

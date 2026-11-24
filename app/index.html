@@ -216,7 +216,7 @@
     <button class="tarjeta-accion tarjeta-accion--archivo" data-ir="archivo">
       <span class="tarjeta-accion__fila">
         <span class="tarjeta-accion__icono"><svg class="icono"><use href="#i-camara"/></svg></span>
-        <span class="tarjeta-accion__textos"><span class="tarjeta-accion__titulo">Tu archivo</span><span class="tarjeta-accion__descripcion">Tus recorridos terminados, con foto y datos.</span></span>
+        <span class="tarjeta-accion__textos"><span class="tarjeta-accion__titulo">Tus recorridas</span><span class="tarjeta-accion__descripcion">Tus fotos y tu ranking de respirabilidad.</span></span>
         <svg class="icono"><use href="#i-derecha"/></svg>
       </span>
       <span class="abanico abanico--inicio" id="abanico-inicio" aria-hidden="true"></span>
@@ -240,27 +240,27 @@
   </div>
 </section>
 
-<!-- 05d · Tu archivo (pirueta v12): la onda de fotos de tus recorridos -->
+<!-- 05d · Tus recorridas (pirueta v12; v15: corridas y ranking): el gráfico de fotos de tus recorridos -->
 <section class="pantalla pantalla--archivo" id="archivo" data-encabezado hidden>
   <div class="contenido contenido--archivo">
     <div class="encabezado">
-      <h1 class="titulo">Tu archivo</h1>
-      <p class="cuerpo">Cada recorrido que terminás suma una foto a tu onda. Arrastrala para recorrer tu historial y tocá la foto del centro para ver ese lugar.</p>
+      <h1 class="titulo">Tus recorridas</h1>
+      <p class="cuerpo">Cada recorrida que terminás suma una foto. <b>Cuanto más arriba está la foto, mejor respiraste</b> comparado con la calle promedio de CABA.</p>
     </div>
+    <p class="aviso-repetir"><svg class="icono"><use href="#i-repetir"/></svg><span><b>Deslizá y tocá la foto del centro</b> para repetir ese recorrido: te llevamos directo.</span></p>
     <div class="datos-fila datos-fila--archivo" id="archivo-resumen"></div>
-    <div class="segmentos" id="archivo-modos" role="group" aria-label="Cómo ver tu archivo">
-      <button class="segmento" data-modo="0" aria-pressed="true">Tu onda</button>
-      <button class="segmento" data-modo="1" aria-pressed="false">Tu respiración</button>
+    <div class="segmentos" id="archivo-modos" role="group" aria-label="Cómo ver tus recorridas">
+      <button class="segmento" data-modo="0" aria-pressed="true">Tus corridas</button>
+      <button class="segmento" data-modo="1" aria-pressed="false">Tu ranking</button>
     </div>
-    <div class="onda" id="onda" tabindex="0" aria-label="Fotos de tus recorridos. Flechas para moverte, Enter para abrir.">
-      <div class="onda__ciudad" id="onda-ciudad" aria-hidden="true"><span>Promedio de las calles de CABA</span></div>
-      <div class="onda__eje" aria-hidden="true"><span>más respirable</span><span>menos respirable</span></div>
+    <div class="onda" id="onda" tabindex="0" aria-label="Fotos de tus recorridas. Flechas para moverte, Enter para repetir la del centro.">
+      <div class="onda__eje" aria-hidden="true"><span>Respiraste mejor</span><span>Respiraste peor</span></div>
+      <div class="onda__ciudad" id="onda-ciudad" aria-hidden="true"><span>Calle promedio de CABA</span></div>
+      <svg class="onda__camino" id="onda-camino" aria-hidden="true"><polyline/></svg>
       <div class="onda__escena" id="onda-escena"></div>
     </div>
     <div class="archivo-foco" id="archivo-foco" aria-live="polite"></div>
-    <p class="nota archivo-nota" id="archivo-nota"></p>
   </div>
-  <div class="ficha-fondo" id="ficha-fondo" hidden><div class="ficha" id="ficha" role="dialog" aria-modal="true" aria-label="Ficha del lugar"></div></div>
 </section>
 
 <!-- 05c · Respira challenge (frame 05c de "RESPIRA FINAL?"): escribí una palabra corriendo, una letra por día.
@@ -604,7 +604,7 @@
       <button class="menu__item" type="button" data-menu-ir="inicio"><span class="menu__textos"><span class="menu__titulo">Inicio</span></span><span class="menu__icono"><svg class="icono"><use href="#i-hoja"/></svg></span></button>
       <button class="menu__item" type="button" data-menu-ir="definir"><span class="menu__textos"><span class="menu__titulo">Armá tu recorrido</span></span><span class="menu__icono"><svg class="icono"><use href="#i-ruta"/></svg></span></button>
       <button class="menu__item" type="button" data-menu-ir="repetir"><span class="menu__textos"><span class="menu__titulo">Repetí un trayecto</span></span><span class="menu__icono"><svg class="icono"><use href="#i-repetir"/></svg></span></button>
-      <button class="menu__item" type="button" data-menu-ir="archivo"><span class="menu__textos"><span class="menu__titulo">Tu archivo</span></span><span class="menu__icono"><svg class="icono"><use href="#i-camara"/></svg></span></button>
+      <button class="menu__item" type="button" data-menu-ir="archivo"><span class="menu__textos"><span class="menu__titulo">Tus recorridas</span></span><span class="menu__icono"><svg class="icono"><use href="#i-camara"/></svg></span></button>
       <button class="menu__item" type="button" data-menu-ir="challenge"><span class="menu__textos"><span class="menu__titulo">Respira challenge</span><span class="menu__dato" id="menu-dato-challenge">Una letra por día</span></span><span class="menu__icono"><svg class="icono"><use href="#i-letra"/></svg></span></button>
     </div>
     <div class="menu__semana" id="menu-semana"></div>

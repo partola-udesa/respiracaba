@@ -12,6 +12,13 @@ Copia fija de la app a partir de v14. Exploración: punto medio entre el menú l
 - Se cierra con la ✕ (mismo lugar que el botón ☰, con el aro lima), tocando el fondo, deslizando a la derecha o con Esc.
 - No está en Figma: se diseñó con las piezas del sistema (vidrio, lima, superficie oscura).
 - **Pin de "Marcá en el mapa" más chico y minimalista**: cabeza redonda oscura con brillo lima y aguja fina (20 × 36 px, antes una gota lima de 48 × 64 que tapaba las calles). La punta de la aguja es el punto elegido; afuera de CABA la cabeza se pone roja.
+- **Zoom en todos los mapas**: botones + / − (acercar y alejar) en Marcá en el mapa, Tus recorridos ideales, Recorrido elegido, En recorrido, Completado y Tu palabra en la Ciudad (`RespiraMapa.botonesZoom` en `mapa.js`). En los mapas de pantalla completa van a la derecha, debajo de lo que flota arriba; en los chicos, en la esquina del mapa. Se apagan en el zoom máximo o mínimo. Las miniaturas de las letras del challenge no llevan (son tarjetas para tocar, no mapas para explorar).
+- **Tu archivo pasa a ser "Tus recorridas"** (pantalla, tarjeta del inicio y menú), como en la referencia:
+  - Texto: "Cuanto más arriba está la foto, mejor respiraste comparado con la calle promedio de CABA", aviso lima "Deslizá y tocá la foto del centro para repetir ese recorrido" y datos "recorridas · lugares · kilómetros".
+  - Pestañas **Tus corridas** (por fecha, empieza en la más reciente) y **Tu ranking** (de la más respirable a la menos, empieza en la #1). Reemplazan a "Tu onda" y "Tu respiración": sale la cinta 3D y queda solo el gráfico.
+  - Cada foto lleva su % arriba (el del centro en oscuro) y la fecha o el puesto (#1, #2…) abajo, unidas por una línea fina. La altura respecto de la línea punteada es la respirabilidad comparada con la calle promedio de CABA; eje "Respiraste mejor / peor".
+  - Abajo: lugar, km, % respirable y **"+8 vs. CABA"** (en ranking, "#1/12").
+  - **Tocar la foto del centro repite ese recorrido directo** (sale la ficha del lugar). Tocar otra foto la trae al centro; con teclado, flechas y Enter.
 
 ## Pendiente
 - Probar en el celular (rendimiento del desenfoque sobre el mapa y el gesto de deslizar).

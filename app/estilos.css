@@ -328,6 +328,19 @@ input, textarea, select { font: inherit; font-size: 16px; color: var(--texto-1);
 .leaflet-tile-pane { filter: saturate(.42) sepia(.12) hue-rotate(40deg) brightness(1.03) contrast(.9); }   /* OSM atenuado: más cerca de la paleta de Figma */
 .leaflet-control-attribution { background: rgba(255,255,255,.55) !important; color: var(--texto-3) !important; font-size: 9px; }
 .leaflet-control-attribution a { color: var(--texto-2) !important; }
+/* v15 · Zoom (+ / −): píldora vertical de vidrio a la derecha, debajo de lo que flota arriba */
+.zoom { position: absolute; z-index: 3; right: var(--e16); top: calc(var(--seguro-arriba) + var(--alto-encabezado) + 76px); display: flex; flex-direction: column;
+  border-radius: var(--radio-boton); background: rgba(255,255,255,.85); border: 1px solid rgba(16,32,15,.1); box-shadow: 0 6px 16px var(--sombra);
+  backdrop-filter: var(--desenfoque); -webkit-backdrop-filter: var(--desenfoque); overflow: hidden; }
+.zoom__boton { width: 46px; height: 46px; display: grid; place-items: center; color: var(--acento-tinta); }
+.zoom__boton + .zoom__boton { border-top: 1px solid var(--linea); }
+.zoom__boton:active { background: var(--acento-suave); }
+.zoom__boton:disabled { color: var(--texto-3); opacity: .5; cursor: default; }
+.zoom--chico { top: var(--e8); right: var(--e8); z-index: 1000; }   /* dentro del mapa: por encima de las capas de Leaflet */
+.zoom--chico .zoom__boton { width: 36px; height: 36px; }
+.zoom--chico .icono { width: 18px; height: 18px; }
+.mapa--girado > .zoom { display: none; }   /* el mapa chico girado se agranda y los botones quedarían afuera */
+.elegir-punto > .zoom { top: calc(var(--seguro-arriba) + 76px); }
 .leaflet-control-zoom { display: none; }
 .ruta-brillo { filter: blur(6px); }
 .ruta-dibujo { animation: dibujar 1.8s .15s var(--curva) both; }
@@ -657,10 +670,8 @@ input, textarea, select { font: inherit; font-size: 16px; color: var(--texto-1);
 .componente__dato { color: var(--texto-1); font-weight: 600; }
 .etiqueta-calculado { margin-left: 6px; padding: 2px 8px; border-radius: var(--radio-boton); background: rgba(16,32,15,.06); border: 1px solid var(--vidrio-borde); color: var(--texto-2); font-size: 10px; letter-spacing: .06em; }
 
-/* ---------- 25. v12 · TU ARCHIVO (pirueta) ----------
-   Inspiración: cintas de fotos en 3D (WAUI, cápsulas en onda, anillo de Framer). Las fotos son cápsulas verticales
-   que viajan por una onda que respira; en "Tu respiración" la onda se vuelve un gráfico. */
-.contenido--archivo { gap: var(--e16); overflow-x: hidden; }
+/* ---------- 25. v12 · TUS RECORRIDAS (pirueta; v15: corridas y ranking) ---------- */
+.contenido--archivo { gap: var(--e12); overflow-x: hidden; }
 .datos-fila--archivo { padding: var(--e12) 0; }
 .datos-fila--archivo .dato b { font-size: 22px; font-weight: 600; }
 .segmentos { align-self: flex-start; display: inline-flex; gap: 4px; padding: 4px; border-radius: var(--radio-boton); background: rgba(16,32,15,.06); }
@@ -668,32 +679,34 @@ input, textarea, select { font: inherit; font-size: 16px; color: var(--texto-1);
 .segmento[aria-pressed="true"] { background: var(--oscuro); color: var(--acento); }
 .segmento[aria-pressed="true"]::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 8px; border-radius: 50%; background: var(--acento); vertical-align: 2px; }
 
-.onda { position: relative; height: 330px; margin: 0 calc(var(--e24) * -1); perspective: 900px; perspective-origin: 50% 40%;
-  touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; outline: none; flex: none; }
+/* v15 · El gráfico de fotos: "Tus corridas" (por fecha) y "Tu ranking" (de la más respirable a la menos).
+   La altura de cada cápsula respecto de la línea punteada es la respirabilidad comparada con CABA. */
+.aviso-repetir { margin: 0; display: flex; align-items: center; gap: var(--e12); padding: var(--e12) var(--e20); border-radius: var(--radio-tarjeta);
+  background: var(--acento); color: var(--acento-texto); font-size: 14px; line-height: 1.35; }
+.aviso-repetir b { font-weight: 700; }
+.contenido--archivo .cuerpo b { color: var(--texto-1); font-weight: 700; }
+.onda { position: relative; height: 290px; margin: 0 calc(var(--e24) * -1); touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; outline: none; flex: none; }
 .onda:active { cursor: grabbing; }
-.onda:focus-visible .foto-onda--foco { box-shadow: 0 0 0 3px var(--acento-tinta), 0 16px 34px rgba(16,32,15,.32); }
-.onda__escena { position: absolute; inset: 0; transform-style: preserve-3d; }
-.foto-onda { position: absolute; left: 50%; top: 50%; width: 46px; height: 150px; margin: -75px 0 0 -23px; border-radius: 23px;
-  background: var(--oscuro) center / cover no-repeat; box-shadow: 0 10px 24px rgba(16,32,15,.22); will-change: transform, opacity;
-  backface-visibility: visible; overflow: hidden; outline: none; transition: box-shadow .3s, filter .3s; filter: saturate(.92); }
-.foto-onda::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); pointer-events: none; }
-.foto-onda--foco { filter: none; box-shadow: 0 0 0 2.5px var(--acento), 0 16px 34px rgba(16,32,15,.32); }
-.foto-onda--propia::before { content: ""; position: absolute; z-index: 1; top: 8px; left: 50%; width: 7px; height: 7px; margin-left: -3.5px; border-radius: 50%; background: var(--acento); box-shadow: 0 0 0 2px rgba(16,32,15,.4); }
-.foto-onda--postal, .mini-foto.foto-onda--postal { background: radial-gradient(120% 80% at 50% 0%, #2B4A30, var(--oscuro)); }
-.postal { position: absolute; inset: 0; display: grid; place-items: center; }
-.postal__dibujo { width: 80%; height: 80%; fill: none; stroke: var(--acento); stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 4px rgba(200,241,105,.6)); }
-.postal__dibujo path { fill: none; }
-/* número de respirabilidad: solo en "Tu respiración" */
-.foto-onda__valor { position: absolute; z-index: 2; left: 50%; top: 6px; transform: translateX(-50%) scale(1.5); transform-origin: top center; min-width: 30px; padding: 2px 5px; border-radius: var(--radio-boton);
-  background: rgba(255,255,255,.92); color: var(--acento-texto); font-size: 11px; font-weight: 700; text-align: center; opacity: 0; transition: opacity .4s; }
-.foto-onda__valor:empty { display: none; }
-.onda--grafico .foto-onda__valor { opacity: 1; }
-/* línea del promedio de CABA y eje: solo en "Tu respiración" */
-.onda__ciudad, .onda__eje { position: absolute; pointer-events: none; opacity: 0; transition: opacity .6s .2s; }
-.onda--grafico .onda__ciudad, .onda--grafico .onda__eje { opacity: 1; }
-.onda__ciudad { left: var(--e16); right: var(--e16); top: 50%; border-top: 1.5px dashed rgba(16,32,15,.45); }
-.onda__ciudad span { position: absolute; z-index: 300; left: 0; top: 6px; padding: 2px 8px; border-radius: var(--radio-boton); background: var(--fondo); font-size: 11px; font-weight: 600; color: var(--texto-2); }
-.onda__eje { left: var(--e16); top: 6px; bottom: 6px; display: flex; flex-direction: column; justify-content: space-between; font-size: 10px; font-weight: 600; color: var(--texto-3); text-transform: uppercase; letter-spacing: .06em; }
+.onda__escena, .onda__camino { position: absolute; inset: 0; }
+.onda__camino { width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.onda__camino polyline { fill: none; stroke: rgba(156, 197, 74, .55); stroke-width: 2; stroke-linejoin: round; }
+.capsula { position: absolute; left: 50%; top: 50%; width: 48px; height: 112px; margin: -56px 0 0 -24px; will-change: transform, opacity; }
+.capsula__foto { position: absolute; inset: 0; border-radius: 24px; background: var(--oscuro) center / cover no-repeat; overflow: hidden;
+  box-shadow: 0 10px 22px rgba(16,32,15,.22); transition: box-shadow .3s; }
+.capsula__foto::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); pointer-events: none; }
+.capsula--foco .capsula__foto { box-shadow: 0 0 0 3px var(--acento-tinta), 0 14px 30px rgba(16,32,15,.32); }
+.onda:focus-visible .capsula--foco .capsula__foto { box-shadow: 0 0 0 3px var(--acento-tinta), 0 0 0 6px var(--acento), 0 14px 30px rgba(16,32,15,.32); }
+.capsula--propia .capsula__foto::before { content: ""; position: absolute; z-index: 1; top: 8px; left: 50%; width: 7px; height: 7px; margin-left: -3.5px; border-radius: 50%; background: var(--acento); box-shadow: 0 0 0 2px rgba(16,32,15,.4); }
+.capsula__valor { position: absolute; left: 50%; bottom: calc(100% + 6px); transform: translateX(-50%); padding: 2px 7px; border-radius: var(--radio-boton); white-space: nowrap;
+  background: rgba(255,255,255,.95); box-shadow: 0 2px 8px rgba(16,32,15,.12); color: var(--texto-1); font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; transition: background .25s, color .25s; }
+.capsula__valor:empty { display: none; }
+.capsula--foco .capsula__valor { background: var(--oscuro); color: var(--acento); }
+.capsula__pie { position: absolute; left: 50%; top: calc(100% + 6px); transform: translateX(-50%); white-space: nowrap; font-size: 11px; font-weight: 600; color: var(--texto-3); }
+/* línea de la calle promedio de CABA y el eje */
+.onda__ciudad, .onda__eje { position: absolute; pointer-events: none; }
+.onda__ciudad { left: 0; right: 0; top: 50%; border-top: 1.5px dashed rgba(16,32,15,.4); }
+.onda__ciudad span { position: absolute; left: var(--e24); top: 8px; padding: 2px 8px; border-radius: var(--radio-boton); background: rgba(255,255,255,.92); border: 1px solid var(--vidrio-borde); font-size: 11px; font-weight: 600; color: var(--texto-1); }
+.onda__eje { left: var(--e24); top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: space-between; font-size: 10px; font-weight: 700; color: var(--texto-3); text-transform: uppercase; letter-spacing: .06em; }
 .onda__eje span:first-child::before { content: "↑ "; } .onda__eje span:last-child::before { content: "↓ "; }
 .onda__eje span:first-child { color: var(--acento-tinta); }
 
@@ -701,43 +714,16 @@ input, textarea, select { font: inherit; font-size: 16px; color: var(--texto-1);
 .archivo-foco__fecha { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--texto-3); text-transform: capitalize; }
 .archivo-foco__lugar { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
 .archivo-foco__datos { font-size: 14px; color: var(--texto-2); font-variant-numeric: tabular-nums; }
+.archivo-foco__vs { color: var(--acento-tinta); font-weight: 700; }
+.archivo-foco__vs--menos { color: var(--texto-2); }
 .etiqueta-ejemplo, .etiqueta-propia { padding: 2px 7px; border-radius: var(--radio-boton); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .etiqueta-ejemplo { background: rgba(16,32,15,.07); color: var(--texto-2); }
 .etiqueta-propia { background: var(--acento); color: var(--acento-texto); }
-.archivo-nota { text-align: center; color: var(--texto-2); line-height: 1.5; }
-.archivo-nota b { color: var(--texto-1); }
-
-/* Ficha del lugar: la foto a pantalla casi completa con un panel de vidrio */
-.ficha-fondo { position: absolute; inset: 0; z-index: 20; padding: calc(var(--seguro-arriba) + 56px) var(--e16) calc(var(--e16) + var(--seguro-abajo));
-  background: rgba(231,236,226,.55); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); opacity: 0; transition: opacity .3s; display: flex; }
-.ficha-fondo.abierta { opacity: 1; }
-.ficha { position: relative; flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: var(--e12); border-radius: 40px; overflow: hidden;
-  padding: var(--e12); transform: scale(.88) translateY(20px); transition: transform .45s var(--curva); box-shadow: 0 30px 60px rgba(16,32,15,.35); }
-.ficha-fondo.abierta .ficha { transform: none; }
-.ficha__foto { position: absolute; inset: 0; background: var(--oscuro) center / cover no-repeat; }
-.ficha__foto--postal { display: grid; place-items: center; background: radial-gradient(120% 80% at 50% 0%, #2B4A30, var(--oscuro)); }
-.postal__dibujo--grande { width: 60%; height: 60%; stroke-width: 2; }
-.ficha__fecha { position: absolute; top: var(--e16); left: var(--e16); padding: 6px 12px; border-radius: var(--radio-boton); background: rgba(255,255,255,.92); font-size: 13px; font-weight: 600; text-transform: capitalize; }
-.ficha__cerrar { position: absolute; top: var(--e12); right: var(--e12); width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.92); color: var(--texto-1); }
-.ficha__panel { position: relative; display: flex; flex-direction: column; gap: 6px; padding: var(--e20); border-radius: 28px;
-  background: rgba(244,247,241,.82); backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%); border: 1px solid rgba(255,255,255,.6); }
-.ficha__panel .etiqueta-ejemplo { align-self: flex-start; }
-.ficha__lugar { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
-.ficha__sub { margin: 0; font-size: 14px; color: var(--texto-2); }
-.ficha__desc { margin: 4px 0 0; font-size: 14px; line-height: 1.45; color: var(--texto-1); }
-.ficha__datos { display: grid; grid-template-columns: 1fr 1fr 1.3fr; gap: var(--e8); padding-top: var(--e12); margin-top: 6px; border-top: 1px solid var(--linea); }
-.ficha__datos > div { display: flex; flex-direction: column; gap: 2px; }
-.ficha__datos b { font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
-.ficha__datos b small { font-size: 13px; font-weight: 500; color: var(--texto-2); margin-left: 3px; }
-.ficha__datos span { font-size: 12px; color: var(--texto-2); }
-.ficha__barra { display: block; height: 5px; margin-top: 4px; border-radius: 3px; background: var(--pista); overflow: hidden; }
-.ficha__barra i { display: block; height: 100%; border-radius: 3px; background: #5E9E3A; }
-.ficha__comparacion { margin: 4px 0 0; font-size: 13px; color: var(--texto-2); }
-.ficha__comparacion b { color: var(--acento-tinta); }
-.ficha__chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.ficha__chips:empty { display: none; }
-.ficha__chips .chip-dato { height: 30px; font-size: 12px; background: rgba(16,32,15,.06); backdrop-filter: none; }
-.ficha__repetir { position: relative; flex: none; }
+/* Postal: sin foto, la cápsula muestra el dibujo del recorrido en lima (gráfico y miniaturas) */
+.foto-onda--postal, .mini-foto.foto-onda--postal { background: radial-gradient(120% 80% at 50% 0%, #2B4A30, var(--oscuro)); }
+.postal { position: absolute; inset: 0; display: grid; place-items: center; }
+.postal__dibujo { width: 80%; height: 80%; fill: none; stroke: var(--acento); stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 4px rgba(200,241,105,.6)); }
+.postal__dibujo path { fill: none; }
 
 /* Abanico de fotos en miniatura (inicio, comentario y guardado) */
 .abanico { position: relative; display: flex; justify-content: center; align-items: center; }

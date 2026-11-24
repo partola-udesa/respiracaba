@@ -9,6 +9,7 @@
    - orientar(giro): v13 · gira el mapa para que una letra del Respira challenge se lea derecha
      (como en Figma: las calles quedan inclinadas y la letra parada). Con el mapa girado no se arrastra.
    - miniatura: el mapa chiquito de cada tarjeta del challenge (sin interacción, con la letra girada).
+   - botonesZoom: v15 · los botones + / − para acercar y alejar (todos los mapas menos las miniaturas).
    Uso:
      const mapa = RespiraMapa.crear(elemento, { interactivo, margenAbajo });
      mapa.mostrarRecorridos(opciones, { alElegir: i => … });
@@ -28,13 +29,53 @@
     return L.tileLayer(c.url, { attribution: c.atribucion, subdomains: 'abc', maxNativeZoom: c.zoom, maxZoom: 19, referrerPolicy: 'strict-origin-when-cross-origin' }).addTo(mapa);
   }
 
-  function crear(elemento, { interactivo = true, margenAbajo = 0, margenArriba = 0, atribucion = true, estilo = '' } = {}) {
+  /* v15 · Zoom: + acerca y − aleja, siempre sobre el centro de lo que se ve. En los mapas de pantalla completa
+     los botones van en la pantalla (así no giran con el mapa del challenge); en los chicos, dentro del mapa.
+     Al llegar al zoom máximo o mínimo el botón se apaga. */
+  function botonesZoom(mapa) {
+    const el = mapa.getContainer(), lugar = el.classList.contains('mapa--fondo') ? el.parentElement : el;
+    const caja = document.createElement('div');
+    caja.className = 'zoom' + (lugar === el ? ' zoom--chico' : '');
+    caja.innerHTML = `<button type="button" class="zoom__boton" data-zoom="1" aria-label="Acercar el mapa"><svg class="icono"><use href="#i-mas"/></svg></button>
+      <button type="button" class="zoom__boton" data-zoom="-1" aria-label="Alejar el mapa"><svg class="icono"><use href="#i-menos"/></svg></button>`;
+    L.DomEvent.disableClickPropagation(caja);
+    // Leaflet descarta un zoom pedido mientras el mapa todavía se mueve (dos toques seguidos, o justo después
+    // de arrastrar): el botón recuerda el zoom buscado y lo vuelve a pedir cuando el mapa termina.
+    let objetivo = null, reintento = 0, olvido = 0;
+    const limitar = z => Math.min(mapa.getMaxZoom(), Math.max(mapa.getMinZoom(), z));
+    const seguir = () => {
+      if (objetivo == null) return;
+      if (Math.abs(mapa.getZoom() - objetivo) < 0.01) { objetivo = null; return; }
+      if (!mapa._animatingZoom) mapa.setZoom(objetivo);
+    };
+    caja.addEventListener('click', e => {
+      const b = e.target.closest('[data-zoom]');
+      if (!b || b.disabled) return;
+      objetivo = limitar((objetivo ?? mapa.getZoom()) + Number(b.dataset.zoom));
+      seguir();
+      clearTimeout(reintento); clearTimeout(olvido);
+      reintento = setTimeout(seguir, 400);
+      olvido = setTimeout(() => { objetivo = null; }, 1000);   // después, el zoom con los dedos manda
+    });
+    const actualizar = () => {
+      const z = objetivo ?? mapa.getZoom();
+      caja.querySelector('[data-zoom="1"]').disabled = z >= mapa.getMaxZoom();
+      caja.querySelector('[data-zoom="-1"]').disabled = z <= mapa.getMinZoom();
+    };
+    mapa.on('zoomend', () => { seguir(); actualizar(); });
+    lugar.appendChild(caja);
+    actualizar();
+    return caja;
+  }
+
+  function crear(elemento, { interactivo = true, margenAbajo = 0, margenArriba = 0, atribucion = true, estilo = '', zoom = true } = {}) {
     const mapa = L.map(elemento, {
       zoomControl: false, attributionControl: atribucion, dragging: interactivo, scrollWheelZoom: interactivo,
       doubleClickZoom: interactivo, touchZoom: interactivo, boxZoom: false, keyboard: interactivo, zoomSnap: 0.25
     }).setView([-34.61, -58.44], 12);
     capaBase(mapa);
     if (atribucion) mapa.attributionControl.setPrefix(false);
+    if (zoom) botonesZoom(mapa);
     let capas = [], extras = L.layerGroup().addTo(mapa), rutas = [], elegida = -1, alElegir = () => {}, corredor = null, giro = null;
     let margenes = { abajo: margenAbajo, arriba: margenArriba };
 
@@ -170,12 +211,12 @@
 
   // Mapa chiquito de una tarjeta del challenge: la letra derecha sobre el mapa real (sin tocar)
   function miniatura(elemento, ruta, giro) {
-    const m = crear(elemento, { interactivo: false, atribucion: false, estilo: 'letra' });
+    const m = crear(elemento, { interactivo: false, atribucion: false, estilo: 'letra', zoom: false });
     m.ponerMargenes({ arriba: 6, abajo: 6 });
     m.orientar(giro);
     m.mostrarUno(ruta, { circular: true });   // solo el punto de inicio, como en el frame 05c
     return m;
   }
 
-  globalThis.RespiraMapa = { crear, miniatura, capaBase };
+  globalThis.RespiraMapa = { crear, miniatura, capaBase, botonesZoom };
 })();
