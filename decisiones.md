@@ -9,6 +9,13 @@ Qué probamos, qué descartamos y por qué. La entrada más nueva va arriba.
 - **Alternativa descartada:** …
 -->
 
+## 2026-11-24 — v13: pantallas de "RESPIRA FINAL?", mapa de OpenStreetMap y challenge en toda la Ciudad
+- **Qué (mapa):** el mapa base pasa a las teselas oficiales de OpenStreetMap (API de teselas, sin clave), con los colores bajados por CSS para que combine con la paleta y la ruta lima se lea.
+- **Qué (pantallas):** "Definí tu recorrido" vuelve al frame 06 (solo el formulario: sale "Contanos tu salida" y los km automáticos). "Tu experiencia" recupera los chips del ambiente del frame 12; cada chip confirma o marca como fallida una condición y ajusta los pesos que aprende la app.
+- **Qué (challenge):** las letras se buscan en toda la Ciudad (o cerca del runner, o alrededor de un lugar). El algoritmo prueba cientos de lugares, arma cada trazo por un corredor alrededor de la línea ideal y elige el que mejor dibuja la letra; entre los que se leen igual de bien, el de mejor puntaje en las condiciones. Cada letra se ve derecha sobre el mapa real (el mapa se gira).
+- **Por qué:** pedido del equipo de implementar el frame final tal cual, extender el challenge a toda la Ciudad (antes fijo en Caballito) y usar un mapa más prolijo.
+- **Alternativa descartada:** mantener la letra sobre una trama de calles dibujada (no mostraba dónde se corre) y fijar un solo barrio con grilla regular (dejaba afuera al resto de la Ciudad).
+
 ## 2026-11-03 — Cierre de la IA: búsqueda en texto libre, chat y aprendizaje
 - **Qué:** la IA queda en cuatro lugares: completar el formulario desde texto libre (`busqueda`), interpretar los 3 recorridos (`recorridos`), el chat "Preguntale a RESPIRA" en el detalle (`chat`) y el aprendizaje de "Tu experiencia", que no llama a la IA pero le pasa el historial. Prompts en `prompts/prompts_v4.md`.
 - **Qué (modelos):** Groq dio de baja Llama 3.x el 16/8/2026; se pasa a `openai/gpt-oss-120b` (recorridos y chat) y `openai/gpt-oss-20b` (búsqueda), con razonamiento bajo: con más razonamiento y límites de tokens más altos, dos consultas seguidas superaban el límite por minuto de Groq (error 429).
