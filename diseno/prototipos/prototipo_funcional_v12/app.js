@@ -54,6 +54,7 @@ const selectores = [];   // ruedas y balanza: se acomodan cuando aparece su pant
 const alMostrar = {};    // cosas que hay que hacer cuando aparece una pantalla (p. ej. ajustar el mapa)
 
 function mostrar(id, { atras = false } = {}) {
+  if (typeof cerrarAyuda === 'function') cerrarAyuda();   // el globo ⓘ no queda abierto al cambiar de pantalla
   $$('.pantalla').forEach(p => { p.hidden = (p.id !== id); });
   estado.pantalla = id;
   const pantalla = pantallaActual();
@@ -191,7 +192,7 @@ document.addEventListener('click', e => {
    Uso: ayuda('texto del globo') → devuelve el botón ⓘ. */
 const ayuda = (texto, etiqueta = 'Ver el dato') => `<button class="ayuda" type="button" data-ayuda="${escapar(texto)}" aria-label="${escapar(etiqueta)}" aria-expanded="false">${icono('info')}</button>`;
 document.body.insertAdjacentHTML('beforeend', '<div class="globo-ayuda" id="globo-ayuda" role="tooltip" hidden></div>');
-function cerrarAyuda() { const g = $('#globo-ayuda'); if (g.hidden) return false; g.hidden = true; $$('.ayuda[aria-expanded="true"]').forEach(b => b.setAttribute('aria-expanded', 'false')); return true; }
+function cerrarAyuda() { const g = $('#globo-ayuda'); if (!g || g.hidden) return false; g.hidden = true; $$('.ayuda[aria-expanded="true"]').forEach(b => b.setAttribute('aria-expanded', 'false')); return true; }
 document.addEventListener('click', e => {
   const b = e.target.closest('.ayuda'); if (!b) return;
   e.stopPropagation();
