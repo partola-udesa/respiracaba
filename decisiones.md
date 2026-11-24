@@ -9,6 +9,12 @@ Qué probamos, qué descartamos y por qué. La entrada más nueva va arriba.
 - **Alternativa descartada:** …
 -->
 
+## 2026-11-24 — v14: mapa sin servidor y "Marcá en el mapa"
+- **Qué (mapa):** abriendo la app como archivo (bajada de GitHub), OpenStreetMap bloqueaba todas las teselas porque el navegador no manda `Referer`. La app detecta `file://` y pide las teselas al servidor de OpenStreetMap France (mismo mapa, no pide Referer); servida por web usa el servidor oficial. Se descartó volver a Esri para ese caso: el equipo quiere el mapa de OSM en todas las pantallas.
+- **Qué (pin):** en "Definí tu recorrido" la partida y la llegada se pueden marcar moviendo el mapa debajo de un pin fijo. El nombre sale de los datasets (espacio verde más cercano) o de la red de calles (esquina), sin servicios externos. Fuera de CABA no se puede elegir.
+- **Por qué:** una persona del equipo no veía el mapa abriendo el prototipo desde GitHub; y escribir una dirección no sirve cuando no se sabe la altura exacta.
+- **Alternativa descartada:** geocodificación inversa con Nominatim para nombrar el punto (pide Referer igual que OSM y tiene límite de 1 pedido por segundo).
+
 ## 2026-11-24 — v13: pantallas de "RESPIRA FINAL?", mapa de OpenStreetMap y challenge en toda la Ciudad
 - **Qué (mapa):** el mapa base pasa a las teselas oficiales de OpenStreetMap (API de teselas, sin clave), con los colores bajados por CSS para que combine con la paleta y la ruta lima se lea.
 - **Qué (pantallas):** "Definí tu recorrido" vuelve al frame 06 (solo el formulario: sale "Contanos tu salida" y los km automáticos). "Tu experiencia" recupera los chips del ambiente del frame 12; cada chip confirma o marca como fallida una condición y ajusta los pesos que aprende la app.
