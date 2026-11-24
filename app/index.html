@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&display=swap">
-  <!-- Mapa: Leaflet (librería libre para mapas) con el mapa base gris claro de Esri -->
+  <!-- Mapa: Leaflet (librería libre para mapas) con las teselas de OpenStreetMap -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <link rel="stylesheet" href="estilos.css">
 </head>
@@ -25,8 +25,10 @@
   <symbol id="i-derecha" viewBox="0 -960 960 960"><path d="M536.92-480.62 342.77-675.15l32.61-32.62 226.77 227.15-226.77 226.77-32.61-32.61 194.15-194.16Z"/></symbol>
   <symbol id="i-buscar" viewBox="0 -960 960 960"><path d="M790.61-137.54 531.08-397.08q-29.85 26.42-69.65 40.71-39.81 14.29-82.28 14.29-101.62 0-172.31-70.57-70.68-70.58-70.68-171 0-100.43 70.57-171 70.58-70.58 171.72-70.58 100.14 0 170.69 70.58 70.55 70.57 70.55 170.86 0 42.17-14.38 81.98-14.39 39.81-41.62 72.12l260.15 258.54-33.23 33.61ZM378.54-387.46q81.7 0 138.74-57.12 57.03-57.11 57.03-139.07 0-81.97-57.03-139.08-57.04-57.12-138.74-57.12-82.39 0-139.69 57.12-57.31 57.11-57.31 139.08 0 81.96 57.31 139.07 57.3 57.12 139.69 57.12Z"/></symbol>
   <symbol id="i-mi-ubicacion" viewBox="0 -960 960 960"><path d="M457.31-72v-65.77Q323.39-150.62 237-237q-86.38-86.39-99.23-220.31H72v-45.38h65.77Q150.62-636.61 237-723q86.39-86.38 220.31-99.61V-888h45.38v65.39Q636.61-809.38 723-723q86.38 86.39 99.61 220.31H888v45.38h-65.39Q809.38-323.39 723-237q-86.39 86.38-220.31 99.23V-72h-45.38Zm232.77-197.92q87.38-87.39 87.38-210.08 0-122.69-87.38-210.08-87.39-87.38-210.08-87.38-122.69 0-210.08 87.38-87.38 87.39-87.38 210.08 0 122.69 87.38 210.08 87.39 87.38 210.08 87.38 122.69 0 210.08-87.38ZM385.81-385.81q-38.5-38.5-38.5-94.19t38.5-94.19q38.5-38.5 94.19-38.5t94.19 38.5q38.5 38.5 38.5 94.19t-38.5 94.19q-38.5 38.5-94.19 38.5t-94.19-38.5Zm156.27-32.11q25.23-25.23 25.23-62.08 0-36.85-25.23-62.08-25.23-25.23-62.08-25.23-36.85 0-62.08 25.23-25.23 25.23-25.23 62.08 0 36.85 25.23 62.08 25.23 25.23 62.08 25.23 36.85 0 62.08-25.23ZM480-480Z"/></symbol>
+  <symbol id="i-pin-mapa" viewBox="0 -960 960 960"><g transform="translate(48 -66) scale(.9)"><path d="M526.04-511.65Q545-530.62 545-557.69q0-27.08-18.96-46.04T480-622.69q-27.08 0-46.04 18.96T415-557.69q0 27.07 18.96 46.04 18.96 18.96 46.04 18.96t46.04-18.96ZM480-159.77q125.31-111.77 190.92-213.15 65.62-101.39 65.62-177.16 0-116.07-73.77-190.5Q589-815 480-815q-109 0-182.77 74.42-73.77 74.43-73.77 190.5 0 75.77 66.73 177.16Q356.92-271.54 480-159.77Zm0 60.15Q329-230.46 253.54-343.15q-75.46-112.7-75.46-206.93 0-138.46 89.57-224.19Q357.23-860 480-860t212.35 85.73q89.57 85.73 89.57 224.19 0 94.23-75.46 206.93Q631-230.46 480-99.62Zm0-458.07Z"/></g><path d="M220-90v-46h520v46z"/></symbol>
   <symbol id="i-partida" viewBox="0 -960 960 960"><path d="M526.04-511.65Q545-530.62 545-557.69q0-27.08-18.96-46.04T480-622.69q-27.08 0-46.04 18.96T415-557.69q0 27.07 18.96 46.04 18.96 18.96 46.04 18.96t46.04-18.96ZM480-159.77q125.31-111.77 190.92-213.15 65.62-101.39 65.62-177.16 0-116.07-73.77-190.5Q589-815 480-815q-109 0-182.77 74.42-73.77 74.43-73.77 190.5 0 75.77 66.73 177.16Q356.92-271.54 480-159.77Zm0 60.15Q329-230.46 253.54-343.15q-75.46-112.7-75.46-206.93 0-138.46 89.57-224.19Q357.23-860 480-860t212.35 85.73q89.57 85.73 89.57 224.19 0 94.23-75.46 206.93Q631-230.46 480-99.62Zm0-458.07Z"/></symbol>
   <symbol id="i-llegada" viewBox="0 -960 960 960"><path d="M220-130v-650h311.46l18.23 84.46H780v338.08H553.62l-18.14-83.85H265.39V-130H220Zm280-438.92Zm92.69 166.07h141.92v-247.3H510.62l-18.24-84.46H265.39v247.92h309.07l18.23 83.84Z"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M4 7h16M4 12h16M4 17h10"/></symbol>
   <symbol id="i-cerrar" viewBox="0 -960 960 960"><path d="m250.92-218.92-32-32L448-480 218.92-709.08l32-32L480-512l229.08-229.08 32 32L512-480l229.08 229.08-32 32L480-448 250.92-218.92Z"/></symbol>
   <symbol id="i-info" viewBox="0 -960 960 960"><path d="M459.54-290h45.38v-230h-45.38v230Zm39.73-301.56q7.96-7.57 7.96-19.05 0-11.95-7.85-19.9-7.85-7.95-19.36-7.95-11.9 0-19.58 7.95-7.67 7.95-7.67 19.9 0 11.48 7.94 19.05 7.95 7.56 19.27 7.56 11.33 0 19.29-7.56ZM480.33-100q-78.95 0-147.89-29.92-68.95-29.92-120.76-81.71-51.81-51.79-81.75-120.78Q100-401.39 100-480.43q0-78.66 29.92-147.87 29.92-69.21 81.71-120.52 51.79-51.31 120.78-81.25Q401.39-860 480.43-860q78.66 0 147.87 29.92 69.21 29.92 120.52 81.21 51.31 51.29 81.25 120.63Q860-558.9 860-480.33q0 78.95-29.92 147.89-29.92 68.95-81.21 120.57-51.29 51.63-120.63 81.75Q558.9-100 480.33-100Zm.17-45.39q139.19 0 236.65-97.76 97.46-97.77 97.46-237.35 0-139.19-97.27-236.65-97.27-97.46-237.34-97.46-139.08 0-236.85 97.27-97.76 97.27-97.76 237.34 0 139.08 97.76 236.85 97.77 97.76 237.35 97.76ZM480-480Z"/></symbol>
   <symbol id="i-check" viewBox="0 -960 960 960"><path d="M379.15-258.31 168.62-468.85l32.61-32.23 177.92 177.93 379-379.39 32.62 32.62-411.62 411.61Z"/></symbol>
@@ -67,7 +69,7 @@
      - data-ir="pantalla"  → conexión de prototipo
      - data-volver         → vuelve a la pantalla anterior
      - data-enter          → el botón que se activa con Enter en la compu
-     El encabezado (volver · RESPIRA · avatar) lo agrega app.js en las pantallas con data-encabezado.
+     El encabezado (volver · RESPIRA · menú) lo agrega app.js en las pantallas con data-encabezado.
      ===================================================================== -->
 
 <!-- 01 · Splash -->
@@ -132,7 +134,7 @@
   <div class="contenido" id="contenido-perfil">
     <div class="encabezado">
       <div class="pasos" aria-label="Paso 2 de 2"><i class="hecho"></i><i class="hecho"></i></div>
-      <h1 class="titulo">Tu perfil corredor</h1>
+      <h1 class="titulo">Contanos de vos</h1>
       <p class="cuerpo">Completá tu información para definir recorridos más seguros, cómodos y efectivos.</p>
     </div>
 
@@ -261,69 +263,63 @@
   <div class="ficha-fondo" id="ficha-fondo" hidden><div class="ficha" id="ficha" role="dialog" aria-modal="true" aria-label="Ficha del lugar"></div></div>
 </section>
 
-<!-- 05c · Respira challenge (pirueta): escribí una palabra corriendo, una letra por día -->
+<!-- 05c · Respira challenge (frame 05c de "RESPIRA FINAL?"): escribí una palabra corriendo, una letra por día.
+     v13: cada letra sobre el mapa real (OpenStreetMap) y en toda la Ciudad. -->
 <section class="pantalla" id="challenge" data-encabezado hidden>
   <div class="contenido">
     <div class="encabezado">
-      <span class="etiqueta-challenge">RESPIRA CHALLENGE</span>
       <h1 class="titulo">Escribí una palabra corriendo</h1>
-      <p class="cuerpo">Elegí una palabra y armamos un recorrido por cada letra. Una letra por día, a tu ritmo.</p>
+      <p class="cuerpo cuerpo--oscuro">Elegí una palabra y armamos un recorrido por cada letra. Una letra por día, a tu ritmo.</p>
     </div>
     <label class="campo-palabra">
       <span class="sr">Tu palabra</span>
       <input id="palabra" type="text" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="TU PALABRA">
-      <span class="campo-palabra__cuenta" id="cuenta-letras"></span>
+      <span class="campo-palabra__cuenta" id="cuenta-letras">0/8</span>
     </label>
     <div class="sugerencias-palabra">
-      <span class="chico">Probá:</span>
-      <button class="chip chip--palabra" data-palabra="RUN">RUN</button>
-      <button class="chip chip--palabra" data-palabra="BA">BA</button>
-      <button class="chip chip--palabra" data-palabra="HOLA">HOLA</button>
-      <button class="chip chip--palabra" data-palabra="MAMÁ">MAMÁ</button>
+      <span class="chico chico--oscuro">Probá:</span>
+      <div class="sugerencias-palabra__lista" id="palabras-sugeridas"></div>
     </div>
-    <p class="nota centro-challenge"><span id="centro-challenge">Alrededor de Primera Junta</span> · <button class="enlace" id="challenge-ubicacion" type="button">Usar mi ubicación</button></p>
+    <!-- Dónde se dibujan las letras: no está en Figma; se suma porque el challenge abarca toda la Ciudad -->
+    <div class="zonas" id="zonas" role="group" aria-label="Dónde dibujar las letras">
+      <button class="chip chip--zona" type="button" data-zona="ciudad" aria-pressed="true">Toda la Ciudad</button>
+      <button class="chip chip--zona" type="button" data-zona="cerca" aria-pressed="false">Cerca de mí</button>
+      <button class="chip chip--zona" type="button" data-zona="lugar" aria-pressed="false">Un lugar</button>
+    </div>
+    <div class="autocompletar" id="buscar-zona" hidden>
+      <div class="campo campo--lugar"><svg class="icono"><use href="#i-buscar"/></svg>
+        <input id="zona-lugar" type="text" placeholder="Plaza, parque o calle de la Ciudad" autocomplete="off" aria-controls="zona-sugerencias"></div>
+      <ul class="sugerencias" id="zona-sugerencias" role="listbox" hidden></ul>
+    </div>
+    <p class="nota" id="zona-texto"></p>
     <div class="letras" id="letras" aria-live="polite"></div>
-    <p class="nota" id="nota-challenge">Cada letra se dibuja con calles reales y elige los tramos con mejor respirabilidad (cálculo de la app sobre los datasets, no de la IA). Los km incluyen lo que corrés entre un trazo y otro.</p>
+    <section class="palabra-ciudad" id="palabra-ciudad" aria-label="Tu palabra en la Ciudad" hidden>
+      <h2 class="subtitulo subtitulo--chico">Tu palabra en la Ciudad</h2>
+      <div class="mapa palabra-ciudad__mapa" id="mapa-palabra"></div>
+      <p class="nota">Cada letra se dibuja con calles reales y elige los tramos con mejor respirabilidad (cálculo de la app con los datasets, no de la IA). Tocá una letra para correrla.</p>
+    </section>
   </div>
   <div class="pie pie--claro">
-    <button class="boton" id="empezar-letra" data-enter disabled>Calculando…</button>
+    <button class="boton" id="empezar-letra" data-enter disabled>Buscando en la Ciudad…</button>
   </div>
 </section>
 
-<!-- 06 · Definí tu recorrido -->
+<!-- 06 · Definí tu recorrido (v13: igual al frame 06 de "RESPIRA FINAL?": solo el formulario) -->
 <section class="pantalla" id="definir" data-encabezado hidden>
-  <div class="contenido">
+  <div class="contenido contenido--definir">
     <div class="encabezado">
       <div class="pasos" aria-label="Paso 1 de 3"><i class="hecho"></i><i></i><i></i></div>
       <h1 class="titulo">¿Por dónde recorremos hoy?</h1>
-      <p class="cuerpo">Contanos tu salida y armamos la mejor opción para correr en Buenos Aires.</p>
+      <p class="cuerpo">Elegí las condiciones de tu salida y encontrá la mejor opción para correr en Buenos Aires.</p>
     </div>
 
-    <!-- v11 (devolución): "Contanos" va primero y con más jerarquía, con micrófono.
-         La IA (tarea "busqueda") completa el formulario de abajo; el runner lo revisa antes de seguir. -->
-    <form class="contanos" id="pedido-ia">
-      <label class="contanos__etiqueta" for="texto-pedido"><svg class="icono"><use href="#i-ia"/></svg>Contanos tu salida</label>
-      <textarea id="texto-pedido" rows="3" placeholder="Ej: 8 km desde Plaza Italia mañana a las 7, con poco ruido"></textarea>
-      <div class="contanos__acciones">
-        <button class="contanos__microfono" type="button" id="microfono-pedido" aria-pressed="false" aria-label="Dictar tu salida"><svg class="icono"><use href="#i-microfono"/></svg></button>
-        <span class="nota contanos__ayuda">Escribilo o dictalo. La IA completa el formulario y vos lo revisás.</span>
-        <button class="pedido__boton" type="submit" id="enviar-pedido" aria-label="Completar el formulario con IA"><svg class="icono"><use href="#i-derecha"/></svg></button>
-      </div>
-      <p class="nota contanos__estado" id="estado-pedido" aria-live="polite" hidden></p>
-    </form>
-
-    <!-- "Completalo vos": cerrado hasta que el runner lo abre o la IA lo completa -->
-    <button class="desplegar" id="desplegar-form" type="button" aria-expanded="false" aria-controls="form-manual">
-      <span>Prefiero completarlo yo</span><svg class="icono"><use href="#i-abajo"/></svg>
-    </button>
-    <div class="form-manual" id="form-manual" hidden>
-
     <div class="grupo">
-      <label class="rotulo" for="partida">Partida</label>
+      <label class="sr" for="partida">Partida</label>
       <div class="autocompletar">
-        <div class="campo" id="campo-partida"><svg class="icono"><use href="#i-partida"/></svg>
-          <input id="partida" type="text" placeholder="Buscá un punto de partida" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugerencias-partida">
-          <button class="campo__boton" data-borrar="partida" aria-label="Borrar partida" hidden><svg class="icono icono--chico"><use href="#i-cerrar"/></svg></button></div>
+        <div class="campo campo--lugar" id="campo-partida"><svg class="icono"><use href="#i-partida"/></svg>
+          <input id="partida" type="text" placeholder="¿Desde dónde salís?" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugerencias-partida">
+          <button class="campo__boton" data-borrar="partida" aria-label="Borrar partida" hidden><svg class="icono icono--chico"><use href="#i-cerrar"/></svg></button>
+          <button class="campo__pin" type="button" data-pin="partida" aria-label="Marcar la partida en el mapa" title="Marcar en el mapa"><svg class="icono"><use href="#i-pin-mapa"/></svg></button></div>
         <ul class="sugerencias" id="sugerencias-partida" role="listbox" hidden></ul>
       </div>
       <p class="mensaje-error" id="error-partida" hidden>Elegí desde dónde salís en la lista de sugerencias.</p>
@@ -335,46 +331,61 @@
     </div>
 
     <div class="grupo" id="bloque-llegada">
-      <label class="rotulo" for="llegada">Llegada</label>
+      <label class="sr" for="llegada">Llegada</label>
       <div class="autocompletar">
-        <div class="campo" id="campo-llegada"><svg class="icono"><use href="#i-llegada"/></svg>
-          <input id="llegada" type="text" placeholder="Buscá un punto de llegada" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugerencias-llegada">
-          <button class="campo__boton" data-borrar="llegada" aria-label="Borrar llegada" hidden><svg class="icono icono--chico"><use href="#i-cerrar"/></svg></button></div>
+        <div class="campo campo--lugar" id="campo-llegada"><svg class="icono"><use href="#i-llegada"/></svg>
+          <input id="llegada" type="text" placeholder="¿Dónde terminás?" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugerencias-llegada">
+          <button class="campo__boton" data-borrar="llegada" aria-label="Borrar llegada" hidden><svg class="icono icono--chico"><use href="#i-cerrar"/></svg></button>
+          <button class="campo__pin" type="button" data-pin="llegada" aria-label="Marcar la llegada en el mapa" title="Marcar en el mapa"><svg class="icono"><use href="#i-pin-mapa"/></svg></button></div>
         <ul class="sugerencias" id="sugerencias-llegada" role="listbox" hidden></ul>
       </div>
       <p class="mensaje-error" id="error-llegada" hidden>Elegí dónde terminás, o activá el trayecto circular.</p>
     </div>
 
-    <!-- v11 (devolución): de un punto a otro, los km se calculan solos y se pueden sumar más.
-         En un trayecto circular se escriben (con una sugerencia según el nivel del perfil). -->
-    <div class="grupo" id="bloque-distancia">
-      <span class="rotulo" id="rotulo-distancia">Distancia</span>
-      <div class="distancia-auto" id="distancia-auto" hidden>
-        <div class="distancia-auto__total"><b id="km-total">–</b><span>km en total</span></div>
-        <div class="contador" role="group" aria-label="Sumar kilómetros">
-          <button class="contador__boton" type="button" id="km-menos" aria-label="Restar 1 km"><svg class="icono"><use href="#i-menos"/></svg></button>
-          <span class="contador__valor" id="km-extra">+0 km</span>
-          <button class="contador__boton" type="button" id="km-mas" aria-label="Sumar 1 km"><svg class="icono"><use href="#i-mas"/></svg></button>
-        </div>
-      </div>
-      <p class="nota" id="ayuda-km-auto" hidden></p>
+    <div class="grupo">
+      <label class="rotulo" for="distancia">Distancia</label>
       <div class="campo" id="campo-distancia"><svg class="icono"><use href="#i-corredor"/></svg>
-        <input id="distancia" type="text" inputmode="decimal" placeholder="Ej: 5" autocomplete="off" aria-labelledby="rotulo-distancia" aria-describedby="ayuda-distancia">
+        <input id="distancia" type="text" inputmode="decimal" placeholder="Ej: 5" autocomplete="off" aria-describedby="ayuda-distancia">
         <span class="campo__sufijo">km</span>
       </div>
-      <p class="nota" id="ayuda-distancia">Elegí la partida y la llegada: calculamos los km del camino más corto.</p>
+      <p class="nota nota--fuerte" id="ayuda-distancia">Entre 1 y 42 km. Si vas de un punto a otro es opcional.</p>
       <p class="mensaje-error" id="error-distancia" hidden></p>
     </div>
 
     <label class="casilla"><input type="checkbox" id="programar"> Programar para más tarde</label>
-    <div class="fila" id="cuando">
+    <div class="fila fila--cuando" id="cuando">
       <label class="campo"><span class="sr">Día</span><input id="fecha" type="date" disabled></label>
-      <label class="campo" style="flex: 0 0 132px"><span class="sr">Hora</span><input id="hora" type="time" disabled></label>
+      <label class="campo campo--hora"><svg class="icono"><use href="#i-reloj"/></svg><span class="sr">Hora</span><input id="hora" type="time" disabled></label>
     </div>
-    </div><!-- /form-manual -->
   </div>
   <div class="pie">
     <button class="boton" id="continuar-definir" data-enter>Continuar <svg class="icono"><use href="#i-derecha"/></svg></button>
+  </div>
+
+  <!-- v14 · "Drop your pin": elegir la partida o la llegada moviendo el mapa debajo de un pin fijo -->
+  <div class="elegir-punto" id="elegir-punto" role="dialog" aria-modal="true" aria-labelledby="pin-titulo" hidden>
+    <div class="mapa mapa--fondo" id="mapa-pin"></div>
+    <div class="mapa__degradado"></div>
+    <div class="elegir-punto__arriba">
+      <button class="circulo vidrio" type="button" id="pin-cerrar" aria-label="Cerrar el mapa"><svg class="icono"><use href="#i-volver"/></svg></button>
+      <p class="pista-mapa" id="pin-titulo"><svg class="icono"><use href="#i-pin-mapa"/></svg><span id="pin-pista">Mové el mapa hasta tu punto de partida</span></p>
+    </div>
+    <div class="pin-central" id="pin-central" aria-hidden="true">
+      <svg viewBox="0 0 20 36"><path class="pin-central__aguja" d="M8.9 16h2.2L10 35.5z"/><circle class="pin-central__forma" cx="10" cy="9" r="8"/><circle class="pin-central__punto" cx="8" cy="7" r="2.6"/></svg>
+      <span class="pin-central__sombra"></span>
+    </div>
+    <button class="circulo vidrio elegir-punto__ubicacion" type="button" id="pin-ubicacion" aria-label="Ir a mi ubicación"><svg class="icono"><use href="#i-mi-ubicacion"/></svg></button>
+    <section class="hoja hoja--fija elegir-punto__hoja" aria-live="polite">
+      <div class="hoja__agarre-visual"><span></span></div>
+      <div class="hoja__contenido">
+        <span class="seccion__titulo seccion__titulo--marca" id="pin-rotulo">Punto de partida</span>
+        <div class="elegir-punto__lugar">
+          <h2 class="subtitulo" id="pin-nombre">Buscando dónde estás…</h2>
+          <p class="chico" id="pin-detalle"></p>
+        </div>
+        <button class="boton" id="pin-usar" type="button" disabled>Usar este punto <svg class="icono"><use href="#i-check"/></svg></button>
+      </div>
+    </section>
   </div>
 </section>
 
@@ -422,7 +433,7 @@
   <div class="mapa__degradado"></div>
   <div class="chips-flotantes" id="chips-detalle"></div>
   <div class="tarjeta-indice vidrio" id="tarjeta-indice">
-    <div><div class="chico"><span class="punto"></span>Respirabilidad <button class="ayuda" type="button" data-ayuda="Promedio de vegetación, aire, ruido y tránsito en cada tramo de la ruta, de 0 a 100. Lo calcula la app con datasets de la Ciudad, no la IA." aria-label="Qué es la respirabilidad" aria-expanded="false"><svg class="icono"><use href="#i-info"/></svg></button></div><div class="nota">de la ruta</div></div>
+    <div><div class="chico"><span class="punto"></span>Respirabilidad</div><div class="nota">de la ruta</div></div>
     <div class="numero" id="detalle-indice">–<small>%</small></div>
   </div>
 
@@ -446,11 +457,10 @@
       <div id="hoja-detalle-extra" class="hoja__extra">
         <div class="seccion" id="seccion-polen" hidden></div>
         <div class="seccion">
-          <span class="seccion__titulo">Qué compone el índice <span class="etiqueta-calculado">Dato calculado</span></span>
+          <span class="seccion__titulo seccion__titulo--marca">Qué compone el índice</span>
           <div id="detalle-componentes"></div>
           <p class="nota" id="detalle-fuentes"></p>
         </div>
-        <div class="seccion" id="seccion-clima" hidden></div>
         <div class="seccion">
           <div class="ia" id="detalle-ia"></div>
         </div>
@@ -523,22 +533,17 @@
       <h1 class="titulo">Contanos un poco más de tu experiencia</h1>
       <p class="cuerpo">Esto nos ayuda a personalizar mejor tus próximos recorridos.</p>
     </div>
-    <h2 class="subtitulo subtitulo--chico">¿El recorrido cumplió con lo que esperabas?</h2>
-    <div class="chips chips--parejos" data-grupo="cumplio" data-tipo="uno">
+    <h2 class="subtitulo subtitulo--chico">¿El recorrido cumplió con lo que buscabas?</h2>
+    <div class="chips" data-grupo="cumplio" data-tipo="uno">
       <button class="chip" data-valor="si" aria-pressed="false">Sí</button>
       <button class="chip" data-valor="no" aria-pressed="false">No</button>
     </div>
-    <!-- Sí: no hay más preguntas; las preferencias elegidas quedan confirmadas -->
-    <div class="tarjeta-dato" id="preferencias-confirmadas" hidden></div>
-    <!-- No: una pregunta por cada preferencia elegida (la arma app.js) -->
-    <div class="evaluacion" id="evaluacion" hidden>
-      <hr class="divisor">
-      <div class="encabezado">
-        <h2 class="subtitulo subtitulo--chico">¿Qué no se cumplió?</h2>
-        <p class="chico">Contanos cómo estuvo cada preferencia que elegiste. Así ajustamos tus próximos recorridos.</p>
-      </div>
-      <div class="evaluacion__lista" id="evaluacion-lista"></div>
-    </div>
+    <hr class="divisor divisor--oscuro">
+    <!-- v13 (frame 12): el ambiente vuelve como chips. Cada uno confirma o marca como fallida una condición
+         (ver AMBIENTE en app.js); "Otro" se cuenta en el comentario. -->
+    <h2 class="subtitulo subtitulo--chico">¿Cómo describirías el ambiente del recorrido?</h2>
+    <div class="chips" id="ambiente" role="group" aria-label="Ambiente del recorrido"></div>
+    <p class="chico" id="resumen-experiencia" aria-live="polite"></p>
   </div>
   <div class="pie"><button class="boton" id="experiencia-siguiente" data-ir="comentario" data-enter disabled>Siguiente <svg class="icono"><use href="#i-derecha"/></svg></button></div>
 </section>
@@ -575,14 +580,36 @@
   <div class="aurora"></div>
   <div class="contenido contenido--centrado">
     <div class="confirmacion"><svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24"/><path d="M15 27l7 7 15-16"/></svg></div>
-    <h1 class="titulo">¡Recorrido guardado!</h1>
-    <p class="cuerpo">Gracias por contarnos tu experiencia.</p>
+    <h1 class="titulo" id="guardado-titulo">¡Recorrido guardado!</h1>
+    <p class="cuerpo cuerpo--oscuro">Gracias por contarnos tu experiencia.</p>
     <div class="guardado-foto" id="guardado-foto"></div>
-    <p class="nota" id="guardado-nota">Tu foto ya está en tu archivo.</p>
+    <button class="enlace" id="ver-archivo" type="button">Ver tu archivo</button>
   </div>
-  <div class="pie"><button class="boton" id="ver-archivo" data-enter>Ver tu archivo <svg class="icono"><use href="#i-derecha"/></svg></button>
-    <button class="boton boton--enlace" id="volver-inicio">Volver al inicio</button></div>
+  <div class="pie pie--claro"><button class="boton" id="volver-inicio" data-enter>Volver al inicio <svg class="icono"><use href="#i-derecha"/></svg></button></div>
 </section>
+
+<!-- v15 · Menú: se abre desde el botón ☰ del encabezado. La app queda desenfocada detrás y las opciones
+     se acomodan sobre una curva, como una pista; la píldora oscura marca dónde estás. -->
+<div class="menu" id="menu" hidden>
+  <div class="menu__velo" data-cerrar-menu></div>
+  <button class="circulo menu__cerrar" type="button" data-cerrar-menu aria-label="Cerrar menú"><svg class="icono"><use href="#i-cerrar"/></svg></button>
+  <nav class="menu__panel" aria-label="Menú">
+    <button class="menu__perfil" type="button" data-menu-ir="perfil">
+      <span class="menu__perfil-textos"><span class="menu__perfil-nombre" id="menu-nombre">Tu perfil</span><span class="menu__perfil-dato" id="menu-perfil-dato">Objetivo, nivel y alergias</span></span>
+      <span class="circulo menu__avatar" id="menu-avatar"><svg class="icono"><use href="#i-perfil"/></svg></span>
+    </button>
+    <div class="menu__pista" id="menu-pista">
+      <svg class="menu__curva" id="menu-curva" aria-hidden="true"><path pathLength="1"/></svg>
+      <span class="menu__marca" id="menu-marca" aria-hidden="true"></span>
+      <button class="menu__item" type="button" data-menu-ir="inicio"><span class="menu__textos"><span class="menu__titulo">Inicio</span></span><span class="menu__icono"><svg class="icono"><use href="#i-hoja"/></svg></span></button>
+      <button class="menu__item" type="button" data-menu-ir="definir"><span class="menu__textos"><span class="menu__titulo">Armá tu recorrido</span></span><span class="menu__icono"><svg class="icono"><use href="#i-ruta"/></svg></span></button>
+      <button class="menu__item" type="button" data-menu-ir="repetir"><span class="menu__textos"><span class="menu__titulo">Repetí un trayecto</span></span><span class="menu__icono"><svg class="icono"><use href="#i-repetir"/></svg></span></button>
+      <button class="menu__item" type="button" data-menu-ir="archivo"><span class="menu__textos"><span class="menu__titulo">Tu archivo</span></span><span class="menu__icono"><svg class="icono"><use href="#i-camara"/></svg></span></button>
+      <button class="menu__item" type="button" data-menu-ir="challenge"><span class="menu__textos"><span class="menu__titulo">Respira challenge</span><span class="menu__dato" id="menu-dato-challenge">Una letra por día</span></span><span class="menu__icono"><svg class="icono"><use href="#i-letra"/></svg></span></button>
+    </div>
+    <div class="menu__semana" id="menu-semana"></div>
+  </nav>
+</div>
 
 </div><!-- /app -->
 

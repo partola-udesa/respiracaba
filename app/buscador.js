@@ -91,5 +91,18 @@
     });
   }
 
-  globalThis.RespiraBuscador = { cargarLugares, local, esquina, direcciones, miUbicacion };
+  // v14 · Para el pin del mapa: el espacio verde (o lugar con nombre) más cercano a un punto, a menos de `max` metros
+  async function cercano(lon, lat, max = 140) {
+    await cargarLugares();
+    const kx = 111320 * Math.cos(lat * Math.PI / 180);
+    let mejor = null, dMejor = max;
+    for (const l of lugares) {
+      if (l.tipo === 'Calle') continue;
+      const d = Math.hypot((l.lon - lon) * kx, (l.lat - lat) * 110540);
+      if (d < dMejor) { dMejor = d; mejor = l; }
+    }
+    return mejor && { nombre: mejor.nombre, tipo: mejor.tipo, distancia: Math.round(dMejor) };
+  }
+
+  globalThis.RespiraBuscador = { cercano, cargarLugares, local, esquina, direcciones, miUbicacion };
 })();

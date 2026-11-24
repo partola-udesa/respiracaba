@@ -114,3 +114,37 @@ function dentroDeCABA(lon, lat) {
   return dentro;
 }
 const ZONA_NO_DISPONIBLE = 'Zona no disponible para armar el recorrido.';
+
+/* ---------- RESPIRA CHALLENGE: cómo se dibuja cada letra (v13) ----------
+   Cada letra es una lista de trazos; cada trazo, una lista de vértices [x, y] entre 0 y 1 (0,0 = abajo a la izquierda).
+   Casi todas van en UN solo trazo: cuando hace falta, se va y se vuelve por la misma calle (la barra de la E,
+   el palo de la T). Así no hay tramos "de enlace" que ensucien el dibujo y todo lo que se corre es parte de la letra.
+   proporcion = ancho / alto (las letras anchas, como M y W, son más anchas). */
+const LETRAS = {
+  A: { trazos: [[[0,0],[0.5,1],[1,0],[0.75,0.5],[0.25,0.5]]] },
+  B: { trazos: [[[0,0],[0,1],[0.7,1],[0.9,0.78],[0.7,0.52],[0,0.52],[0.78,0.52],[1,0.26],[0.78,0],[0,0]]] },
+  C: { trazos: [[[1,1],[0,1],[0,0],[1,0]]] },
+  D: { trazos: [[[0,0],[0,1],[0.6,1],[1,0.65],[1,0.35],[0.6,0],[0,0]]] },
+  E: { trazos: [[[1,1],[0,1],[0,0.5],[0.75,0.5],[0,0.5],[0,0],[1,0]]] },
+  F: { trazos: [[[1,1],[0,1],[0,0.5],[0.75,0.5],[0,0.5],[0,0]]] },
+  G: { trazos: [[[1,1],[0,1],[0,0],[1,0],[1,0.5],[0.5,0.5]]] },
+  H: { trazos: [[[0,1],[0,0],[0,0.5],[1,0.5],[1,1],[1,0]]] },
+  I: { trazos: [[[0.5,1],[0.5,0]]], proporcion: 0.3 },
+  J: { trazos: [[[1,1],[1,0],[0,0],[0,0.35]]] },
+  K: { trazos: [[[0,1],[0,0],[0,0.5],[1,1],[0,0.5],[1,0]]] },
+  L: { trazos: [[[0,1],[0,0],[1,0]]] },
+  M: { trazos: [[[0,0],[0,1],[0.5,0.45],[1,1],[1,0]]], proporcion: 0.9 },
+  N: { trazos: [[[0,0],[0,1],[1,0],[1,1]]] },
+  O: { trazos: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] },
+  P: { trazos: [[[0,0],[0,1],[1,1],[1,0.5],[0,0.5]]] },
+  Q: { trazos: [[[1,0],[0,0],[0,1],[1,1],[1,0],[1.2,-0.15]]] },
+  R: { trazos: [[[0,0],[0,1],[1,1],[1,0.5],[0,0.5],[1,0]]] },
+  S: { trazos: [[[1,1],[0,1],[0,0.5],[1,0.5],[1,0],[0,0]]] },
+  T: { trazos: [[[0,1],[1,1],[0.5,1],[0.5,0]]] },
+  U: { trazos: [[[0,1],[0,0],[1,0],[1,1]]] },
+  V: { trazos: [[[0,1],[0.5,0],[1,1]]] },
+  W: { trazos: [[[0,1],[0.25,0],[0.5,0.6],[0.75,0],[1,1]]], proporcion: 1 },
+  X: { trazos: [[[0,0],[1,1],[0.5,0.5],[0,1],[1,0]]] },
+  Y: { trazos: [[[0,1],[0.5,0.5],[1,1],[0.5,0.5],[0.5,0]]] },
+  Z: { trazos: [[[0,1],[1,1],[0,0],[1,0]]] }
+};

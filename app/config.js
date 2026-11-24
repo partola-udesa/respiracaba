@@ -6,7 +6,8 @@
    | Servicio                         | Para qué                          | ¿Clave?                                   |
    |----------------------------------|-----------------------------------|-------------------------------------------|
    | Open-Meteo (pronóstico por hora) | viento, temperatura, lluvia, UV   | NO. Gratis para uso no comercial.         |
-   | Esri (Light Gray Canvas)         | el mapa de fondo                  | NO. Gratis con atribución.                |
+   | OpenStreetMap (teselas)          | el mapa de fondo                  | NO. Gratis con atribución, uso moderado.  |
+   | OSM France (teselas)             | el mapa, abriendo como archivo    | NO. Gratis con atribución, uso moderado.  |
    | Photon / Nominatim (OSM)         | buscar direcciones                | NO. Uso moderado, con atribución.         |
    | Groq (IA, modelos gpt-oss)       | interpretar recorridos, chat      | SÍ: GROQ_API_KEY, SOLO en el servidor.    |
 
@@ -24,10 +25,21 @@ const CONFIG = {
   climaURL: 'https://api.open-meteo.com/v1/forecast',
 
   // --- Mapa base (app/mapa.js) ---
-  // CARTO empezó a pedir clave (las teselas salían con "API KEY REQUIRED"): se usa el gris claro de Esri, sin clave.
-  teselas: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
-  teselasZoomMax: 16,   // más cerca, Leaflet agranda las de nivel 16
-  atribucion: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · Mapa base <a href="https://www.esri.com">Esri</a> · Clima <a href="https://open-meteo.com">Open-Meteo</a>',
+  // v13: teselas oficiales de OpenStreetMap (API de teselas, sin clave). Más prolijas que las de Esri:
+  // nombres de calles, parques y lagos en todos los niveles de zoom. Los colores se bajan con CSS
+  // (.leaflet-tile-pane en estilos.css) para que la ruta lima se lea encima.
+  // Política de uso: https://operations.osmfoundation.org/policies/tiles/ — atribución visible, sin
+  // descargas masivas; si el tráfico crece hay que pasar a un proveedor de teselas OSM con plan.
+  // v14: OSM exige el encabezado "Referer". Si la app se abre como archivo (index.html con doble clic,
+  // por ejemplo después de bajarla de GitHub), el navegador no lo manda y OSM responde cada tesela con
+  // una imagen de "Access blocked". En ese caso se usa el servidor de OpenStreetMap France: es el mismo mapa de OSM
+  // (mismo estilo y datos) y no pide Referer (teselasSinServidor).
+  teselas: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  teselasZoomMax: 19,
+  atribucion: '© <a href="https://www.openstreetmap.org/copyright">colaboradores de OpenStreetMap</a> · Clima <a href="https://open-meteo.com">Open-Meteo</a>',
+  teselasSinServidor: 'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',
+  teselasSinServidorZoomMax: 19,
+  atribucionSinServidor: '© <a href="https://www.openstreetmap.org/copyright">colaboradores de OpenStreetMap</a> · teselas <a href="https://www.openstreetmap.fr">OSM France</a> · Clima <a href="https://open-meteo.com">Open-Meteo</a>',
 
   // --- IA (app/ia.js → app/api/ia.js → Groq) ---
   // [API IA] La página nunca habla con Groq directo: llama a esta función del servidor,

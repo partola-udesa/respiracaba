@@ -128,7 +128,7 @@ input, textarea, select { font: inherit; font-size: 16px; color: var(--texto-1);
 .aurora--suave { opacity: .5; }
 @keyframes respirar { 0%, 100% { transform: scale(1); opacity: .8; } 50% { transform: scale(1.08); opacity: 1; } }
 
-/* ---------- 6. ENCABEZADO flotante (volver · RESPIRA · avatar) ---------- */
+/* ---------- 6. ENCABEZADO flotante (volver · RESPIRA · menú) ---------- */
 /* En las pantallas con scroll, una franja que se funde con el fondo para que el texto no pase por detrás de los botones */
 .pantalla[data-encabezado]:not(.pantalla--mapa)::before { content: ""; position: absolute; z-index: 4; top: 0; left: 0; right: 0; height: calc(var(--seguro-arriba) + 72px);
   background: linear-gradient(to bottom, var(--fondo-arriba) 62%, rgba(231,236,230,0)); pointer-events: none; }
@@ -325,7 +325,7 @@ input, textarea, select { font: inherit; font-size: 16px; color: var(--texto-1);
 @keyframes girar { to { transform: rotate(360deg); } }
 /* Leaflet en modo claro: el mapa base se tiñe de verde grisáceo para que combine */
 .leaflet-container { background: var(--mapa-fondo); font-family: var(--fuente); }
-.leaflet-tile-pane { filter: sepia(.3) hue-rotate(60deg) saturate(.9) brightness(.97); }
+.leaflet-tile-pane { filter: saturate(.42) sepia(.12) hue-rotate(40deg) brightness(1.03) contrast(.9); }   /* OSM atenuado: más cerca de la paleta de Figma */
 .leaflet-control-attribution { background: rgba(255,255,255,.55) !important; color: var(--texto-3) !important; font-size: 9px; }
 .leaflet-control-attribution a { color: var(--texto-2) !important; }
 .leaflet-control-zoom { display: none; }
@@ -614,37 +614,7 @@ input, textarea, select { font: inherit; font-size: 16px; color: var(--texto-1);
 .boton { color: var(--acento-texto); }
 .boton--secundario { color: var(--texto-1); }
 
-/* ---------- 22. v11 · DEFINÍ TU RECORRIDO: "Contanos" primero, formulario desplegable y km automáticos ---------- */
-.contanos { display: flex; flex-direction: column; gap: var(--e12); padding: var(--e20); border-radius: var(--radio-tarjeta);
-  background: var(--acento); color: var(--acento-texto); box-shadow: 0 4px 2px rgba(0,0,0,.25); }
-.contanos__etiqueta { display: inline-flex; align-items: center; gap: var(--e8); font-size: 19px; font-weight: 600; letter-spacing: -0.01em; }
-.contanos__etiqueta .icono { width: 22px; height: 22px; }
-.contanos textarea { width: 100%; min-height: 84px; max-height: 160px; padding: var(--e12) var(--e16); border: 0; border-radius: var(--radio-m); outline: none; resize: none;
-  background: rgba(255,255,255,.72); color: var(--texto-1); line-height: 1.45; field-sizing: content; }
-.contanos textarea:focus { background: #fff; box-shadow: 0 0 0 2px var(--acento-tinta); }
-.contanos__acciones { display: flex; align-items: center; gap: var(--e12); }
-.contanos__ayuda { flex: 1; color: var(--acento-texto-2); }
-.contanos__microfono { flex: none; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: rgba(16,32,15,.1); color: var(--acento-texto); transition: transform .15s; }
-.contanos__microfono:active { transform: scale(.94); }
-.contanos__microfono[aria-pressed="true"] { background: var(--acento-texto); color: var(--acento); animation: latido-boton 1.2s ease-out infinite; }
-.contanos .pedido__boton { width: 48px; height: 48px; background: var(--acento-texto); color: var(--acento); }
-.contanos__estado { color: var(--acento-texto); background: rgba(255,255,255,.55); padding: var(--e8) var(--e12); border-radius: var(--radio-s); }
-.desplegar { display: flex; align-items: center; justify-content: space-between; gap: var(--e8); min-height: var(--tactil); padding: 0 var(--e4);
-  font-size: 15px; font-weight: 600; color: var(--texto-1); border-bottom: 1px solid var(--linea); }
-.desplegar .icono { transition: transform .3s var(--curva); }
-.desplegar[aria-expanded="true"] .icono { transform: rotate(180deg); }
-.form-manual { display: flex; flex-direction: column; gap: var(--e20); animation: aparecer .3s var(--curva); }
-.distancia-auto { display: flex; align-items: center; justify-content: space-between; gap: var(--e12); min-height: 64px; padding: var(--e8) var(--e8) var(--e8) var(--e16);
-  border-radius: var(--radio-m); background: var(--fondo-elevado); border: 1px solid var(--campo-borde); }
-.distancia-auto__total { display: flex; align-items: baseline; gap: 6px; }
-.distancia-auto__total b { font-size: 28px; font-weight: 600; font-variant-numeric: tabular-nums; }
-.distancia-auto__total span { font-size: 13px; color: var(--texto-2); }
-.contador { display: flex; align-items: center; gap: 4px; padding: 4px; border-radius: var(--radio-boton); background: var(--oscuro); color: var(--oscuro-texto); }
-.contador__boton { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: var(--acento); }
-.contador__boton:disabled { color: rgba(244,247,241,.3); }
-.contador__boton:active:not(:disabled) { background: rgba(200,241,105,.15); }
-.contador__valor { min-width: 58px; text-align: center; font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
-
+/* ---------- 22. v11 · PERFIL → FILTROS ---------- */
 /* Condición marcada por el perfil + aviso del perfil */
 .condicion__origen { display: inline-block; margin-bottom: 4px; padding: 2px 8px; border-radius: var(--radio-boton); background: var(--acento-texto); color: var(--acento); font-size: 10px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
 .condiciones--chicas .condicion__origen { font-size: 9px; }
@@ -664,17 +634,11 @@ input, textarea, select { font: inherit; font-size: 16px; color: var(--texto-1);
 .enlace { color: var(--acento-tinta); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; font-size: inherit; }
 .letras { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
 .letra { position: relative; height: 150px; border-radius: 22px; overflow: hidden; text-align: left;
-  background-color: var(--mapa-fondo); border: 1px solid rgba(16,32,15,.1);
-  background-image: repeating-linear-gradient(28deg, rgba(255,255,255,.9) 0 2px, transparent 2px 22px), repeating-linear-gradient(118deg, rgba(255,255,255,.9) 0 2px, transparent 2px 26px);
-  transition: transform .15s; }
+  background-color: var(--mapa-fondo); border: 1px solid rgba(16,32,15,.1); transition: transform .15s; }
 .letra:active { transform: scale(.97); }
 .letra--proxima { border: 3px solid var(--acento); }
 .letra--hecha { opacity: .72; }
-.letra__mapa { position: absolute; inset: 0; display: grid; place-items: center; }
-.letra__dibujo { width: 100%; height: 100%; }
-.letra__brillo { fill: none; stroke: var(--acento); stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; opacity: .75; }
-.letra__linea { fill: none; stroke: #2F5A1D; stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
-.letra__inicio { fill: #fff; stroke: #2F5A1D; stroke-width: 2.5; }
+.letra__mapa { position: absolute; inset: 0; display: grid; place-items: center; overflow: hidden; pointer-events: none; }
 .letra__cargando { padding: 0 var(--e16); font-size: 12px; color: var(--texto-3); text-align: center; }
 .letra__badge, .letra__dia, .letra__km { position: absolute; z-index: 1; display: grid; place-items: center; font-weight: 700; }
 .letra__badge { top: 8px; left: 8px; width: 30px; height: 30px; border-radius: 50%; background: #fff; font-size: 15px; color: var(--acento-texto); }
@@ -798,3 +762,222 @@ input, textarea, select { font: inherit; font-size: 16px; color: var(--texto-1);
 @keyframes entrar-foto { from { opacity: 0; transform: rotate(-12deg) translateY(30px) scale(.8); } to { opacity: 1; transform: rotate(5deg); } }
 .tarjeta-accion--archivo { flex-direction: column; align-items: stretch; gap: 0; }
 .tarjeta-accion__fila { display: flex; align-items: center; gap: var(--e16); }
+
+/* ---------- 26. v13 · PANTALLAS DE "RESPIRA FINAL?" AL DETALLE ----------
+   Valores tomados de los frames 03, 05c, 06, 08, 09a/b, 11, 12, 13 y 14 (Figma `respiracaba`). */
+.cuerpo, .cuerpo--oscuro { color: var(--texto-1); }
+.chico--oscuro { color: var(--texto-1); }
+.opcion__descripcion { color: var(--texto-1); }
+
+/* Encabezado: vidrio oscuro sobre crema (ya en la sección 21); sobre el mapa, vidrio claro con ícono oscuro (frames 08–10) */
+.pantalla--mapa .header .circulo.vidrio { background: rgba(255,255,255,.75); border-color: rgba(16,32,15,.1); color: var(--texto-1); }
+
+/* 03 · Completá tu perfil: campos oscuros con texto blanco */
+#datos .campo { background: #141E18; border-color: #0A0F0C; border-radius: 16px; backdrop-filter: none; -webkit-backdrop-filter: none; }
+#datos .campo input { color: #fff; color-scheme: dark; }
+#datos .campo input::placeholder { color: rgba(255,255,255,.5); }
+#datos .foto__texto { color: var(--texto-1); }
+
+/* 06 · Definí tu recorrido */
+.contenido--definir { gap: 18px; }
+.campo--lugar { border-color: var(--campo-borde); }
+#campo-distancia { border-color: rgba(10,15,12,.2); }
+.nota--fuerte { color: #0A0F0C; }
+.casilla { color: var(--texto-1); }
+.casilla input { appearance: none; -webkit-appearance: none; margin: 0; width: 20px; height: 20px; border: 1.5px solid #0A0F0C; border-radius: 5px; display: grid; place-items: center; cursor: pointer; flex: none; }
+.casilla input:checked { background: var(--acento); border-color: var(--acento-texto); }
+.casilla input:checked::after { content: ""; width: 9px; height: 5px; margin-top: -3px; border: solid var(--acento-texto); border-width: 0 0 2px 2px; transform: rotate(-45deg); }
+.fila--cuando .campo { background: #A9B65A; border-color: #0A0F0C; opacity: .5; transition: opacity .2s; }
+.fila--cuando.fila--activa .campo { opacity: 1; background: var(--fondo-elevado); }
+.campo--hora { flex: 0 0 132px !important; }
+
+/* 08 · Tus recorridos ideales: hoja con las 3 opciones y el botón (alto fijo de Figma: 384 px) */
+#hoja-recorridos, #hoja-detalle, .hoja--fija { background: #F8FDEB; box-shadow: 0 -10px 40px rgba(0,0,0,.35); }
+#hoja-recorridos .hoja__contenido { gap: var(--e8); }
+.opcion-ruta { min-height: 70px; border-radius: 16px; background: rgba(255,255,255,.06); border-color: rgba(22,58,30,.4); }
+.opcion-ruta__numero { background: rgba(16,32,15,.06); }
+.opcion-ruta__textos { min-width: 0; }
+.opcion-ruta__sub { color: var(--texto-1); display: flex; align-items: center; flex-wrap: wrap; }
+.opcion-ruta__indice { min-width: 0; gap: 2px; }
+.opcion-ruta__indice .numero { font-size: 26px; font-weight: 300; letter-spacing: -0.03em; }
+.opcion-ruta__leyenda { font-size: 12px; color: var(--texto-1); letter-spacing: 0; }
+.opcion-ruta[aria-checked="true"] { background: rgba(200,241,105,.12); border-color: #B9F03A; }
+.etiqueta-polen--bajo { color: var(--texto-1); }
+.etiqueta-polen--bajo .icono { color: var(--acento-tinta); }
+
+/* 09a/09b · Recorrido elegido */
+.insignia { background: #E2F2BD; border-color: #3F6E0F; color: #3F6E0F; font-weight: 500; }
+#hoja-detalle .datos-fila { border-color: #1F5B2D; }
+#hoja-detalle .datos-fila .dato + .dato { border-left-color: #1F5B2D; }
+#hoja-detalle .dato span { color: var(--texto-1); }
+.seccion__titulo--oscuro { color: var(--texto-1); letter-spacing: .08em; }
+.seccion__titulo--marca { color: var(--marca-texto); letter-spacing: .08em; }
+.componente { color: var(--texto-2); }
+.componente--elegido { color: var(--marca-texto); }
+.componente .componente__dato { color: var(--texto-3); font-weight: 500; }
+.tarjeta-polen { display: flex; gap: var(--e12); padding: var(--e16); border-radius: 30px; background: #E2F2BD; border: 1px solid #3F6E0F; color: var(--texto-1); }
+.tarjeta-polen > .icono { color: var(--acento-tinta); }
+.tarjeta-polen--medio { background: rgba(242,201,76,.22); border-color: var(--aviso); }
+.tarjeta-polen--alto { background: rgba(225,120,100,.16); border-color: var(--peligro); }
+.tarjeta-polen--alto > .icono { color: var(--peligro); }
+.tarjeta-polen__textos { display: flex; flex-direction: column; gap: var(--e8); min-width: 0; }
+.tarjeta-polen__textos p { margin: 0; font-size: 13px; line-height: 1.4; }
+.tarjeta-polen__textos .nota { color: var(--texto-1); }
+.tarjeta-polen .especie { display: flex; align-items: center; gap: var(--e8); font-size: 13px; }
+.especie__barra { width: 60px; height: 6px; border-radius: 3px; background: rgba(16,32,15,.1); overflow: hidden; flex: none; }
+.especie__barra i { display: block; height: 100%; background: #F2C94C; border-radius: 3px; }
+.especie__dato { font-size: 12px; font-weight: 500; }
+.tarjeta-indice { background: rgba(248,253,235,.88); }
+
+/* 11 · Tu recorrido completado (variante de números grandes) */
+#completado .datos-fila--tarjeta { border-color: #85A63A; background: rgba(255,255,255,.06); padding: 24px 20px; }
+#completado .datos-fila--tarjeta .dato + .dato { border-left-color: #0A0F0C; }
+#completado .datos-fila--tarjeta .dato b { font-size: 45px; font-weight: 500; line-height: 1.2; color: #4A640C; }
+#completado .datos-fila--tarjeta .dato span { color: #0A0F0C; }
+#completado .respirabilidad { background: rgba(200,241,105,.36); border: 1px solid #A7C85C; box-shadow: none; }
+#completado .respirabilidad .barra { background: rgba(16,79,32,.25); }
+#completado .respirabilidad .barra i { background: #173222; }
+#completado .respirabilidad .chico { color: var(--texto-1); }
+#completado .respirabilidad .numero { color: #0A0F0C; }
+.mapa--chico { border: 1px solid #fff; }
+.sensacion { height: 90px; justify-content: center; background: transparent; border-color: #0A0F0C; }
+.sensacion[aria-pressed="true"] { border-color: var(--acento); }
+
+/* 12 · Tu experiencia */
+.divisor--oscuro { background: #0A0F0C; }
+#experiencia .chips .chip { min-height: 42px; }
+#resumen-experiencia { margin: 0; color: var(--texto-1); }
+#resumen-experiencia:empty { display: none; }
+
+/* 13 · Comentario */
+.comentario textarea { background: rgba(16,32,15,.04); border-color: #0A0F0C; }
+
+/* 14 · ¡Recorrido guardado! */
+#guardado .contenido { gap: var(--e16); }
+#guardado .titulo { text-align: center; }
+#guardado .enlace { font-size: 14px; margin-top: var(--e4); }
+
+/* 05c · Respira challenge: mapa real en cada tarjeta + zona + la palabra en la Ciudad */
+.sugerencias-palabra { flex-wrap: nowrap; margin-right: calc(var(--e24) * -1); }
+.sugerencias-palabra__lista { display: flex; gap: var(--e8); overflow-x: auto; scrollbar-width: none; padding-right: var(--e24); }
+.sugerencias-palabra__lista::-webkit-scrollbar { display: none; }
+.chip--palabra { flex: none; color: var(--acento-texto); }
+.zonas { display: flex; gap: var(--e8); flex-wrap: wrap; margin-top: calc(var(--e8) * -1); }
+.chip--zona { min-height: 34px; padding: 0 12px; font-size: 13px; }
+#zona-texto { margin-top: calc(var(--e12) * -1); }
+#zona-texto:empty { display: none; }
+.letra { border: 1px solid rgba(16,32,15,.1); }
+.letra--proxima { border: 3px solid var(--acento); }
+.letra .leaflet-container { background: var(--mapa-fondo); }
+.letra__badge { z-index: 2; } .letra__dia, .letra__km { z-index: 2; }
+.letra--hecha .letra__mapa { filter: grayscale(.6); opacity: .7; }
+.mapa--girado { transform-origin: 50% 50%; }
+.marcador--letra { width: 12px; height: 12px; background: #fff; border: 2.5px solid var(--acento-tinta); box-shadow: none; }
+.marcador--letra::after { display: none; }
+.palabra-ciudad { display: flex; flex-direction: column; gap: var(--e8); }
+.palabra-ciudad__mapa { height: 240px; border-radius: 22px; border: 1px solid rgba(16,32,15,.1); }
+.letra-pin { width: 28px; height: 28px; margin: -14px 0 0 -14px; border-radius: 50%; display: grid; place-items: center; background: #fff; color: var(--acento-texto);
+  font: 700 14px/1 var(--fuente); box-shadow: 0 4px 10px rgba(16,32,15,.3); border: 2px solid var(--acento-tinta); cursor: pointer; }
+.letra-pin--proxima { background: var(--acento); }
+.letra-pin--hecha { background: var(--acento-tinta); color: var(--acento); }
+
+/* Pie: en Figma el pie oscuro va solo en 04 (perfil), 06 (definí) y 07 (condiciones); en el resto es crema */
+.pie { background: linear-gradient(to top, var(--fondo) 55%, rgba(247,245,238,0)); }
+.pie .boton--enlace, .pie .nota { color: var(--texto-2); }
+.pie .boton:disabled, .pie .boton[aria-disabled="true"] { background: var(--pista); color: var(--texto-3); }
+#perfil .pie, #definir .pie, #condiciones .pie { background: linear-gradient(to top, var(--pie-oscuro) 62%, rgba(13,20,16,0)); }
+#perfil .pie .boton--enlace, #perfil .pie .nota { color: rgba(244,247,241,.75); }
+#perfil .pie .boton:disabled, #perfil .pie .boton[aria-disabled="true"] { background: rgba(244,247,241,.14); color: rgba(244,247,241,.5); }
+/* Check de "¡Recorrido guardado!" en lima, como en el frame 14 */
+#guardado .confirmacion svg { stroke: #B5DC52; }
+
+/* ---------- 27. v14 · MARCÁ EN EL MAPA ("drop your pin") ---------- */
+.campo__pin { flex: none; display: grid; place-items: center; width: 40px; height: 40px; margin-right: -8px; border-radius: 50%;
+  background: rgba(16,32,15,.06); color: var(--acento-tinta); transition: background .2s, transform .15s; }
+.campo__pin:active { transform: scale(.94); }
+.campo__pin:hover { background: var(--acento-suave); }
+.campo__pin .icono { width: 22px; height: 22px; color: var(--acento-tinta); }
+.elegir-punto { position: absolute; inset: 0; z-index: 30; background: var(--mapa-fondo); animation: aparecer .25s var(--curva); }
+.elegir-punto__arriba { position: absolute; z-index: 3; top: calc(var(--seguro-arriba) + var(--e12)); left: var(--e16); right: var(--e16); display: flex; align-items: center; gap: var(--e12); }
+.elegir-punto__arriba .circulo { background: rgba(255,255,255,.75); border-color: rgba(16,32,15,.1); color: var(--texto-1); flex: none; }
+.elegir-punto__arriba .pista-mapa { margin: 0; min-width: 0; font-size: 13px; color: var(--texto-1); background: rgba(255,255,255,.85); }
+.elegir-punto__ubicacion { position: absolute; z-index: 3; right: var(--e16); bottom: calc(232px + var(--seguro-abajo)); background: rgba(255,255,255,.85); border: 1px solid rgba(16,32,15,.1); color: var(--acento-tinta); box-shadow: 0 6px 16px var(--sombra); }
+/* El pin queda fijo en el centro del mapa (la punta marca el punto) y se levanta mientras el mapa se mueve */
+/* v15: pin minimalista (cabeza redonda + aguja); la punta de la aguja es el punto elegido */
+.pin-central { position: absolute; z-index: 2; left: 50%; top: 50%; width: 20px; height: 36px; margin: -36px 0 0 -10px; pointer-events: none; }
+.pin-central svg { position: relative; z-index: 1; width: 20px; height: 36px; transition: transform .2s var(--curva); filter: drop-shadow(0 3px 4px rgba(16,32,15,.3)); }
+.pin-central__forma, .pin-central__aguja { fill: var(--oscuro); transition: fill .2s; }
+.pin-central__punto { fill: var(--acento); }
+.pin-central__sombra { position: absolute; left: 50%; bottom: -2px; width: 10px; height: 4px; margin-left: -5px; border-radius: 50%; background: rgba(16,32,15,.35); transition: transform .2s var(--curva), opacity .2s; }
+.pin-central--arriba svg { transform: translateY(-10px); }
+.pin-central--arriba .pin-central__sombra { transform: scale(1.6); opacity: .5; }
+.elegir-punto--fuera .pin-central__forma { fill: var(--peligro); }
+.elegir-punto--fuera .pin-central__punto { fill: #F4D9D3; }
+.elegir-punto__hoja { z-index: 4; }
+.elegir-punto__lugar { display: flex; flex-direction: column; gap: 2px; min-height: 52px; }
+.elegir-punto--fuera #pin-nombre { color: var(--peligro); font-size: 17px; }
+
+/* ---------- v15 · MENÚ (se abre desde el botón ☰ del encabezado) ----------
+   La app queda desenfocada y un poco más chica detrás; las opciones se acomodan sobre una curva
+   (como la curva de una pista) con los íconos del lado del pulgar. La píldora oscura marca dónde estás. */
+.pantalla { transition: transform .42s var(--curva), border-radius .42s var(--curva); }
+.app.con-menu .pantalla { transform: scale(.94) translateX(-14px); border-radius: 36px; overflow: hidden; }
+
+.menu { position: absolute; inset: 0; z-index: 50; }
+.menu__velo { position: absolute; inset: 0; background: rgba(247, 245, 238, .42); backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%);
+  opacity: 0; transition: opacity .32s var(--curva); }
+.menu.abierto .menu__velo { opacity: 1; }
+
+.menu__cerrar { position: absolute; z-index: 2; top: calc(var(--seguro-arriba) + var(--e12)); right: var(--e16); background: var(--oscuro); color: var(--oscuro-texto);
+  box-shadow: 0 0 0 3px var(--fondo), 0 0 0 5px var(--acento); transform: rotate(-90deg) scale(.6); opacity: 0; transition: transform .38s var(--curva), opacity .2s; }
+.menu.abierto .menu__cerrar { transform: none; opacity: 1; }
+
+.menu__panel { position: absolute; inset: calc(var(--seguro-arriba) + 72px) 0 calc(var(--seguro-abajo) + var(--e20)); display: flex; flex-direction: column; gap: var(--e12); padding: 0 var(--e16) 0 var(--e24); pointer-events: none; }
+.menu__panel > * { pointer-events: auto; }
+
+/* Perfil: tarjeta de vidrio arriba a la derecha, debajo del botón de cerrar */
+.menu__perfil { align-self: flex-end; display: flex; align-items: center; gap: var(--e12); padding: var(--e8) var(--e8) var(--e8) var(--e20); border-radius: var(--radio-boton); text-align: right;
+  background: var(--vidrio-fuerte); border: 1px solid var(--vidrio-borde); box-shadow: var(--vidrio-sombra);
+  opacity: 0; transform: translateY(-8px); transition: opacity .3s, transform .4s var(--curva); }
+.menu.abierto .menu__perfil { opacity: 1; transform: none; }
+.menu__perfil-textos { display: flex; flex-direction: column; }
+.menu__perfil-nombre { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+.menu__perfil-dato { font-size: 13px; color: var(--texto-2); }
+.menu__avatar { width: 52px; height: 52px; background: var(--oscuro); color: var(--acento); }
+
+/* La pista: opciones sobre la curva */
+.menu__pista { position: relative; flex: 1; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: var(--e8); padding-right: 56px; }
+.menu__curva { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.menu__curva path { fill: none; stroke: var(--linea); stroke-width: 1.5; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .7s var(--curva) .1s; }
+.menu.abierto .menu__curva path { stroke-dashoffset: 0; }
+.menu__marca { position: absolute; top: -6px; left: calc(100% - 22px - 16px); width: 32px; height: 12px; border-radius: var(--radio-boton); background: var(--oscuro);
+  opacity: 0; transition: transform .38s var(--curva), opacity .2s; pointer-events: none; }
+.menu.abierto .menu__marca.visible { opacity: 1; }
+
+.menu__rotulo { margin: var(--e12) 70px 0 0; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--texto-3); }
+.menu__item { display: flex; align-items: center; gap: 14px; min-height: 68px; text-align: right; }
+.menu__item:focus-visible { outline: none; }
+.menu__item:focus-visible .menu__icono { outline: 2px solid var(--acento-tinta); outline-offset: 3px; }
+.menu__pista > .menu__item, .menu__pista > .menu__rotulo { opacity: 0; transform: translateX(calc(var(--x, 0px) + 48px));
+  transition: opacity .3s calc(var(--i, 0) * 35ms), transform .5s var(--curva) calc(var(--i, 0) * 35ms); }
+.menu.abierto .menu__pista > .menu__item, .menu.abierto .menu__pista > .menu__rotulo { opacity: 1; transform: translateX(var(--x, 0px)); }
+.menu__textos { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.menu__titulo { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; color: var(--texto-1); padding: 4px 0; transition: padding .25s var(--curva), background .25s; }
+.menu__dato { font-size: 13px; color: var(--texto-3); }
+.menu__icono { width: 56px; height: 52px; border-radius: var(--radio-boton); display: grid; place-items: center; color: var(--acento-tinta);
+  background: var(--capa); border: 1px solid var(--vidrio-borde); transition: width .3s var(--curva), background .25s, box-shadow .25s; }
+.menu__item:hover .menu__icono, .menu__item:focus-visible .menu__icono { background: var(--vidrio-fuerte); }
+.menu__item:active .menu__icono { transform: scale(.95); }
+/* Dónde estás: ícono en lima y nombre en etiqueta, como la opción elegida de la referencia */
+.menu__item[aria-current] .menu__icono { width: 72px; background: var(--acento); border-color: var(--acento-borde); color: var(--acento-texto); box-shadow: 0 6px 20px var(--brillo); }
+.menu__item[aria-current] .menu__titulo { padding: 4px 14px; border-radius: var(--radio-boton); background: var(--vidrio-fuerte); border: 1px solid var(--vidrio-borde); }
+
+/* Tu semana: los números del runner al pie */
+.menu__semana { padding: var(--e16) var(--e20); border-radius: var(--radio-tarjeta); background: var(--oscuro); color: var(--oscuro-texto);
+  opacity: 0; transform: translateY(12px); transition: opacity .3s .18s, transform .45s var(--curva) .18s; }
+.menu.abierto .menu__semana { opacity: 1; transform: none; }
+.menu__semana .menu__rotulo { margin: 0 0 var(--e8); color: rgba(244, 247, 241, .55); }
+.menu__numeros { display: flex; justify-content: space-between; gap: var(--e12); font-size: 13px; color: rgba(244, 247, 241, .7); }
+.menu__numeros span { display: flex; flex-direction: column; }
+.menu__numeros b { font-size: 26px; font-weight: 300; letter-spacing: -0.02em; color: var(--acento); font-variant-numeric: tabular-nums; }
+.menu__vacio { margin: 0; font-size: 15px; }

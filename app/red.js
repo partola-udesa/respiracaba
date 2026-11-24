@@ -304,51 +304,204 @@
     return c.reduce((s, p) => s + red.largo[p.tramo], 0);
   }
 
-  /* ---------- v11 · RESPIRA CHALLENGE: una letra dibujada con calles ----------
-     trazos: lista de trazos; cada trazo es una lista de puntos [x, y] entre 0 y 1 (0,0 = abajo a la izquierda).
-     La letra se gira para quedar alineada con la grilla de calles del lugar, cada vértice se lleva a la esquina
-     más cercana y entre vértices se busca el camino de menor costo con las condiciones elegidas (λ bajo para
-     no deformar la letra). Entre un trazo y el siguiente también se corre: queda marcado como "enlace". */
-  function rumboDeLaGrilla(nodo, radio = 450) {
-    const cajas = new Float32Array(18);   // ángulos de 0 a 90°, de a 5°
-    for (let e = 0; e < red.nT; e++) {
-      const a = red.a[e];
-      if (Math.abs(red.lat[a] - red.lat[nodo]) > 0.006 || metros(red.lon[nodo], red.lat[nodo], red.lon[a], red.lat[a]) > radio) continue;
-      const g = ((rumbo(a, red.b[e]) % 90) + 90) % 90;
-      cajas[Math.floor(g / 5) % 18] += red.largo[e];
+  /* ---------- v13 · RESPIRA CHALLENGE: una letra dibujada con calles, en toda la Ciudad ----------
+     trazos: lista de trazos; cada trazo es una lista de vértices [x, y] entre 0 y 1 (0,0 = abajo a la izquierda).
+     1. DÓNDE: se prueban lugares en una grilla cada ~650 m dentro de CABA (o cada ~300 m alrededor de un punto,
+        si el runner eligió una zona). En cada lugar la letra se gira para seguir la grilla de calles; si la letra
+        tiene diagonales, también se prueba girada 45°. Primero una pasada rápida con un tamaño y después se
+        afinan los mejores lugares con otro tamaño.
+     2. CÓMO: cada vértice va a la esquina más cercana y cada trazo se recorre por un "corredor": un tramo cuesta
+        más cuanto más se aleja de la línea ideal del trazo (así la letra no se deforma) y un poco más si tiene
+        mal puntaje en las condiciones elegidas. Entre un trazo y el siguiente también se corre ("enlace").
+     3. CUÁL: a cada intento se le mide cuánto se aleja de la letra ideal (promedio en las dos direcciones:
+        del recorrido a la letra y de la letra al recorrido), en proporción al alto de la letra. Entre los que se
+        leen casi igual de bien (hasta 8 % más de error que el mejor) gana el de mejor puntaje en las condiciones.
+     Todo es cálculo de la app sobre la red de calles y los datasets; la IA no participa. */
+  const CORREDOR_K = 4;          // cuánto castiga alejarse de la línea del trazo
+  let buf = null;                 // memoria que se reutiliza en las miles de búsquedas cortas
+  function memoria() {
+    if (!buf) buf = { dist: new Float64Array(red.nN).fill(Infinity), previo: new Int32Array(red.nN).fill(-1), tocados: [],
+      costo: new Float32Array(red.nT).fill(Infinity), marca: new Int32Array(red.nT), ronda: 0 };
+    return buf;
+  }
+  // Dijkstra que solo pisa los tramos con costo finito (el corredor) y deja la memoria limpia al terminar
+  function caminoCorto(desde, hasta, costo) {
+    const m = memoria(), { dist, previo, tocados } = m, heap = new MonticuloMinimo();
+    dist[desde] = 0; tocados.push(desde); heap.push(desde, 0);
+    while (heap.size) {
+      const [u, d] = heap.pop();
+      if (u === hasta) break;
+      if (d > dist[u]) continue;
+      for (let k = red.grado[u]; k < red.grado[u + 1]; k++) {
+        const e = red.vecinoTramo[k], c = costo[e];
+        if (c === Infinity) continue;
+        const v = red.a[e] === u ? red.b[e] : red.a[e], nd = d + c;
+        if (nd < dist[v]) { if (dist[v] === Infinity) tocados.push(v); dist[v] = nd; previo[v] = e; heap.push(v, nd); }
+      }
     }
+    let pasos = null;
+    if (desde === hasta) pasos = [];
+    else if (previo[hasta] >= 0) {
+      pasos = [];
+      for (let v = hasta; v !== desde;) { const e = previo[v], alReves = red.a[e] === v; pasos.push({ tramo: e, alReves }); v = alReves ? red.b[e] : red.a[e]; }
+      pasos.reverse();
+    }
+    for (const v of tocados) { dist[v] = Infinity; previo[v] = -1; }
+    tocados.length = 0;
+    return pasos;
+  }
+
+  // Marco local de un lugar: metros al este (x) y al norte (y) desde el centro
+  function marco(cLon, cLat) {
+    const kx = 111320 * Math.cos(cLat * Math.PI / 180), ky = 110540;
+    return { kx, ky, x: lon => (lon - cLon) * kx, y: lat => (lat - cLat) * ky, lon: x => cLon + x / kx, lat: y => cLat + y / ky };
+  }
+  // Tramos con algún extremo dentro de una caja (en lon/lat), usando la grilla de esquinas
+  function tramosEnCaja(lon0, lat0, lon1, lat1, fn) {
+    const { celdas, C } = red, m = memoria(), ronda = ++m.ronda;
+    for (let cx = Math.floor(lon0 / C); cx <= Math.floor(lon1 / C); cx++) for (let cy = Math.floor(lat0 / C); cy <= Math.floor(lat1 / C); cy++) {
+      for (const n of celdas.get(cx + ',' + cy) || []) for (let k = red.grado[n]; k < red.grado[n + 1]; k++) {
+        const e = red.vecinoTramo[k];
+        if (m.marca[e] !== ronda) { m.marca[e] = ronda; fn(e); }
+      }
+    }
+  }
+  // Rumbo de la grilla de calles alrededor de una esquina (0–90° → −45…45°), con los tramos a menos de 450 m
+  function rumboLocal(nodo) {
+    const cajas = new Float32Array(18), lon = red.lon[nodo], lat = red.lat[nodo], d = 0.0045;
+    tramosEnCaja(lon - d, lat - d, lon + d, lat + d, e => {
+      const g = ((rumbo(red.a[e], red.b[e]) % 90) + 90) % 90;
+      cajas[Math.floor(g / 5) % 18] += red.largo[e];
+    });
     let mejor = 0; cajas.forEach((v, i) => { if (v > cajas[mejor]) mejor = i; });
     const g = mejor * 5 + 2.5;
     return g > 45 ? g - 90 : g;
   }
-  async function armarLetra({ centro, trazos, alto = 650, factores = [], nocturno = false, pesos = {} }) {
-    await cargar();
-    const pol = polenActual; polenActual = null;
-    try {
-      const C = esquinaCercana(centro.lon, centro.lat);
-      if (C.distancia > 500) throw new Error('Ese punto está lejos de las calles de la Ciudad.');
-      const giro = rumboDeLaGrilla(C.nodo) * Math.PI / 180, ancho = alto * 0.7;
-      const cLon = red.lon[C.nodo], cLat = red.lat[C.nodo];
-      const aNodo = ([x, y]) => {
-        const dx = (x - 0.5) * ancho, dy = (y - 0.5) * alto;
-        const este = dx * Math.cos(giro) + dy * Math.sin(giro), norte = -dx * Math.sin(giro) + dy * Math.cos(giro);
-        return esquinaCercana(cLon + este / (111320 * Math.cos(cLat * Math.PI / 180)), cLat + norte / 110540).nodo;
-      };
-      const pref = puntajePreferencias(factores, nocturno, pesos), costo = costos(pref, 0.25);
-      let pasos = [], actual = null, enlaces = 0;
-      const ir = (a, b) => { if (a === b) return 0; const t = camino(a, b, costo); if (!t) throw new Error('No pudimos dibujar esa letra con las calles de acá. Probá otro punto.'); pasos = pasos.concat(t); return t.reduce((s, p) => s + red.largo[p.tramo], 0); };
-      for (const trazo of trazos) {
-        const nodos = trazo.map(aNodo);
-        if (actual !== null) enlaces += ir(actual, nodos[0]);
-        for (let i = 0; i < nodos.length - 1; i++) ir(nodos[i], nodos[i + 1]);
-        actual = nodos[nodos.length - 1];
+  const distSeg = (px, py, ax, ay, bx, by) => {
+    const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy || 1;
+    const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / l2));
+    return Math.hypot(px - ax - t * dx, py - ay - t * dy);
+  };
+
+  // Un intento: la letra en un lugar, con un giro y un alto. Devuelve los pasos y el error de forma (o null).
+  function intentarLetra(trazos, cLon, cLat, giro, alto, proporcion, pref, lambda) {
+    const M = marco(cLon, cLat), ancho = alto * proporcion, cos = Math.cos(giro), sin = Math.sin(giro);
+    const aXY = ([x, y]) => { const dx = (x - 0.5) * ancho, dy = (y - 0.5) * alto; return [dx * cos + dy * sin, -dx * sin + dy * cos]; };
+    // Las 4 esquinas de la letra tienen que caer dentro de la Ciudad
+    for (const q of [[0, 0], [1, 0], [0, 1], [1, 1]]) { const [x, y] = aXY(q); if (!dentroDeCABA(M.lon(x), M.lat(y))) return null; }
+    const tau = Math.max(30, alto * 0.08), margen = tau * 3.2, mem = memoria(), costo = mem.costo;
+    const nodoDe = xy => { const c = esquinaCercana(M.lon(xy[0]), M.lat(xy[1])); return c.distancia > tau * 2.2 ? -1 : c.nodo; };
+    // Recorre un segmento ideal (a → b, en metros) por su corredor; devuelve los pasos o null
+    function corredor(nA, nB, a, b, tol) {
+      const mg = tol * 3.2, lons = [M.lon(Math.min(a[0], b[0]) - mg), M.lon(Math.max(a[0], b[0]) + mg)], lats = [M.lat(Math.min(a[1], b[1]) - mg), M.lat(Math.max(a[1], b[1]) + mg)];
+      const usados = [];
+      tramosEnCaja(lons[0], lats[0], lons[1], lats[1], e => {
+        const ia = red.a[e], ib = red.b[e];
+        const mx = M.x((red.lon[ia] + red.lon[ib]) / 2), my = M.y((red.lat[ia] + red.lat[ib]) / 2);
+        const d = distSeg(mx, my, a[0], a[1], b[0], b[1]);
+        if (d > mg) return;
+        costo[e] = red.largo[e] * (1 + CORREDOR_K * (d / tol) ** 2) * (1 + lambda * (100 - pref[e]) / 100);
+        usados.push(e);
+      });
+      const pasos = caminoCorto(nA, nB, costo);
+      for (const e of usados) costo[e] = Infinity;
+      return pasos;
+    }
+    let pasos = [], actual = -1, actualXY = null, error = 0, largoIdeal = 0, enlaces = 0;
+    const hechos = new Map();   // "a>b" → pasos: si un trazo vuelve por donde vino (la barra de la E), usa las mismas calles
+    for (const trazo of trazos) {
+      const pts = trazo.map(aXY), nodos = pts.map(nodoDe);
+      if (nodos.includes(-1)) return null;
+      if (actual >= 0 && actual !== nodos[0]) {
+        const enlace = corredor(actual, nodos[0], actualXY, pts[0], tau * 2.5);
+        if (!enlace) return null;
+        enlaces += enlace.reduce((s, p) => s + red.largo[p.tramo], 0);
+        pasos = pasos.concat(enlace);
       }
-      if (!pasos.length) throw new Error('No pudimos dibujar esa letra.');
-      const r = describir(pasos, pref, nocturno, null);
-      r.enlaceKm = Math.round(enlaces / 100) / 10;
-      r.giro = giro;   // para dibujar la letra derecha en la tarjeta
-      return r;
-    } finally { polenActual = pol; }
+      for (let i = 0; i < pts.length - 1; i++) {
+        const a = pts[i], b = pts[i + 1], ida = hechos.get(nodos[i + 1] + '>' + nodos[i]);
+        const tramo = nodos[i] === nodos[i + 1] ? [] : ida ? ida.map(p => ({ tramo: p.tramo, alReves: !p.alReves })).reverse() : corredor(nodos[i], nodos[i + 1], a, b, tau);
+        if (!tramo) return null;
+        hechos.set(nodos[i] + '>' + nodos[i + 1], tramo);
+        // Error de forma de este segmento: del recorrido a la línea ideal y de la línea ideal al recorrido
+        const xy = [[M.x(red.lon[nodos[i]]), M.y(red.lat[nodos[i]])]];
+        for (const { tramo: e, alReves } of tramo) { const n = alReves ? red.a[e] : red.b[e]; xy.push([M.x(red.lon[n]), M.y(red.lat[n])]); }
+        let haciaLaLinea = 0; for (const [x, y] of xy) haciaLaLinea += distSeg(x, y, a[0], a[1], b[0], b[1]);
+        let vuelta = 0;
+        for (let s = 0; s <= 8; s++) {
+          const px = a[0] + (b[0] - a[0]) * s / 8, py = a[1] + (b[1] - a[1]) * s / 8;
+          let dm = Infinity; for (let k = 0; k < xy.length - 1; k++) dm = Math.min(dm, distSeg(px, py, xy[k][0], xy[k][1], xy[k + 1][0], xy[k + 1][1]));
+          if (xy.length === 1) dm = Math.hypot(px - xy[0][0], py - xy[0][1]);
+          vuelta += dm;
+        }
+        const largo = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        error += largo * (haciaLaLinea / xy.length + vuelta / 9) / 2;
+        largoIdeal += largo;
+        pasos = pasos.concat(tramo);
+      }
+      actual = nodos[nodos.length - 1]; actualXY = pts[pts.length - 1];
+    }
+    if (!pasos.length) return null;
+    let sPref = 0, sLargo = 0;
+    for (const { tramo: e } of pasos) { sPref += pref[e] * red.largo[e]; sLargo += red.largo[e]; }
+    return { pasos, error: error / largoIdeal / alto, pref: sPref / sLargo, enlaces };
+  }
+
+  // Lugares candidatos: la Ciudad entera o alrededor de un punto (zona = { lon, lat, radio })
+  function candidatos(zona) {
+    const lista = [], paso = zona ? 300 : 650;
+    const lat0 = zona ? zona.lat : -34.615, k = marco(0, lat0);
+    const caja = zona
+      ? [zona.lon - zona.radio / k.kx, zona.lat - zona.radio / k.ky, zona.lon + zona.radio / k.kx, zona.lat + zona.radio / k.ky]
+      : [CABA.oeste, CABA.sur, CABA.este, CABA.norte];
+    for (let lon = caja[0]; lon <= caja[2]; lon += paso / k.kx) for (let lat = caja[1]; lat <= caja[3]; lat += paso / k.ky) {
+      if (!dentroDeCABA(lon, lat)) continue;
+      if (zona && metros(lon, lat, zona.lon, zona.lat) > zona.radio) continue;
+      const c = esquinaCercana(lon, lat);
+      if (c.nodo >= 0 && c.distancia < 150) lista.push(c.nodo);
+    }
+    return [...new Set(lista)];
+  }
+
+  // evitar: lugares de las otras letras de la palabra. En toda la Ciudad, entre los lugares donde la letra se lee
+  // bien, se prefieren los que quedan a más de 1,5 km de las otras: la palabra recorre varios barrios.
+  async function armarLetra({ trazos, zona = null, fijo = null, proporcion = 0.7, factores = [], nocturno = false, pesos = {}, evitar = [] }) {
+    await cargar();
+    const pref = puntajePreferencias(factores, nocturno, pesos), lambda = 0.35;
+    const diagonal = trazos.some(t => t.some((p, i) => i && Math.abs(p[0] - t[i - 1][0]) > 0.05 && Math.abs(p[1] - t[i - 1][1]) > 0.05));
+    let elegido = null;
+    if (fijo) {   // la letra ya tiene lugar (se guardó en el challenge): solo se vuelve a armar
+      const r = intentarLetra(trazos, fijo.lon, fijo.lat, fijo.giro, fijo.alto, proporcion, pref, lambda);
+      if (r) elegido = { ...r, ...fijo };
+    }
+    if (!elegido) {
+      // Las letras con diagonales van más grandes: el "serrucho" de la grilla queda más fino y la letra se lee mejor
+      const ALTOS = diagonal ? [950, 1150] : [700, 900], prueba = [];
+      // Pasada rápida: todos los lugares, un tamaño, giro de la grilla (y otros tres giros si la letra tiene diagonales)
+      for (const n of candidatos(zona)) {
+        const g = rumboLocal(n) * Math.PI / 180, giros = diagonal ? [g, g + Math.PI / 4, g + Math.PI / 8, g - Math.PI / 8] : [g];
+        for (const giro of giros) {
+          const r = intentarLetra(trazos, red.lon[n], red.lat[n], giro, ALTOS[0], proporcion, pref, lambda);
+          if (r) prueba.push({ ...r, lon: red.lon[n], lat: red.lat[n], giro, alto: ALTOS[0] });
+        }
+      }
+      if (!prueba.length) throw new Error(zona ? 'No pudimos dibujar esa letra con las calles de esa zona. Probá con toda la Ciudad.' : 'No pudimos dibujar esa letra con las calles de la Ciudad.');
+      // Afinar: los 12 mejores, con el otro tamaño
+      prueba.sort((a, b) => a.error - b.error);
+      for (const c of prueba.slice(0, 12)) {
+        const r = intentarLetra(trazos, c.lon, c.lat, c.giro, ALTOS[1], proporcion, pref, lambda);
+        if (r) prueba.push({ ...r, lon: c.lon, lat: c.lat, giro: c.giro, alto: ALTOS[1] });
+      }
+      const mejorError = Math.min(...prueba.map(p => p.error));
+      const lejos = p => zona || evitar.every(o => metros(p.lon, p.lat, o.lon, o.lat) > 1500);
+      elegido = prueba.filter(p => p.error <= mejorError * 1.08 + 0.002).sort((a, b) => (lejos(b) - lejos(a)) || (b.pref - a.pref))[0];
+    }
+    const r = describir(elegido.pasos, pref, nocturno, null);
+    r.enlaceKm = Math.round(elegido.enlaces / 100) / 10;
+    r.giro = elegido.giro;   // para dibujar la letra derecha (tarjetas y mapas giran el mapa)
+    r.lugar = { lon: elegido.lon, lat: elegido.lat, giro: elegido.giro, alto: elegido.alto };
+    r.parecido = Math.max(0, Math.round(100 - elegido.error * 400));   // 100 = idéntica a la letra ideal
+    return r;
   }
 
   /* ---------- v12 · TU ARCHIVO: índice de una zona y promedio de la Ciudad ----------
@@ -443,5 +596,18 @@
     return null;
   }
 
-  globalThis.RespiraRed = { cargar, cargarScript, armarRecorridos, distanciaDirecta, armarLetra, promedioCiudad, indiceZona, buscarEsquina, metros, get fuentes() { return red && red.fuentes; } };
+  // v14 · Para el pin del mapa: la esquina de la red más cercana y los nombres de las calles que se cruzan ahí
+  async function esquinaConNombre(lon, lat) {
+    await cargar();
+    const c = esquinaCercana(lon, lat);
+    if (c.nodo < 0) return null;
+    const calles = [];
+    for (let k = red.grado[c.nodo]; k < red.grado[c.nodo + 1]; k++) {
+      const ni = red.nombre[red.vecinoTramo[k]];
+      if (ni >= 0 && !calles.includes(red.nombres[ni])) calles.push(red.nombres[ni]);
+    }
+    return { calles: calles.slice(0, 2), distancia: Math.round(c.distancia), lon: red.lon[c.nodo], lat: red.lat[c.nodo] };
+  }
+
+  globalThis.RespiraRed = { esquinaConNombre, cargar, cargarScript, armarRecorridos, distanciaDirecta, armarLetra, promedioCiudad, indiceZona, buscarEsquina, metros, get fuentes() { return red && red.fuentes; } };
 })();
